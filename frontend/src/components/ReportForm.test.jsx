@@ -79,9 +79,13 @@ describe('ReportForm', () => {
 
     await user.click(screen.getByRole('button', { name: /verifikasi dengan e\.id/i }));
 
-    // Info tampil: butuh scan QR + hanya optimal di desktop.
-    expect(screen.getByText(/pemindaian QR/i)).toBeInTheDocument();
-    expect(screen.getByText(/optimal dan lancar di tampilan/i)).toBeInTheDocument();
+    // Info tampil dengan pesan baku (SAMA dengan login otoritas):
+    // butuh scan QR + hanya optimal dan lancar di desktop.
+    expect(
+      screen.getByText(
+        /Verifikasi e\.id memerlukan pemindaian QR menggunakan aplikasi e\.id di perangkat lain\. Fitur ini hanya optimal dan lancar di tampilan desktop\./i
+      )
+    ).toBeInTheDocument();
 
     // Alur QR TIDAK dimulai dari HP (tidak ada POST /api/verify/start).
     expect(fetchMock).not.toHaveBeenCalledWith('/api/verify/start', expect.anything());
@@ -91,6 +95,33 @@ describe('ReportForm', () => {
     expect(
       screen.getByRole('button', { name: /lanjut tanpa verifikasi/i })
     ).toBeInTheDocument();
+  });
+
+  it('mobile: tombol verifikasi e.id DI DALAM form juga menampilkan info, bukan alur QR', async () => {
+    setMobile(true);
+    const fetchMock = buildFetchMock({
+      postResponse: { ok: true, status: 201, json: async () => ({ id: 99 }) },
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    const user = userEvent.setup();
+    render(<ReportForm onSubmitted={vi.fn()} onClose={vi.fn()} />);
+    await openForm(user); // lewati layar awal -> form (badge "Melapor tanpa verifikasi")
+
+    // Tombol verifikasi di baris badge form.
+    await user.click(screen.getByRole('button', { name: /verifikasi dengan e\.id/i }));
+
+    // Info tampil (pesan sama), alur QR TIDAK dimulai.
+    expect(
+      screen.getByText(
+        /Verifikasi e\.id memerlukan pemindaian QR menggunakan aplikasi e\.id di perangkat lain\. Fitur ini hanya optimal dan lancar di tampilan desktop\./i
+      )
+    ).toBeInTheDocument();
+    expect(fetchMock).not.toHaveBeenCalledWith('/api/verify/start', expect.anything());
+
+    // Kembali -> kembali ke form (bukan layar awal).
+    await user.click(screen.getByRole('button', { name: /^kembali$/i }));
+    expect(screen.getByText(/melapor tanpa verifikasi identitas/i)).toBeInTheDocument();
   });
 
   it('menampilkan error validasi saat field wajib kosong (termasuk lokasi belum ditentukan)', async () => {

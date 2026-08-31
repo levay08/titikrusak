@@ -140,9 +140,13 @@ describe('App: alur lapor kerusakan end-to-end', () => {
 
     await user.click(screen.getByRole('button', { name: /^otoritas$/i }));
 
-    // Info tampil: butuh scan QR + hanya optimal di desktop.
-    expect(screen.getByText(/pemindaian QR/i)).toBeInTheDocument();
-    expect(screen.getByText(/optimal dan lancar di tampilan/i)).toBeInTheDocument();
+    // Info tampil (pesan baku SAMA dengan form warga): butuh scan QR +
+    // hanya optimal dan lancar di desktop.
+    expect(
+      screen.getByText(
+        /Verifikasi e\.id memerlukan pemindaian QR menggunakan aplikasi e\.id di perangkat lain\. Fitur ini hanya optimal dan lancar di tampilan desktop\./i
+      )
+    ).toBeInTheDocument();
     // Alur verifikasi e.id TIDAK dimulai dari HP (tidak ada POST /api/verify/start).
     expect(verifyStart).not.toHaveBeenCalled();
 

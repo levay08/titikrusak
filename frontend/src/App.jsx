@@ -17,6 +17,7 @@ import ListView from './components/ListView.jsx';
 import ReportForm from './components/ReportForm.jsx';
 import FilterPanel from './components/FilterPanel.jsx';
 import VerificationFlow from './components/VerificationFlow.jsx';
+import EidDesktopInfo from './components/EidDesktopInfo.jsx';
 import useIsMobile from './lib/useIsMobile.js';
 
 // State filter kosong (semua laporan tampil, urut terbaru).
@@ -487,43 +488,13 @@ export default function App() {
               >
                 {isMobile ? (
                   /* Mobile: alur e.id butuh scan QR di perangkat lain —
-                     tampilkan info, bukan QR (File 1 Bagian 9.7). */
-                  <div>
-                    <h2 style={{ margin: '0 0 6px', fontSize: 18, color: '#0f172a' }}>
-                      Masuk sebagai Otoritas Lokal
-                    </h2>
-                    <p
-                      style={{
-                        margin: '0 0 16px',
-                        fontSize: 13.5,
-                        lineHeight: 1.55,
-                        color: '#334155',
-                      }}
-                    >
-                      Login otoritas memakai verifikasi e.id yang memerlukan
-                      pemindaian QR dengan aplikasi e.id di perangkat lain. Fitur
-                      ini hanya optimal dan lancar di tampilan{' '}
-                      <strong>desktop</strong> — gunakan komputer untuk masuk
-                      sebagai otoritas lokal.
-                    </p>
-                    <button
-                      type="button"
-                      onClick={() => setOtoritasOpen(false)}
-                      style={{
-                        width: '100%',
-                        padding: '12px 16px',
-                        borderRadius: 8,
-                        border: 'none',
-                        background: '#7c3aed',
-                        color: '#fff',
-                        fontSize: 14,
-                        fontWeight: 700,
-                        cursor: 'pointer',
-                      }}
-                    >
-                      Tutup
-                    </button>
-                  </div>
+                     tampilkan info (pesan SAMA dengan form warga), bukan QR
+                     (File 1 Bagian 9.7). */
+                  <EidDesktopInfo
+                    title="Masuk sebagai Otoritas Lokal"
+                    actionLabel="Tutup"
+                    onAction={() => setOtoritasOpen(false)}
+                  />
                 ) : (
                   <VerificationFlow
                     role="otoritas"

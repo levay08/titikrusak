@@ -30,6 +30,7 @@ import {
   VITAL_STATUSES,
 } from '../lib/labels.js';
 import VerificationFlow from './VerificationFlow.jsx';
+import EidDesktopInfo from './EidDesktopInfo.jsx';
 import useIsMobile from '../lib/useIsMobile.js';
 
 // ---- Konfigurasi geocoding & peta lokasi (File 1 Bagian 5.2) ----
@@ -351,35 +352,16 @@ export default function ReportForm({ onSubmitted, onClose }) {
 
   // ---- Layar info e.id di mobile (File 1 Bagian 9.7) ----
   // Verifikasi e.id memerlukan scan QR dengan aplikasi e.id di perangkat
-  // lain — tidak praktis dari HP itu sendiri. Tampilkan penjelasan, bukan
-  // alur QR; desktop tetap memakai VerificationFlow.
+  // lain — tidak praktis dari HP itu sendiri. Tampilkan penjelasan (pesan
+  // SAMA dengan login otoritas, lihat EidDesktopInfo), bukan alur QR;
+  // desktop tetap memakai VerificationFlow.
   if (eidInfoOpen) {
     return (
-      <div>
-        <h2 style={{ margin: '0 0 6px', fontSize: 18, color: '#0f172a' }}>Verifikasi e.id</h2>
-        <p style={{ margin: '0 0 16px', fontSize: 13.5, lineHeight: 1.55, color: '#334155' }}>
-          Verifikasi identitas e.id memerlukan pemindaian QR menggunakan aplikasi
-          e.id di perangkat lain. Fitur ini hanya optimal dan lancar di tampilan{' '}
-          <strong>desktop</strong> — silakan lakukan dari komputer, atau lanjut
-          tanpa verifikasi.
-        </p>
-        <button
-          type="button"
-          onClick={() => setEidInfoOpen(false)}
-          style={{
-            padding: '12px 16px',
-            borderRadius: 8,
-            border: '1px solid #cbd5e1',
-            background: '#fff',
-            color: '#0f172a',
-            fontSize: 14,
-            fontWeight: 600,
-            cursor: 'pointer',
-          }}
-        >
-          Kembali
-        </button>
-      </div>
+      <EidDesktopInfo
+        title="Verifikasi e.id"
+        actionLabel="Kembali"
+        onAction={() => setEidInfoOpen(false)}
+      />
     );
   }
 
@@ -547,7 +529,7 @@ export default function ReportForm({ onSubmitted, onClose }) {
           <span>Melapor tanpa verifikasi identitas</span>
           <button
             type="button"
-            onClick={() => setVerificationOpen(true)}
+            onClick={() => (isMobile ? setEidInfoOpen(true) : setVerificationOpen(true))}
             style={{
               border: 'none',
               background: '#7c3aed',
