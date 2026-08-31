@@ -357,6 +357,8 @@ export default function App() {
               onResetFilters={handleResetFilters}
               hasAnyData={totalCount === null ? null : totalCount > 0}
               onOpenReportForm={openReportForm}
+              otoritas={otoritas}
+              onReportUpdated={handleSubmitted}
             />
           )}
 

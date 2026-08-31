@@ -20,8 +20,36 @@ import {
   STATUS_LABELS,
   STATUS_COLORS,
 } from '../lib/labels.js';
+import {
+  PRIORITY_TIERS,
+  priorityTier,
+  priorityScore,
+  completenessLevel,
+} from '../lib/priority.js';
+import VerificationFlow from './VerificationFlow.jsx';
+import EidDesktopInfo from './EidDesktopInfo.jsx';
 import useIsMobile from '../lib/useIsMobile.js';
 import EmptyResults from './EmptyResults.jsx';
+
+// Alur status laporan (File 1 Bagian 6.2): satu arah maju. Tombol tindakan
+// otoritas selalu menawarkan STATUS BERIKUTNYA dalam alur ini.
+const STATUS_FLOW = ['dilaporkan', 'terverifikasi', 'dalam_perbaikan', 'selesai_diperbaiki'];
+
+// Kunci localStorage untuk status terverifikasi e.id (diisi ReportForm saat
+// warga selesai verifikasi; dipakai fitur Dukungan agar tidak scan ulang).
+const EID_STORAGE_KEY = 'titikrusak_eid';
+
+// Baca status verifikasi e.id yang tersimpan secara lokal (jika ada).
+function getStoredEidVerification() {
+  try {
+    const raw = localStorage.getItem(EID_STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    return parsed && parsed.isVerified ? parsed : null;
+  } catch (_e) {
+    return null;
+  }
+}
 
 // Urutan + label seluruh field laporan untuk modal detail.
 // Field DID (reporter_verified_did, validated_by_did) memang tidak ada di
@@ -73,10 +101,13 @@ function formatValue(key, value) {
 }
 
 // Satu baris ringkas laporan: severity badge, nama lokasi, jenis, status.
-function ReportRow({ report, onClick }) {
+// Saat mode otoritas (otoritasMode), ditambah chip validasi e.id dan
+// tingkat kelengkapan — bahan penilaian prioritas (File 1 Bagian 6.2/6.3).
+function ReportRow({ report, onClick, otoritasMode = false }) {
   const sev = SEVERITIES.find((s) => s.value === report.severity);
   const severityColor = sev?.color || '#64748b';
   const statusColor = STATUS_COLORS[report.status] || '#64748b';
+  const completeness = completenessLevel(report);
 
   return (
     <button
@@ -129,6 +160,58 @@ function ReportRow({ report, onClick }) {
           {SEVERITY_LABELS[report.severity] || report.severity}
         </span>
       </span>
+
+      {/* Chip mode otoritas: validasi e.id + kelengkapan laporan */}
+      {otoritasMode && (
+        <span style={{ display: 'flex', gap: 5, flexShrink: 0 }}>
+          {report.reporter_is_verified ? (
+            <span
+              title="Pelapor terverifikasi e.id"
+              style={{
+                padding: '3px 8px',
+                borderRadius: 999,
+                fontSize: 11,
+                fontWeight: 700,
+                background: '#dcfce7',
+                color: '#15803d',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              ✓ e.id
+            </span>
+          ) : (
+            <span
+              title="Pelapor tidak terverifikasi e.id"
+              style={{
+                padding: '3px 8px',
+                borderRadius: 999,
+                fontSize: 11,
+                fontWeight: 700,
+                background: '#f1f5f9',
+                color: '#64748b',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              Tanpa e.id
+            </span>
+          )}
+          <span
+            title="Kelengkapan laporan"
+            style={{
+              padding: '3px 8px',
+              borderRadius: 999,
+              fontSize: 11,
+              fontWeight: 700,
+              background: `${completeness.color}1a`,
+              color: completeness.color,
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {completeness.label}
+          </span>
+        </span>
+      )}
+
       {/* Status laporan saat ini */}
       <span
         style={{
@@ -149,8 +232,114 @@ function ReportRow({ report, onClick }) {
 
 // Modal detail sederhana: seluruh field laporan dari database.
 // Layout field menyesuaikan layar (mobile: label di atas nilai).
-function DetailModal({ report, onClose }) {
+// Saat otoritas masuk (prop otoritas), modal menampilkan:
+//   - tombol tindakan status BERIKUTNYA (approve/verifikasi lalu lanjut ke
+//     perbaikan/selesai) — File 1 Bagian 6.2;
+//   - fitur Dukungan warga (File 1 Bagian 6.3) yang memerlukan e.id.
+function DetailModal({ report, onClose, otoritas = null, onReportUpdated }) {
   const isMobile = useIsMobile();
+  const [statusAction, setStatusAction] = useState('idle'); // idle | busy
+  const [statusError, setStatusError] = useState('');
+  const [voteState, setVoteState] = useState('idle'); // idle | prompt | verifying | busy | done
+  const [voteError, setVoteError] = useState('');
+  const [voteCount, setVoteCount] = useState(Number(report.vote_count) || 0);
+  const [eidVerified, setEidVerified] = useState(() => Boolean(getStoredEidVerification()));
+
+  // Status berikutnya dalam alur (null bila sudah di status akhir).
+  const flowIndex = STATUS_FLOW.indexOf(report.status);
+  const nextStatus = flowIndex >= 0 && flowIndex < STATUS_FLOW.length - 1
+    ? STATUS_FLOW[flowIndex + 1]
+    : null;
+
+  const handleStatusAction = async () => {
+    if (!nextStatus) return;
+    setStatusAction('busy');
+    setStatusError('');
+    try {
+      const res = await fetch(`/api/reports/${report.id}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          status: nextStatus,
+          changed_by_display_name: otoritas?.displayName || null,
+        }),
+      });
+      if (!res.ok) {
+        let msg = `HTTP ${res.status}`;
+        try {
+          const d = await res.json();
+          if (d.error) msg = d.error;
+        } catch (_e) {
+          // body bukan JSON
+        }
+        throw new Error(msg);
+      }
+      await res.json();
+      onReportUpdated(); // peta + daftar me-refresh (marker dapat centang)
+      onClose(); // modal menampilkan data lama — tutup agar tidak basi
+    } catch (err) {
+      setStatusAction('idle');
+      setStatusError(err.message);
+    }
+  };
+
+  const castVote = async (displayName) => {
+    setVoteState('busy');
+    setVoteError('');
+    try {
+      const res = await fetch(`/api/reports/${report.id}/vote`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          voter_display_name: displayName || null,
+          voter_is_verified: true,
+        }),
+      });
+      if (!res.ok) {
+        let msg = `HTTP ${res.status}`;
+        try {
+          const d = await res.json();
+          if (d.error) msg = d.error;
+        } catch (_e) {
+          // body bukan JSON
+        }
+        throw new Error(msg);
+      }
+      const updated = await res.json();
+      setVoteCount(Number(updated.vote_count) || voteCount + 1);
+      setVoteState('done');
+    } catch (err) {
+      // 409 (sudah didukung identitas yang sama) juga dianggap selesai —
+      // tombol dinonaktifkan agar tidak berulang.
+      if (String(err.message).includes('sudah didukung')) {
+        setVoteState('done');
+        setVoteError('Laporan ini sudah Anda dukung.');
+      } else {
+        setVoteState('idle');
+        setVoteError(err.message);
+      }
+    }
+  };
+
+  const handleVoteClick = () => {
+    if (eidVerified) {
+      castVote(getStoredEidVerification()?.displayName || null);
+    } else {
+      setVoteState('prompt');
+    }
+  };
+
+  const handleVoteVerified = (result) => {
+    try {
+      localStorage.setItem(EID_STORAGE_KEY, JSON.stringify(result));
+    } catch (_e) {
+      // abaikan bila localStorage tidak tersedia
+    }
+    setEidVerified(true);
+    setVoteState('busy');
+    castVote(result.displayName || null);
+  };
+
   return (
     <div
       style={{
@@ -198,6 +387,19 @@ function DetailModal({ report, onClose }) {
             >
               {STATUS_LABELS[report.status] || report.status}
             </span>
+            {report.status === 'terverifikasi' && report.validated_by_display_name && (
+              <span
+                style={{
+                  display: 'block',
+                  marginTop: 4,
+                  fontSize: 11.5,
+                  color: '#64748b',
+                }}
+              >
+                ✓ Divalidasi oleh {report.validated_by_display_name}
+                {report.validated_at ? ` (${report.validated_at})` : ''}
+              </span>
+            )}
           </div>
           <button
             type="button"
@@ -257,6 +459,159 @@ function DetailModal({ report, onClose }) {
             </div>
           ))}
         </div>
+
+        {/* ---- Tindakan otoritas: status berikutnya (File 1 Bagian 6.2) ---- */}
+        {otoritas && nextStatus && (
+          <div style={{ marginTop: 14, borderTop: '1px solid #e2e8f0', paddingTop: 14 }}>
+            <div style={{ fontSize: 12, fontWeight: 600, color: '#334155', marginBottom: 8 }}>
+              Tindakan Otoritas
+            </div>
+            {statusError && (
+              <div
+                style={{
+                  background: '#fef2f2',
+                  border: '1px solid #fecaca',
+                  color: '#b91c1c',
+                  borderRadius: 8,
+                  padding: '8px 10px',
+                  fontSize: 12,
+                  marginBottom: 8,
+                }}
+              >
+                {statusError}
+              </div>
+            )}
+            <button
+              type="button"
+              onClick={handleStatusAction}
+              disabled={statusAction === 'busy'}
+              style={{
+                width: '100%',
+                padding: '11px 14px',
+                borderRadius: 8,
+                border: 'none',
+                background: '#7c3aed',
+                color: '#fff',
+                fontSize: 14,
+                fontWeight: 700,
+                cursor: statusAction === 'busy' ? 'wait' : 'pointer',
+              }}
+            >
+              {statusAction === 'busy'
+                ? 'Menyimpan…'
+                : nextStatus === 'terverifikasi'
+                  ? `✓ Tandai ${STATUS_LABELS[nextStatus]} (Approve)`
+                  : `Tandai ${STATUS_LABELS[nextStatus]}`}
+            </button>
+          </div>
+        )}
+
+        {/* ---- Dukungan warga (File 1 Bagian 6.3): butuh e.id ---- */}
+        <div style={{ marginTop: 14, borderTop: '1px solid #e2e8f0', paddingTop: 14 }}>
+          {voteState === 'idle' && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <span style={{ flex: 1, fontSize: 13, color: '#334155' }}>
+                🤝 Dukungan warga: <strong>{voteCount}</strong>
+              </span>
+              <button
+                type="button"
+                onClick={handleVoteClick}
+                style={{
+                  padding: '9px 14px',
+                  borderRadius: 8,
+                  border: '1px solid #7c3aed',
+                  background: '#fff',
+                  color: '#7c3aed',
+                  fontSize: 13,
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                }}
+              >
+                {eidVerified ? 'Dukung laporan' : 'Dukung laporan (e.id)'}
+              </button>
+            </div>
+          )}
+
+          {voteState === 'prompt' && (
+            <div
+              style={{
+                background: '#f5f3ff',
+                border: '1px solid #ddd6fe',
+                borderRadius: 8,
+                padding: '12px',
+              }}
+            >
+              <p style={{ margin: '0 0 10px', fontSize: 13, lineHeight: 1.5, color: '#4c1d95' }}>
+                Fitur Dukungan tersedia untuk warga terverifikasi e.id. Dukungan warga
+                menjadi sinyal prioritas bagi otoritas.
+              </p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {isMobile ? (
+                  <EidDesktopInfo
+                    title="Verifikasi e.id untuk Dukungan"
+                    actionLabel="Kembali"
+                    onAction={() => setVoteState('idle')}
+                  />
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setVoteState('verifying')}
+                    style={{
+                      width: '100%',
+                      padding: '11px 14px',
+                      borderRadius: 8,
+                      border: 'none',
+                      background: '#7c3aed',
+                      color: '#fff',
+                      fontSize: 14,
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Verifikasi dengan e.id
+                  </button>
+                )}
+                {!isMobile && (
+                  <button
+                    type="button"
+                    onClick={() => setVoteState('idle')}
+                    style={{
+                      width: '100%',
+                      padding: '10px 14px',
+                      borderRadius: 8,
+                      border: '1px solid #cbd5e1',
+                      background: '#fff',
+                      color: '#0f172a',
+                      fontSize: 13,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Batal
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+
+          {voteState === 'verifying' && (
+            <VerificationFlow
+              role="warga"
+              onComplete={handleVoteVerified}
+              onCancel={() => setVoteState('prompt')}
+            />
+          )}
+
+          {(voteState === 'busy' || voteState === 'done') && (
+            <div style={{ fontSize: 13, color: '#334155' }}>
+              {voteState === 'busy' && <span>Mencatat dukungan…</span>}
+              {voteState === 'done' && (
+                <span style={{ color: '#15803d', fontWeight: 600 }}>
+                  ✓ {voteError || `Terima kasih! Dukungan Anda tercatat (${voteCount}).`}
+                </span>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -268,8 +623,29 @@ export default function ListView({
   onResetFilters,
   hasAnyData = null, // null = total belum diketahui (jangan render empty state)
   onOpenReportForm,
+  otoritas = null, // sesi otoritas aktif (null = warga biasa)
+  onReportUpdated = () => {},
 }) {
   const [selected, setSelected] = useState(null);
+  const otoritasMode = Boolean(otoritas);
+
+  // Mode otoritas (File 1 Bagian 6.2/6.3): laporan dikelompokkan berdasarkan
+  // prioritas — gabungan severity + validasi e.id + kelengkapan laporan
+  // (lihat src/lib/priority.js). Grup diurutkan tier tertinggi dulu;
+  // di dalam grup, skor prioritas turun lalu created_at terbaru.
+  const groups = otoritasMode
+    ? PRIORITY_TIERS.map((tier) => ({
+        tier,
+        reports: reports
+          .filter((r) => priorityTier(r).value === tier.value)
+          .sort((a, b) => {
+            const sa = priorityScore(a).score;
+            const sb = priorityScore(b).score;
+            if (sb !== sa) return sb - sa;
+            return String(b.created_at).localeCompare(String(a.created_at));
+          }),
+      })).filter((g) => g.reports.length > 0)
+    : [];
 
   return (
     <div
@@ -313,7 +689,7 @@ export default function ListView({
         </div>
       )}
 
-      {reports.length > 0 && (
+      {reports.length > 0 && !otoritasMode && (
         <div style={{ maxWidth: 860, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 8 }}>
           <div style={{ fontSize: 12, color: '#64748b', padding: '0 4px' }}>
             {reports.length} laporan
@@ -324,7 +700,65 @@ export default function ListView({
         </div>
       )}
 
-      {selected && <DetailModal report={selected} onClose={() => setSelected(null)} />}
+      {/* Mode otoritas: daftar dikelompokkan per tier prioritas */}
+      {reports.length > 0 && otoritasMode && (
+        <div style={{ maxWidth: 860, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <div style={{ fontSize: 12, color: '#64748b', padding: '0 4px' }}>
+            {reports.length} laporan · dikelompokkan berdasarkan prioritas (severity + e.id + kelengkapan)
+          </div>
+          {groups.map(({ tier, reports: tierReports }) => (
+            <div key={tier.value}>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  padding: '7px 12px',
+                  borderRadius: 8,
+                  background: `${tier.color}14`,
+                  border: `1px solid ${tier.color}55`,
+                  marginBottom: 6,
+                }}
+              >
+                <span
+                  style={{
+                    width: 10,
+                    height: 10,
+                    borderRadius: '50%',
+                    background: tier.color,
+                    flexShrink: 0,
+                  }}
+                />
+                <span style={{ fontSize: 13, fontWeight: 700, color: '#0f172a' }}>
+                  Prioritas {tier.label}
+                </span>
+                <span style={{ fontSize: 12, color: '#64748b' }}>
+                  {tierReports.length} laporan
+                </span>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {tierReports.map((report) => (
+                  <ReportRow
+                    key={report.id}
+                    report={report}
+                    onClick={() => setSelected(report)}
+                    otoritasMode
+                  />
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {selected && (
+        <DetailModal
+          report={selected}
+          onClose={() => setSelected(null)}
+          otoritas={otoritas}
+          onReportUpdated={onReportUpdated}
+        />
+      )}
     </div>
   );
 }

@@ -366,13 +366,16 @@ export default function ReportForm({ onSubmitted, onClose }) {
   }
 
   // ---- Layar awal: pilihan verifikasi e.id (File 1 5.2 langkah 4a) ----
+  // Ajakan melapor dengan e.id (File 1 Bagian 5.2): verifikasi membuat
+  // laporan mudah diverifikasi otoritas dan membuka fitur Dukungan warga
+  // lain yang menaikkan prioritas penanganan.
   if (verification === null && !verificationOpen) {
     return (
       <div>
         <h2 style={{ margin: '0 0 6px', fontSize: 18, color: '#0f172a' }}>Lapor Kerusakan</h2>
         <p style={{ margin: '0 0 16px', fontSize: 13, lineHeight: 1.5, color: '#334155' }}>
           Laporkan kerusakan infrastruktur publik di sekitar Anda. Verifikasi identitas
-          dengan e.id bersifat opsional dan memperkuat kredibilitas laporan.
+          dengan e.id bersifat opsional, tetapi memberikan keuntungan bagi laporan Anda.
         </p>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           <button
@@ -391,6 +394,28 @@ export default function ReportForm({ onSubmitted, onClose }) {
           >
             Verifikasi dengan e.id
           </button>
+          {/* Manfaat melapor dengan e.id (File 1 5.2): mudah diverifikasi +
+              fitur dukungan interaktif warga yang menaikkan prioritas. */}
+          <div
+            style={{
+              background: '#f5f3ff',
+              border: '1px solid #ddd6fe',
+              borderRadius: 8,
+              padding: '10px 12px',
+              fontSize: 12.5,
+              lineHeight: 1.5,
+              color: '#4c1d95',
+            }}
+          >
+            <strong>Dengan e.id, laporan Anda:</strong>
+            <ul style={{ margin: '6px 0 0', paddingLeft: 18 }}>
+              <li>langsung bertanda terverifikasi — mudah diverifikasi dan diproses otoritas;</li>
+              <li>
+                mendapat fitur Dukungan dari warga lain — dukungan menaikkan prioritas
+                penanganan laporan.
+              </li>
+            </ul>
+          </div>
           <button
             type="button"
             onClick={() => setVerification({ displayName: null, isVerified: false })}
@@ -407,6 +432,11 @@ export default function ReportForm({ onSubmitted, onClose }) {
           >
             Lanjut tanpa verifikasi
           </button>
+          <p style={{ margin: 0, fontSize: 12, lineHeight: 1.45, color: '#64748b' }}>
+            Tanpa verifikasi, laporan tetap terkirim dan diproses, tetapi tanpa tanda
+            terverifikasi dan tanpa fitur Dukungan warga. Anda bisa verifikasi nanti
+            sebelum mengirim.
+          </p>
           <button
             type="button"
             onClick={onClose}
@@ -433,6 +463,15 @@ export default function ReportForm({ onSubmitted, onClose }) {
       <VerificationFlow
         role="warga"
         onComplete={(result) => {
+          // Simpan status terverifikasi secara lokal agar fitur Dukungan
+          // laporan (ListView) tahu pengguna ini sudah terverifikasi e.id
+          // tanpa harus scan QR ulang.
+          try {
+            localStorage.setItem('titikrusak_eid', JSON.stringify(result));
+          } catch (_e) {
+            // localStorage tidak tersedia — abaikan, verifikasi tetap berlaku
+            // untuk form ini.
+          }
           setVerification(result);
           setVerificationOpen(false);
         }}
@@ -441,14 +480,16 @@ export default function ReportForm({ onSubmitted, onClose }) {
     );
   }
 
-  // ---- Tampilan sukses ----
+  // ---- Tampilan sukses (File 1 Bagian 5.2): umpan balik terima kasih +
+  // pemberitahuan bahwa laporan akan di-review dan ditindak oleh otoritas ----
   if (submitState === 'success') {
     return (
       <div>
         <h2 style={{ margin: '0 0 10px', fontSize: 18, color: '#0f172a' }}>Laporan Terkirim</h2>
         <p style={{ margin: '0 0 16px', fontSize: 14, lineHeight: 1.5, color: '#334155' }}>
-          Terima kasih! Laporan Anda sudah masuk dengan status <strong>Dilaporkan</strong>.
-          Marker baru akan langsung muncul di peta.
+          Terima kasih! Laporan Anda sudah terkirim dan akan segera di-review serta
+          ditindaklanjuti oleh otoritas setempat. Status awal laporan:{' '}
+          <strong>Dilaporkan</strong> — marker baru akan langsung muncul di peta.
         </p>
         <div style={{ display: 'flex', gap: 10 }}>
           <button

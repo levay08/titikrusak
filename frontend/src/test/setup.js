@@ -48,7 +48,8 @@ vi.mock('leaflet', () => {
         zoom: vi.fn(() => ({ addTo: vi.fn() })),
       },
       // Marker draggable pada mini-map pemilih lokasi (ReportForm).
-      // addTo chainable (Leaflet asli mengembalikan `this`).
+      // addTo chainable (Leaflet asli mengembalikan `this`). bindPopup
+      // juga dipakai marker terverifikasi di MapView (divIcon + centang).
       marker: vi.fn(function () {
         return {
           addTo: vi.fn(function () {
@@ -57,10 +58,11 @@ vi.mock('leaflet', () => {
           on: vi.fn(),
           getLatLng: vi.fn(() => ({ lat: -2.5, lng: 118 })),
           setLatLng: vi.fn(),
+          bindPopup: vi.fn(),
         };
       }),
       divIcon: vi.fn(() => ({})),
-      circleMarker: vi.fn(() => ({ bindPopup: vi.fn() })),
+      circleMarker: vi.fn(() => ({ bindPopup: vi.fn(), on: vi.fn() })),
       markerClusterGroup: vi.fn(() => ({
         addLayer: vi.fn(),
         addTo: vi.fn(),

@@ -77,6 +77,10 @@ function parseVitalStatus(row) {
 // Nilai enum status laporan (File 1 Bagian 6.2).
 const STATUSES = ['dilaporkan', 'terverifikasi', 'dalam_perbaikan', 'selesai_diperbaiki'];
 
+// Urutan alur status (File 1 Bagian 6.2): hanya boleh maju satu arah —
+// dilaporkan -> terverifikasi -> dalam_perbaikan -> selesai_diperbaiki.
+const STATUS_ORDER = { dilaporkan: 1, terverifikasi: 2, dalam_perbaikan: 3, selesai_diperbaiki: 4 };
+
 // Kolom yang boleh dipakai sebagai sort (whitelist; selain ini 400).
 const SORT_COLUMNS = ['created_at', 'updated_at', 'severity', 'location_name', 'status'];
 
@@ -303,6 +307,123 @@ router.post('/', reportLimiter, (req, res) => {
     .get(info.lastInsertRowid);
 
   res.status(201).json(parseVitalStatus(created));
+});
+
+// PATCH /api/reports/:id/status
+// Tindakan otoritas: mengubah status laporan mengikuti alur maju
+// (File 1 Bagian 6.2): dilaporkan -> terverifikasi -> dalam_perbaikan ->
+// selesai_diperbaiki. Transisi mundur ditolak. Saat menjadi
+// 'terverifikasi', identitas otoritas dicatat di validated_by_display_name
+// dan waktu validasi di validated_at; setiap perubahan tercatat di tabel
+// status_history (File 1 Bagian 6.4).
+// Body: { status, changed_by_display_name? }
+router.patch('/:id/status', (req, res) => {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id) || id <= 0) {
+    return res.status(404).json({ error: 'Laporan tidak ditemukan' });
+  }
+  const existing = db.prepare('SELECT * FROM reports WHERE id = ?').get(id);
+  if (!existing) {
+    return res.status(404).json({ error: 'Laporan tidak ditemukan' });
+  }
+
+  const body = req.body || {};
+  const status = typeof body.status === 'string' ? body.status : null;
+  if (!status || !STATUSES.includes(status)) {
+    return res.status(400).json({ error: `status harus salah satu dari: ${STATUSES.join(', ')}` });
+  }
+  if (status === existing.status) {
+    return res.status(400).json({ error: `Laporan sudah berstatus ${STATUSES.find((s) => s === status)}` });
+  }
+  if (STATUS_ORDER[status] < STATUS_ORDER[existing.status]) {
+    return res.status(400).json({
+      error: `Transisi status tidak valid: ${existing.status} -> ${status} (status tidak bisa mundur)`,
+    });
+  }
+
+  const changedByName =
+    body.changed_by_display_name !== undefined && body.changed_by_display_name !== null &&
+    String(body.changed_by_display_name).trim() !== ''
+      ? String(body.changed_by_display_name).trim()
+      : null;
+
+  const tx = db.transaction(() => {
+    if (status === 'terverifikasi') {
+      // Catat siapa yang memvalidasi dan kapan (File 1 Bagian 6.2).
+      db.prepare(
+        `UPDATE reports SET status = ?, validated_by_display_name = COALESCE(?, validated_by_display_name),
+         validated_at = COALESCE(validated_at, CURRENT_TIMESTAMP), updated_at = CURRENT_TIMESTAMP WHERE id = ?`
+      ).run(status, changedByName, id);
+    } else {
+      db.prepare('UPDATE reports SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(
+        status,
+        id
+      );
+    }
+    db.prepare(
+      'INSERT INTO status_history (report_id, new_status, changed_by_display_name) VALUES (?, ?, ?)'
+    ).run(id, status, changedByName);
+  });
+  tx();
+
+  const updated = db
+    .prepare(`SELECT ${PUBLIC_SELECT} FROM reports WHERE id = ?`)
+    .get(id);
+  res.json(parseVitalStatus(updated));
+});
+
+// POST /api/reports/:id/vote
+// Dukungan warga terhadap laporan (File 1 Bagian 6.3): menambah vote_count
+// dan mencatat baris di tabel votes. Dukungan hanya dapat diberikan oleh
+// warga terverifikasi e.id (voter_is_verified). voter_did diisi identitas
+// tampilan (nama/alias) sebagai pengganti sementara — pencocokan penuh
+// holder_did<->sesi menyusul di langkah berikutnya (sama seperti
+// reporter_display_name pada POST /api/reports).
+// Body: { voter_display_name?, voter_is_verified }
+router.post('/:id/vote', (req, res) => {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id) || id <= 0) {
+    return res.status(404).json({ error: 'Laporan tidak ditemukan' });
+  }
+  const existing = db.prepare('SELECT id FROM reports WHERE id = ?').get(id);
+  if (!existing) {
+    return res.status(404).json({ error: 'Laporan tidak ditemukan' });
+  }
+
+  const body = req.body || {};
+  if (body.voter_is_verified !== true) {
+    return res.status(403).json({
+      error: 'Dukungan hanya dapat diberikan oleh warga terverifikasi e.id',
+    });
+  }
+  const voterDisplayName =
+    body.voter_display_name !== undefined && body.voter_display_name !== null &&
+    String(body.voter_display_name).trim() !== ''
+      ? String(body.voter_display_name).trim()
+      : null;
+  const voterDid = voterDisplayName || 'anonim';
+
+  try {
+    const tx = db.transaction(() => {
+      db.prepare('INSERT INTO votes (report_id, voter_did) VALUES (?, ?)').run(id, voterDid);
+      db.prepare(
+        'UPDATE reports SET vote_count = vote_count + 1, updated_at = CURRENT_TIMESTAMP WHERE id = ?'
+      ).run(id);
+    });
+    tx();
+  } catch (err) {
+    // UNIQUE(report_id, voter_did): satu identitas hanya boleh mendukung
+    // sekali per laporan.
+    if (err && typeof err.code === 'string' && err.code.includes('SQLITE_CONSTRAINT')) {
+      return res.status(409).json({ error: 'Laporan ini sudah didukung oleh identitas yang sama' });
+    }
+    throw err;
+  }
+
+  const updated = db
+    .prepare(`SELECT ${PUBLIC_SELECT} FROM reports WHERE id = ?`)
+    .get(id);
+  res.status(201).json(parseVitalStatus(updated));
 });
 
 module.exports = router;

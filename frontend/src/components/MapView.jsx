@@ -375,18 +375,39 @@ export default function MapView({
       if (map) pushNav(map.getCenter(), map.getZoom());
     });
 
+    // Status yang berarti laporan sudah di-approve/verified oleh otoritas
+    // (File 1 Bagian 6.2): marker menampilkan centang DI DALAM lingkaran,
+    // sementara warna titik TETAP mengikuti tingkat kerusakan (6.8.2).
+    const APPROVED_STATUSES = ['terverifikasi', 'dalam_perbaikan', 'selesai_diperbaiki'];
+
     reports.forEach((report) => {
       const color = SEVERITY_COLORS[report.severity] || '#64748b';
-      const marker = L.circleMarker([report.lat, report.lng], {
-        radius: 9,
-        fillColor: color,
-        fillOpacity: 0.85,
-        // Outline putih tebal agar warna severity tetap kontras di atas
-        // tile peta berwarna serupa (hijau vegetasi, kuning/krem area
-        // terbangun) — File 1 Bagian 9.3.
-        color: '#ffffff',
-        weight: 3,
-      });
+      const approved = APPROVED_STATUSES.includes(report.status);
+
+      let marker;
+      if (approved) {
+        // Marker terverifikasi: lingkaran warna severity + centang putih di
+        // tengah. divIcon dipakai karena karakter ✓ tidak bisa dirender di
+        // dalam path circleMarker (SVG).
+        const icon = L.divIcon({
+          className: '',
+          html: `<div style="width:26px;height:26px;border-radius:50%;background:${color};border:3px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:#fff;line-height:1">✓</div>`,
+          iconSize: [26, 26],
+          iconAnchor: [13, 13],
+        });
+        marker = L.marker([report.lat, report.lng], { icon });
+      } else {
+        marker = L.circleMarker([report.lat, report.lng], {
+          radius: 9,
+          fillColor: color,
+          fillOpacity: 0.85,
+          // Outline putih tebal agar warna severity tetap kontras di atas
+          // tile peta berwarna serupa (hijau vegetasi, kuning/krem area
+          // terbangun) — File 1 Bagian 9.3.
+          color: '#ffffff',
+          weight: 3,
+        });
+      }
 
       // Klik marker individual: catat posisi sebelum zoom, lalu zoom in
       // lebih dekat ke titik lokasi (bukan sekadar membuka popup di zoom

@@ -57,13 +57,28 @@ describe('ReportForm', () => {
     setMobile(false);
   });
 
-  it('menampilkan layar awal dengan opsi verifikasi e.id', () => {
+  it('menampilkan layar awal dengan opsi verifikasi e.id + ajakan manfaat (poin Alur Inti 6)', () => {
     render(<ReportForm onSubmitted={vi.fn()} onClose={vi.fn()} />);
     expect(
       screen.getByRole('button', { name: /verifikasi dengan e\.id/i })
     ).toBeInTheDocument();
     expect(
       screen.getByRole('button', { name: /lanjut tanpa verifikasi/i })
+    ).toBeInTheDocument();
+
+    // Ajakan melapor dengan e.id menyebutkan manfaatnya: mudah diverifikasi
+    // otoritas + fitur dukungan warga yang menaikkan prioritas laporan.
+    expect(screen.getByText(/Dengan e\.id, laporan Anda:/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/langsung bertanda terverifikasi — mudah diverifikasi dan diproses otoritas/i)
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/dukungan menaikkan prioritas penanganan laporan/i)
+    ).toBeInTheDocument();
+
+    // Catatan untuk jalur tanpa verifikasi.
+    expect(
+      screen.getByText(/Tanpa verifikasi, laporan tetap terkirim dan diproses/i)
     ).toBeInTheDocument();
   });
 
@@ -212,6 +227,13 @@ describe('ReportForm', () => {
       description: 'Tali penyangga putus sebagian, papan banyak lepas',
     });
     expect(await screen.findByText(/Laporan Terkirim/i)).toBeInTheDocument();
+    // Umpan balik sukses (poin Alur Inti 5): terima kasih + laporan akan
+    // di-review dan ditindaklanjuti oleh otoritas.
+    expect(
+      screen.getByText(
+        /Terima kasih! Laporan Anda sudah terkirim dan akan segera di-review serta ditindaklanjuti oleh otoritas setempat/i
+      )
+    ).toBeInTheDocument();
   });
 
   it('menampilkan pesan error server saat POST gagal', async () => {

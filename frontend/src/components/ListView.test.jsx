@@ -4,8 +4,8 @@
 // kondisi hasil kosong (pesan + tombol Reset Filter) yang sama seperti
 // MapView.
 
-import { afterEach, describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { afterEach, describe, it, expect, vi, beforeEach } from 'vitest';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom/vitest';
 import ListView from './ListView.jsx';
@@ -176,5 +176,210 @@ describe('ListView', () => {
     // Tombol ajakan membuka form laporan.
     await user.click(screen.getByRole('button', { name: /^lapor kerusakan$/i }));
     expect(onOpenReportForm).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('ListView: mode otoritas — pengelompokan prioritas (poin Alur Inti 7)', () => {
+  const OTORITAS = { displayName: 'Dinas PU Garut' };
+
+  // Campuran yang sengaja mewakili seluruh tier:
+  //   ambruk + e.id + lengkap        -> Sangat Tinggi (12+2+4 = 18)
+  //   berat + tanpa e.id + minim     -> Tinggi (9)
+  //   sedang + tanpa e.id            -> Sedang (6)
+  //   ringan + tanpa e.id + minim    -> Rendah (3)
+  const MIX = [
+    {
+      ...SAMPLE[0],
+      id: 10,
+      severity: 'ambruk',
+      status: 'terverifikasi',
+      reporter_is_verified: 1,
+      description: 'Putus total, tidak bisa dilalui',
+      bridge_authority: 'kabupaten_kota',
+      vital_status_note: 'Akses sekolah terputus',
+      photo_urls: ['/uploads/jembatan-cilawu.jpg'],
+      location_name: 'Jembatan Ambruk Cilawu',
+    },
+    {
+      ...SAMPLE[0],
+      id: 11,
+      severity: 'berat',
+      status: 'dilaporkan',
+      reporter_is_verified: 0,
+      description: null,
+      bridge_authority: 'tidak_diketahui',
+      location_name: 'Jalan Berlubang Dalam',
+    },
+    {
+      ...SAMPLE[1],
+      id: 12,
+      severity: 'sedang',
+      status: 'dilaporkan',
+      reporter_is_verified: 0,
+      location_name: 'SDN 3 Tarogong',
+    },
+    {
+      ...SAMPLE[1],
+      id: 13,
+      severity: 'ringan',
+      status: 'dilaporkan',
+      reporter_is_verified: 0,
+      location_name: 'Gorong-gorong Mampang',
+    },
+  ];
+
+  it('tanpa sesi otoritas daftar TIDAK dikelompokkan (tampilan biasa)', () => {
+    render(<ListView reports={MIX} onResetFilters={vi.fn()} />);
+    expect(screen.queryByText(/Prioritas Sangat Tinggi/)).not.toBeInTheDocument();
+    expect(screen.getByText('4 laporan')).toBeInTheDocument();
+  });
+
+  it('saat otoritas masuk, laporan dikelompokkan per prioritas dengan urutan tier + chip e.id/kelengkapan', () => {
+    render(<ListView reports={MIX} otoritas={OTORITAS} onResetFilters={vi.fn()} />);
+
+    // Seluruh grup tier tampil.
+    expect(screen.getByText('Prioritas Sangat Tinggi')).toBeInTheDocument();
+    expect(screen.getByText('Prioritas Tinggi')).toBeInTheDocument();
+    expect(screen.getByText('Prioritas Sedang')).toBeInTheDocument();
+    expect(screen.getByText('Prioritas Rendah')).toBeInTheDocument();
+
+    // Jumlah laporan per grup.
+    const stHeader = screen.getByText('Prioritas Sangat Tinggi').closest('div');
+    expect(within(stHeader).getByText('1 laporan')).toBeInTheDocument();
+    const rHeader = screen.getByText('Prioritas Rendah').closest('div');
+    expect(within(rHeader).getByText('1 laporan')).toBeInTheDocument();
+
+    // Chip bahan prioritas: laporan terverifikasi e.id + lengkap vs tanpa e.id.
+    const stRow = screen.getByText('Jembatan Ambruk Cilawu').closest('button');
+    expect(within(stRow).getByText('✓ e.id')).toBeInTheDocument();
+    expect(within(stRow).getByText('Lengkap')).toBeInTheDocument();
+
+    const tRow = screen.getByText('Jalan Berlubang Dalam').closest('button');
+    expect(within(tRow).getByText('Tanpa e.id')).toBeInTheDocument();
+    expect(within(tRow).getByText('Minim')).toBeInTheDocument();
+  });
+
+  it('otoritas dapat approve (tandai terverifikasi): PATCH status + refresh daftar/peta', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ id: 11, status: 'terverifikasi' }),
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    const onReportUpdated = vi.fn();
+    const user = userEvent.setup();
+
+    render(
+      <ListView
+        reports={[MIX[1]]}
+        otoritas={OTORITAS}
+        onReportUpdated={onReportUpdated}
+        onResetFilters={vi.fn()}
+      />
+    );
+
+    await user.click(screen.getByText('Jalan Berlubang Dalam'));
+    await user.click(screen.getByRole('button', { name: /tandai terverifikasi \(approve\)/i }));
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/reports/11/status',
+      expect.objectContaining({
+        method: 'PATCH',
+        body: JSON.stringify({
+          status: 'terverifikasi',
+          changed_by_display_name: 'Dinas PU Garut',
+        }),
+      })
+    );
+    expect(onReportUpdated).toHaveBeenCalledTimes(1);
+    // Modal tertutup setelah berhasil (data lama tidak ditampilkan).
+    expect(screen.queryByText('Tindakan Otoritas')).not.toBeInTheDocument();
+  });
+
+  it('tanpa sesi otoritas tidak ada tombol tindakan status di detail', async () => {
+    const user = userEvent.setup();
+    render(<ListView reports={[MIX[1]]} onResetFilters={vi.fn()} />);
+
+    await user.click(screen.getByText('Jalan Berlubang Dalam'));
+    expect(screen.queryByText('Tindakan Otoritas')).not.toBeInTheDocument();
+  });
+});
+
+describe('ListView: fitur Dukungan warga (poin Alur Inti 6) — butuh e.id', () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  const REPORT = { ...SAMPLE[0], id: 11, location_name: 'Jalan Berlubang Dalam' };
+
+  it('tanpa verifikasi e.id: klik Dukung memunculkan ajakan verifikasi, Batal kembali', async () => {
+    const user = userEvent.setup();
+    render(<ListView reports={[REPORT]} onResetFilters={vi.fn()} />);
+
+    await user.click(screen.getByText('Jalan Berlubang Dalam'));
+    await user.click(screen.getByRole('button', { name: /dukung laporan \(e\.id\)/i }));
+
+    expect(
+      screen.getByText(/Fitur Dukungan tersedia untuk warga terverifikasi e\.id/i)
+    ).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: /^batal$/i }));
+    expect(screen.getByRole('button', { name: /dukung laporan \(e\.id\)/i })).toBeInTheDocument();
+  });
+
+  it('warga terverifikasi e.id: Dukung mengirim POST /vote dan menampilkan jumlah baru', async () => {
+    localStorage.setItem(
+      'titikrusak_eid',
+      JSON.stringify({ displayName: 'Warga Garut', isVerified: true })
+    );
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 201,
+      json: async () => ({ id: 11, vote_count: 3 }),
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    const user = userEvent.setup();
+
+    render(<ListView reports={[REPORT]} onResetFilters={vi.fn()} />);
+
+    await user.click(screen.getByText('Jalan Berlubang Dalam'));
+    await user.click(screen.getByRole('button', { name: /^dukung laporan$/i }));
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/reports/11/vote',
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({
+          voter_display_name: 'Warga Garut',
+          voter_is_verified: true,
+        }),
+      })
+    );
+    expect(
+      await screen.findByText(/Terima kasih! Dukungan Anda tercatat \(3\)\./i)
+    ).toBeInTheDocument();
+  });
+
+  it('dukungan duplikat (409) menampilkan pesan sudah mendukung', async () => {
+    localStorage.setItem(
+      'titikrusak_eid',
+      JSON.stringify({ displayName: 'Warga Garut', isVerified: true })
+    );
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 409,
+      json: async () => ({ error: 'Laporan ini sudah didukung oleh identitas yang sama' }),
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    const user = userEvent.setup();
+
+    render(<ListView reports={[REPORT]} onResetFilters={vi.fn()} />);
+
+    await user.click(screen.getByText('Jalan Berlubang Dalam'));
+    await user.click(screen.getByRole('button', { name: /^dukung laporan$/i }));
+
+    expect(await screen.findByText(/Laporan ini sudah Anda dukung\./i)).toBeInTheDocument();
   });
 });
