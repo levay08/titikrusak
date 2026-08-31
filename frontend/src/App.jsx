@@ -105,6 +105,9 @@ export default function App() {
   const [view, setView] = useState('map'); // 'map' | 'list'
   const [reports, setReports] = useState([]);
   const [dataError, setDataError] = useState(null);
+  // Total laporan di database (fetch tanpa filter) untuk membedakan
+  // kondisi hasil kosong (File 1 9.1/9.2): null = belum diketahui.
+  const [totalCount, setTotalCount] = useState(null);
   // Sesi otoritas lokal (File 1 Bagian 5.2): null = belum masuk.
   const [otoritas, setOtoritas] = useState(null); // { displayName }
   const [otoritasOpen, setOtoritasOpen] = useState(false);
@@ -132,6 +135,29 @@ export default function App() {
       cancelled = true;
     };
   }, [refreshKey, filters]);
+
+  // Hitung total laporan di database (TANPA filter apa pun) — hanya
+  // berubah saat mount dan setelah laporan baru dikirim (refreshKey),
+  // tidak bergantung pada filter. Dipakai membedakan kondisi hasil
+  // kosong: DB benar-benar kosong vs filter yang tidak cocok.
+  useEffect(() => {
+    let cancelled = false;
+    fetch('/api/reports')
+      .then((res) => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json();
+      })
+      .then((data) => {
+        if (cancelled) return;
+        setTotalCount(Array.isArray(data) ? data.length : 0);
+      })
+      .catch(() => {
+        if (!cancelled) setTotalCount(null); // tidak tahu -> jangan tampilkan empty state
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [refreshKey]);
 
   const handleSubmitted = () => setRefreshKey((k) => k + 1);
   const handleFilterChange = (next) => setFilters(next);
@@ -214,9 +240,21 @@ export default function App() {
           <ViewToggle view={view} onChange={setView} />
 
           {view === 'map' ? (
-            <MapView reports={reports} error={dataError} onResetFilters={handleResetFilters} />
+            <MapView
+              reports={reports}
+              error={dataError}
+              onResetFilters={handleResetFilters}
+              hasAnyData={totalCount === null ? null : totalCount > 0}
+              onOpenReportForm={() => setFormOpen(true)}
+            />
           ) : (
-            <ListView reports={reports} error={dataError} onResetFilters={handleResetFilters} />
+            <ListView
+              reports={reports}
+              error={dataError}
+              onResetFilters={handleResetFilters}
+              hasAnyData={totalCount === null ? null : totalCount > 0}
+              onOpenReportForm={() => setFormOpen(true)}
+            />
           )}
 
           {/* Tombol floating Lapor Kerusakan (File 1 Bagian 9.1) */}

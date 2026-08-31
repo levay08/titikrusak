@@ -256,7 +256,13 @@ function DetailModal({ report, onClose }) {
   );
 }
 
-export default function ListView({ reports = [], error = null, onResetFilters }) {
+export default function ListView({
+  reports = [],
+  error = null,
+  onResetFilters,
+  hasAnyData = null, // null = total belum diketahui (jangan render empty state)
+  onOpenReportForm,
+}) {
   const [selected, setSelected] = useState(null);
 
   return (
@@ -272,8 +278,15 @@ export default function ListView({ reports = [], error = null, onResetFilters })
         boxSizing: 'border-box',
       }}
     >
-      {/* Kondisi hasil kosong (File 1 Bagian 9.1) — sama dengan MapView */}
-      {!error && reports.length === 0 && <EmptyResults onResetFilters={onResetFilters} />}
+      {/* Kondisi hasil kosong (File 1 Bagian 9.1/9.2) — sama dengan
+          MapView; hasAnyData membedakan DB kosong vs filter tak cocok */}
+      {!error && reports.length === 0 && hasAnyData !== null && (
+        <EmptyResults
+          hasAnyData={hasAnyData}
+          onResetFilters={onResetFilters}
+          onLapor={onOpenReportForm}
+        />
+      )}
 
       {error && (
         <div

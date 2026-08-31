@@ -20,33 +20,42 @@ describe('App: alur lapor kerusakan end-to-end', () => {
   });
 
   it('geocoding, submit laporan baru, lalu peta me-refresh otomatis tanpa reload', async () => {
-    const getMock = vi.fn().mockResolvedValue({ ok: true, status: 200, json: async () => [] });
+    const filteredMock = vi.fn().mockResolvedValue({ ok: true, status: 200, json: async () => [] });
+    // Fetch total (tanpa filter) mengembalikan 1 laporan -> ada data di DB.
+    const totalMock = vi
+      .fn()
+      .mockResolvedValue({ ok: true, status: 200, json: async () => [{ id: 1, location_name: 'X' }] });
     const postMock = vi.fn().mockResolvedValue({
       ok: true,
       status: 201,
       json: async () => ({ id: 42 }),
     });
     const fetchMock = vi.fn((url, init) => {
+      const u = String(url);
       // Geocoding Nominatim dari form.
-      if (String(url).includes('nominatim')) {
+      if (u.includes('nominatim')) {
         return Promise.resolve({
           ok: true,
           status: 200,
           json: async () => [{ lat: '-7.4032', lon: '107.8139', display_name: 'Jl. Raya Cikajang' }],
         });
       }
-      return init && init.method === 'POST' ? postMock() : getMock();
+      if (init && init.method === 'POST') return postMock();
+      if (u.startsWith('/api/reports?')) return filteredMock(); // hasil dengan filter aktif
+      if (u === '/api/reports') return totalMock(); // total tanpa filter
+      return Promise.resolve({ ok: true, status: 200, json: async () => [] });
     });
     vi.stubGlobal('fetch', fetchMock);
 
     const user = userEvent.setup();
     render(<App />);
 
-    // Muat awal peta: satu kali GET /api/reports.
-    await waitFor(() => expect(getMock).toHaveBeenCalledTimes(1));
+    // Muat awal: satu GET hasil-filter + satu GET total (tanpa filter).
+    await waitFor(() => expect(filteredMock).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(totalMock).toHaveBeenCalledTimes(1));
 
     // Buka modal via tombol floating.
-    await user.click(screen.getByRole('button', { name: /lapor kerusakan/i }));
+    await user.click(screen.getByRole('button', { name: /^\+ lapor kerusakan/i }));
 
     // Lewati layar awal pilihan verifikasi -> form utama.
     await user.click(screen.getByRole('button', { name: /lanjut tanpa verifikasi/i }));
@@ -71,7 +80,8 @@ describe('App: alur lapor kerusakan end-to-end', () => {
     // POST terkirim, pesan sukses tampil, peta me-refresh (GET kedua).
     await waitFor(() => expect(postMock).toHaveBeenCalledTimes(1));
     expect(await screen.findByText(/Laporan Terkirim/i)).toBeInTheDocument();
-    await waitFor(() => expect(getMock).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(filteredMock).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(totalMock).toHaveBeenCalledTimes(2));
 
     // Payload POST sesuai skema backend, koordinat dari pin hasil geocoding.
     const body = JSON.parse(fetchMock.mock.calls.find(([, i]) => i?.method === 'POST')[1].body);

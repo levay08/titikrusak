@@ -173,7 +173,13 @@ function SeverityLegend() {
   );
 }
 
-export default function MapView({ reports = [], error = null, onResetFilters }) {
+export default function MapView({
+  reports = [],
+  error = null,
+  onResetFilters,
+  hasAnyData = null, // null = total belum diketahui (jangan render empty state)
+  onOpenReportForm,
+}) {
   const containerRef = useRef(null);
   const mapRef = useRef(null);
   const clusterGroupRef = useRef(null);
@@ -279,8 +285,15 @@ export default function MapView({ reports = [], error = null, onResetFilters }) 
       <ResetViewButton onReset={() => mapRef.current?.setView(HOME_CENTER, HOME_ZOOM)} />
       <SeverityLegend />
 
-      {/* Kondisi hasil kosong (File 1 Bagian 9.1) — sama dengan ListView */}
-      {!error && reports.length === 0 && <EmptyResults onResetFilters={onResetFilters} />}
+      {/* Kondisi hasil kosong (File 1 Bagian 9.1/9.2) — sama dengan
+          ListView; hasAnyData membedakan DB kosong vs filter tak cocok */}
+      {!error && reports.length === 0 && hasAnyData !== null && (
+        <EmptyResults
+          hasAnyData={hasAnyData}
+          onResetFilters={onResetFilters}
+          onLapor={onOpenReportForm}
+        />
+      )}
 
       {error && (
         <div

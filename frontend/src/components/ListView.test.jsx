@@ -106,16 +106,36 @@ describe('ListView', () => {
     expect(screen.queryByText('Kategori Kewenangan')).not.toBeInTheDocument();
   });
 
-  it('hasil kosong: pesan + tombol Reset Filter memanggil onResetFilters', async () => {
+  it('Kondisi B: ada data tapi filter kosong -> pesan filter + Reset Filter', async () => {
     const user = userEvent.setup();
     const onReset = vi.fn();
-    render(<ListView reports={[]} onResetFilters={onReset} />);
+    render(<ListView reports={[]} hasAnyData onResetFilters={onReset} />);
 
     expect(
       screen.getByText('Tidak ada laporan yang sesuai dengan filter ini')
     ).toBeInTheDocument();
+    // Tanpa ajakan "Lapor Kerusakan" (bukan kondisi DB kosong).
+    expect(screen.queryByRole('button', { name: /^lapor kerusakan$/i })).not.toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: /reset filter/i }));
     expect(onReset).toHaveBeenCalledTimes(1);
+  });
+
+  it('Kondisi A: database kosong -> pesan ajakan + tombol Lapor Kerusakan (tanpa Reset Filter)', async () => {
+    const user = userEvent.setup();
+    const onOpenReportForm = vi.fn();
+    render(<ListView reports={[]} hasAnyData={false} onOpenReportForm={onOpenReportForm} />);
+
+    expect(
+      screen.getByText(/Belum ada laporan infrastruktur rusak di sini/i)
+    ).toBeInTheDocument();
+    expect(screen.getByText(/Jadilah yang pertama melaporkan!/i)).toBeInTheDocument();
+
+    // Tidak ada tombol Reset Filter pada kondisi ini.
+    expect(screen.queryByRole('button', { name: /reset filter/i })).not.toBeInTheDocument();
+
+    // Tombol ajakan membuka form laporan.
+    await user.click(screen.getByRole('button', { name: /^lapor kerusakan$/i }));
+    expect(onOpenReportForm).toHaveBeenCalledTimes(1);
   });
 });
