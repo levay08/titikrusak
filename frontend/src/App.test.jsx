@@ -118,7 +118,7 @@ describe('App: alur lapor kerusakan end-to-end', () => {
     expect(screen.queryByText('Lapor Kerusakan')).not.toBeInTheDocument();
   });
 
-  it('mobile: tombol Otoritas menampilkan info scan QR/desktop, bukan alur verifikasi', async () => {
+  it('mobile: menu header (drawer) -> Login sebagai Otoritas menampilkan info scan QR/desktop, bukan alur verifikasi', async () => {
     setMobile(true);
     const verifyStart = vi.fn();
     const fetchMock = vi.fn((url, init) => {
@@ -138,7 +138,14 @@ describe('App: alur lapor kerusakan end-to-end', () => {
     render(<App />);
     await waitFor(() => expect(fetchMock).toHaveBeenCalled());
 
-    await user.click(screen.getByRole('button', { name: /^otoritas$/i }));
+    // Menu header mobile ada di drawer "☰ Menu".
+    await user.click(screen.getByRole('button', { name: /buka menu/i }));
+    expect(screen.getByRole('button', { name: /^tentang$/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^statistik$/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^pantau$/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^notifikasi$/i })).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: /login sebagai otoritas/i }));
 
     // Info tampil (pesan baku SAMA dengan form warga): butuh scan QR +
     // hanya optimal dan lancar di desktop.
@@ -153,5 +160,83 @@ describe('App: alur lapor kerusakan end-to-end', () => {
     // Tutup -> modal hilang.
     await user.click(screen.getByRole('button', { name: /^tutup$/i }));
     expect(screen.queryByText(/pemindaian QR/i)).not.toBeInTheDocument();
+  });
+
+  it('desktop: menu header (Tentang/Statistik/Pantau/Notifikasi) membuka MODAL, bukan halaman baru', async () => {
+    const fetchMock = vi.fn((url, init) => {
+      const u = String(url);
+      if (u.startsWith('/api/reports?')) {
+        return Promise.resolve({ ok: true, status: 200, json: async () => [] });
+      }
+      if (u === '/api/reports') {
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          json: async () => [
+            {
+              id: 1,
+              location_name: 'Jembatan Cibeureum',
+              lat: -7.2075,
+              lng: 107.8881,
+              severity: 'ringan',
+              status: 'dilaporkan',
+              reporter_is_verified: 0,
+              infra_type: 'jembatan',
+            },
+          ],
+        });
+      }
+      return Promise.resolve({ ok: true, status: 200, json: async () => [] });
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    const user = userEvent.setup();
+    render(<App />);
+    await waitFor(() => expect(fetchMock).toHaveBeenCalled());
+
+    // Menu tersedia langsung di header desktop.
+    expect(screen.getByRole('button', { name: /^tentang$/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^statistik$/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^pantau$/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: /notifikasi aktivitas laporan/i })
+    ).toBeInTheDocument();
+
+    // Tentang -> modal.
+    await user.click(screen.getByRole('button', { name: /^tentang$/i }));
+    expect(screen.getByText('Tentang titikrusak.id')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: /tutup tentang titikrusak\.id/i }));
+    expect(screen.queryByText('Tentang titikrusak.id')).not.toBeInTheDocument();
+
+    // Statistik -> modal dengan data nyata dari fetch tanpa filter.
+    await user.click(screen.getByRole('button', { name: /^statistik$/i }));
+    expect(screen.getByText('Statistik Pelaporan')).toBeInTheDocument();
+    expect(
+      within(screen.getByText('Total Laporan').parentElement).getByText('1')
+    ).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: /tutup statistik pelaporan/i }));
+    expect(screen.queryByText('Statistik Pelaporan')).not.toBeInTheDocument();
+  });
+
+  it('desktop: tombol Login ringkas (gembok + teks) dengan bubble hover "Login sebagai Otoritas"', async () => {
+    const fetchMock = vi.fn(() =>
+      Promise.resolve({ ok: true, status: 200, json: async () => [] })
+    );
+    vi.stubGlobal('fetch', fetchMock);
+
+    const user = userEvent.setup();
+    render(<App />);
+    await waitFor(() => expect(fetchMock).toHaveBeenCalled());
+
+    const loginBtn = screen.getByRole('button', { name: /login sebagai otoritas/i });
+    expect(loginBtn).toHaveTextContent('🔒 Login');
+    // Belum ada teks panjang "Masuk sebagai Otoritas Lokal".
+    expect(screen.queryByText('Masuk sebagai Otoritas Lokal')).not.toBeInTheDocument();
+
+    // Hover -> bubble muncul; keluar hover -> bubble hilang.
+    await user.hover(loginBtn);
+    expect(screen.getByText('Login sebagai Otoritas')).toBeInTheDocument();
+    await user.unhover(loginBtn);
+    expect(screen.queryByText('Login sebagai Otoritas')).not.toBeInTheDocument();
   });
 });

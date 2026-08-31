@@ -18,6 +18,12 @@ import ReportForm from './components/ReportForm.jsx';
 import FilterPanel from './components/FilterPanel.jsx';
 import VerificationFlow from './components/VerificationFlow.jsx';
 import EidDesktopInfo from './components/EidDesktopInfo.jsx';
+import {
+  AboutModal,
+  StatistikModal,
+  PantauModal,
+  NotifikasiModal,
+} from './components/HeaderModals.jsx';
 import useIsMobile from './lib/useIsMobile.js';
 
 // State filter kosong (semua laporan tampil, urut terbaru).
@@ -54,6 +60,98 @@ function buildQuery(filters) {
   p.set('order', order);
   const s = p.toString();
   return s ? `?${s}` : '';
+}
+
+// Item menu header (desktop): tombol teks ringkas dengan hover halus.
+function HeaderNavItem({ label, onClick }) {
+  const [hover, setHover] = useState(false);
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+      style={{
+        background: hover ? 'rgba(255, 255, 255, 0.15)' : 'none',
+        border: 'none',
+        color: 'rgba(255, 255, 255, 0.88)',
+        fontSize: 13,
+        fontWeight: 600,
+        cursor: 'pointer',
+        padding: '7px 9px',
+        borderRadius: 6,
+        whiteSpace: 'nowrap',
+      }}
+    >
+      {label}
+    </button>
+  );
+}
+
+// Tombol Login ringkas (poin Alur Inti 4): teks "Login" + ikon gembok;
+// saat hover berubah warna dan muncul bubble "Login sebagai Otoritas".
+function LoginButton({ onLogin, isMobile }) {
+  const [hover, setHover] = useState(false);
+  return (
+    <span
+      style={{ position: 'relative', display: 'inline-block' }}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+    >
+      <button
+        type="button"
+        aria-label="Login sebagai Otoritas"
+        onClick={onLogin}
+        style={{
+          background: hover ? '#7c3aed' : 'rgba(255, 255, 255, 0.12)',
+          border: hover ? '1px solid #7c3aed' : '1px solid rgba(255, 255, 255, 0.3)',
+          color: '#fff',
+          borderRadius: 8,
+          padding: isMobile ? '9px 14px' : '7px 12px',
+          fontSize: 13,
+          fontWeight: 600,
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 6,
+          whiteSpace: 'nowrap',
+          transition: 'background 0.15s, border-color 0.15s',
+        }}
+      >
+        🔒 Login
+      </button>
+      {hover && (
+        <div
+          style={{
+            position: 'absolute',
+            bottom: 'calc(100% + 7px)',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            background: '#0f172a',
+            color: '#fff',
+            fontSize: 12,
+            padding: '6px 10px',
+            borderRadius: 6,
+            whiteSpace: 'nowrap',
+            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.35)',
+            zIndex: 20,
+          }}
+        >
+          Login sebagai Otoritas
+          <span
+            style={{
+              position: 'absolute',
+              top: '100%',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              border: '5px solid transparent',
+              borderTopColor: '#0f172a',
+            }}
+          />
+        </div>
+      )}
+    </span>
+  );
 }
 
 // Toggle kecil di bagian atas area tampilan: tukar MapView <-> ListView
@@ -111,12 +209,21 @@ export default function App() {
   // Total laporan di database (fetch tanpa filter) untuk membedakan
   // kondisi hasil kosong (File 1 9.1/9.2): null = belum diketahui.
   const [totalCount, setTotalCount] = useState(null);
+  // Seluruh laporan TANPA filter — sumber data menu header (Statistik,
+  // Pantau, Notifikasi) yang tidak boleh terpengaruh filter aktif.
+  const [allReports, setAllReports] = useState([]);
   // Sesi otoritas lokal (File 1 Bagian 5.2): null = belum masuk.
   const [otoritas, setOtoritas] = useState(null); // { displayName }
   const [otoritasOpen, setOtoritasOpen] = useState(false);
-  // Drawer filter di mobile (File 1 Bagian 9.7).
+  // Modal menu header (File 1 Bagian 9.1 / poin Alur Inti 9).
+  const [aboutOpen, setAboutOpen] = useState(false);
+  const [statsOpen, setStatsOpen] = useState(false);
+  const [pantauOpen, setPantauOpen] = useState(false);
+  const [notifOpen, setNotifOpen] = useState(false);
+  // Drawer filter di mobile (File 1 Bagian 9.7) + drawer menu header.
   const isMobile = useIsMobile();
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   // Satu-satunya fetch data hasil-filter: ulang saat filter berubah
   // (real-time) atau setelah laporan baru dikirim (refreshKey).
@@ -153,7 +260,9 @@ export default function App() {
       })
       .then((data) => {
         if (cancelled) return;
-        setTotalCount(Array.isArray(data) ? data.length : 0);
+        const list = Array.isArray(data) ? data : [];
+        setAllReports(list);
+        setTotalCount(list.length);
       })
       .catch(() => {
         if (!cancelled) setTotalCount(null); // tidak tahu -> jangan tampilkan empty state
@@ -196,8 +305,36 @@ export default function App() {
           </span>
         )}
 
+        {/* Menu header (poin Alur Inti 9) — desktop: langsung di header;
+            mobile: lewat drawer "Menu". Semua membuka MODAL, bukan halaman. */}
+        {!isMobile && (
+          <nav style={{ display: 'flex', alignItems: 'center', gap: 2, marginLeft: 'auto' }}>
+            <HeaderNavItem label="Tentang" onClick={() => setAboutOpen(true)} />
+            <HeaderNavItem label="Statistik" onClick={() => setStatsOpen(true)} />
+            <HeaderNavItem label="Pantau" onClick={() => setPantauOpen(true)} />
+            <button
+              type="button"
+              aria-label="Notifikasi aktivitas laporan"
+              title="Notifikasi aktivitas laporan"
+              onClick={() => setNotifOpen(true)}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: 'rgba(255, 255, 255, 0.88)',
+                fontSize: 16,
+                lineHeight: 1,
+                cursor: 'pointer',
+                padding: '7px 9px',
+                borderRadius: 6,
+              }}
+            >
+              🔔
+            </button>
+          </nav>
+        )}
+
         <div style={{ marginLeft: isMobile ? 'auto' : 0, display: 'flex', gap: 8, alignItems: 'center' }}>
-          {/* Tombol buka drawer filter — hanya di mobile (File 1 9.7) */}
+          {/* Mobile: tombol Filter + Menu (login ada di dalam drawer Menu) */}
           {isMobile && (
             <button
               type="button"
@@ -216,12 +353,31 @@ export default function App() {
               {activeFilterCount > 0 ? `Filter (${activeFilterCount})` : 'Filter'}
             </button>
           )}
+          {isMobile && (
+            <button
+              type="button"
+              aria-label="Buka menu"
+              onClick={() => setMenuOpen(true)}
+              style={{
+                background: 'rgba(255, 255, 255, 0.12)',
+                border: '1px solid rgba(255, 255, 255, 0.3)',
+                color: '#fff',
+                borderRadius: 8,
+                padding: '9px 12px',
+                fontSize: 13,
+                fontWeight: 600,
+                cursor: 'pointer',
+              }}
+            >
+              ☰ Menu
+            </button>
+          )}
 
-          {/* Sesi otoritas lokal (File 1 Bagian 5.2). Di mobile saat sudah
-              masuk, badge + tombol Keluar pindah ke baris header kedua
-              (lebar penuh) agar baris pertama tidak sesak/terpotong di
-              layar sempit (320-414px). */}
-          {isMobile && otoritas ? null : otoritas ? (
+          {/* Sesi otoritas lokal (File 1 Bagian 5.2). Desktop: badge +
+              Keluar; saat belum masuk tombol Login ringkas (poin 4).
+              Mobile: login ada di drawer Menu; saat sudah masuk badge
+              pindah ke baris header kedua. */}
+          {isMobile ? null : otoritas ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <span
                 style={{
@@ -256,23 +412,7 @@ export default function App() {
               </button>
             </div>
           ) : (
-            <button
-              type="button"
-              onClick={() => setOtoritasOpen(true)}
-              style={{
-                background: 'rgba(255, 255, 255, 0.12)',
-                border: '1px solid rgba(255, 255, 255, 0.3)',
-                color: '#fff',
-                borderRadius: 8,
-                padding: isMobile ? '9px 14px' : '7px 12px',
-                fontSize: 13,
-                fontWeight: 600,
-                cursor: 'pointer',
-                whiteSpace: 'nowrap',
-              }}
-            >
-              {isMobile ? 'Otoritas' : 'Masuk sebagai Otoritas Lokal'}
-            </button>
+            <LoginButton onLogin={() => setOtoritasOpen(true)} isMobile={isMobile} />
           )}
         </div>
       </header>
@@ -425,6 +565,171 @@ export default function App() {
             </>
           )}
 
+          {/* Drawer menu header mobile (poin Alur Inti 9): Tentang,
+              Statistik, Pantau, Notifikasi, dan Login otoritas — semuanya
+              membuka modal. */}
+          {isMobile && menuOpen && (
+            <>
+              <div
+                style={{
+                  position: 'fixed',
+                  inset: 0,
+                  zIndex: 1290,
+                  background: 'rgba(15, 23, 42, 0.45)',
+                }}
+                onClick={() => setMenuOpen(false)}
+              />
+              <div
+                style={{
+                  position: 'fixed',
+                  top: 0,
+                  right: 0,
+                  bottom: 0,
+                  zIndex: 1300,
+                  background: '#fff',
+                  boxShadow: '-2px 0 16px rgba(0, 0, 0, 0.3)',
+                  width: 280,
+                  maxWidth: '85vw',
+                  overflowY: 'auto',
+                  padding: '16px 14px',
+                }}
+              >
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 10,
+                    marginBottom: 10,
+                  }}
+                >
+                  <span style={{ flex: 1, fontSize: 15, fontWeight: 700, color: '#0f172a' }}>
+                    Menu
+                  </span>
+                  <button
+                    type="button"
+                    aria-label="Tutup menu"
+                    onClick={() => setMenuOpen(false)}
+                    style={{
+                      border: '1px solid #cbd5e1',
+                      background: '#fff',
+                      borderRadius: 6,
+                      width: 30,
+                      height: 30,
+                      fontSize: 16,
+                      lineHeight: 1,
+                      cursor: 'pointer',
+                      color: '#475569',
+                    }}
+                  >
+                    ✕
+                  </button>
+                </div>
+                {[
+                  { icon: 'ℹ️', label: 'Tentang', open: () => setAboutOpen(true) },
+                  { icon: '📊', label: 'Statistik', open: () => setStatsOpen(true) },
+                  { icon: '🚧', label: 'Pantau', open: () => setPantauOpen(true) },
+                  { icon: '🔔', label: 'Notifikasi', open: () => setNotifOpen(true) },
+                ].map((item) => (
+                  <button
+                    key={item.label}
+                    type="button"
+                    onClick={() => {
+                      setMenuOpen(false);
+                      item.open();
+                    }}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 10,
+                      width: '100%',
+                      textAlign: 'left',
+                      background: 'none',
+                      border: 'none',
+                      borderBottom: '1px solid #f1f5f9',
+                      padding: '13px 6px',
+                      fontSize: 14,
+                      fontWeight: 600,
+                      color: '#0f172a',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <span style={{ fontSize: 16 }} aria-hidden="true">
+                      {item.icon}
+                    </span>
+                    {item.label}
+                  </button>
+                ))}
+                <div
+                  style={{
+                    borderTop: '1px solid #e2e8f0',
+                    marginTop: 8,
+                    paddingTop: 10,
+                  }}
+                >
+                  {otoritas ? (
+                    <>
+                      <div
+                        style={{
+                          fontSize: 12,
+                          color: '#64748b',
+                          marginBottom: 8,
+                          padding: '0 6px',
+                        }}
+                      >
+                        Masuk sebagai <strong>{otoritas.displayName}</strong>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setMenuOpen(false);
+                          setOtoritas(null);
+                        }}
+                        style={{
+                          width: '100%',
+                          padding: '11px 14px',
+                          borderRadius: 8,
+                          border: '1px solid #cbd5e1',
+                          background: '#fff',
+                          color: '#0f172a',
+                          fontSize: 14,
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                        }}
+                      >
+                        Keluar
+                      </button>
+                    </>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMenuOpen(false);
+                        setOtoritasOpen(true);
+                      }}
+                      style={{
+                        width: '100%',
+                        padding: '11px 14px',
+                        borderRadius: 8,
+                        border: 'none',
+                        background: '#7c3aed',
+                        color: '#fff',
+                        fontSize: 14,
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 6,
+                      }}
+                    >
+                      🔒 Login sebagai Otoritas
+                    </button>
+                  )}
+                </div>
+              </div>
+            </>
+          )}
+
           {/* Modal formulir laporan */}
           {formOpen && (
             <div
@@ -509,6 +814,20 @@ export default function App() {
                 )}
               </div>
             </div>
+          )}
+
+          {/* Modal menu header (poin Alur Inti 9) — semuanya modal, bukan
+              halaman baru. Data statistik/pantau/notif dari allReports
+              (seluruh laporan TANPA filter). */}
+          {aboutOpen && <AboutModal onClose={() => setAboutOpen(false)} />}
+          {statsOpen && (
+            <StatistikModal reports={allReports} onClose={() => setStatsOpen(false)} />
+          )}
+          {pantauOpen && (
+            <PantauModal reports={allReports} onClose={() => setPantauOpen(false)} />
+          )}
+          {notifOpen && (
+            <NotifikasiModal reports={allReports} onClose={() => setNotifOpen(false)} />
           )}
         </div>
       </main>

@@ -7,7 +7,8 @@
 // Leaflet di-mock global (lihat src/test/setup.js).
 
 import { beforeEach, describe, it, expect, vi } from 'vitest';
-import { render } from '@testing-library/react';
+import { render, screen, act } from '@testing-library/react';
+import '@testing-library/jest-dom/vitest';
 import L from 'leaflet';
 import MapView from './MapView.jsx';
 
@@ -97,5 +98,69 @@ describe('MapView: marker laporan approved menampilkan centang (poin Alur Inti 2
     expect(L.divIcon).toHaveBeenCalledTimes(2);
     expect(L.marker).toHaveBeenCalledTimes(2);
     expect(L.circleMarker).not.toHaveBeenCalled();
+  });
+});
+
+describe('MapView: navigasi bertahap (poin Alur Inti 17)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  const REPORT = {
+    id: 1,
+    lat: -7.2075,
+    lng: 107.8881,
+    severity: 'berat',
+    status: 'dilaporkan', // belum approved -> circleMarker
+    location_name: 'Jembatan Cibeureum',
+    infra_type: 'jembatan',
+  };
+
+  it('tanpa riwayat navigasi, tombol Kembali/Awal tidak tampil (tidak mengganggu)', () => {
+    render(<MapView reports={[REPORT]} />);
+    expect(screen.queryByRole('button', { name: /kembali/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /awal/i })).not.toBeInTheDocument();
+  });
+
+  it('klik marker: zoom bertahap (naik dari 5 -> 14, tanpa lompatan) + popup + tombol Kembali muncul di tengah-atas', async () => {
+    render(<MapView reports={[REPORT]} />);
+
+    // Ambil handler klik marker yang didaftarkan MapView.
+    const marker = L.circleMarker.mock.results[0].value;
+    const clickHandler = marker.on.mock.calls.find(([evt]) => evt === 'click')[1];
+
+    await act(async () => clickHandler());
+
+    // Zoom bertahap: dari zoom 5 -> max(5+2,14)=14 -> min(14,16)=14,
+    // bukan melompat langsung jauh.
+    const map = L.map.mock.results[0].value;
+    expect(map.setView).toHaveBeenCalledWith([-7.2075, 107.8881], 14, { animate: true });
+    expect(marker.openPopup).toHaveBeenCalled();
+
+    // Tombol navigasi muncul (ada riwayat), di tengah-atas (z-index 1150,
+    // di atas popup Leaflet ~700).
+    const backBtn = screen.getByRole('button', { name: /kembali/i });
+    expect(backBtn).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /awal/i })).toBeInTheDocument();
+    const nav = backBtn.closest('div');
+    expect(nav.style.zIndex).toBe('1150');
+    expect(nav.style.position).toBe('absolute');
+  });
+
+  it('tombol Kembali: pop satu tingkat zoom + menutup popup titik laporan', async () => {
+    const user = (await import('@testing-library/user-event')).default;
+    render(<MapView reports={[REPORT]} />);
+
+    const marker = L.circleMarker.mock.results[0].value;
+    const clickHandler = marker.on.mock.calls.find(([evt]) => evt === 'click')[1];
+    await act(async () => clickHandler()); // dorong riwayat {center, zoom 5}
+
+    await user.click(screen.getByRole('button', { name: /kembali/i }));
+
+    const map = L.map.mock.results[0].value;
+    // Kembali ke posisi sebelum klik marker (pusat awal + zoom 5).
+    expect(map.setView).toHaveBeenLastCalledWith({ lat: -2.5, lng: 118 }, 5, { animate: true });
+    // Popup laporan ikut ditutup — tidak perlu close manual dulu.
+    expect(map.closePopup).toHaveBeenCalled();
   });
 });
