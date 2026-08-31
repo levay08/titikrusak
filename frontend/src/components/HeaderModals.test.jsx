@@ -78,12 +78,20 @@ const REPORTS = [
 ];
 
 describe('AboutModal (poin 9: tentang aplikasi)', () => {
-  it('menampilkan deskripsi aplikasi + cara pakai', () => {
+  it('menampilkan hero + deskripsi + kartu fitur + cara pakai', () => {
     render(<AboutModal onClose={vi.fn()} />);
     expect(screen.getByText('Tentang titikrusak.id')).toBeInTheDocument();
     expect(screen.getByText(/platform crowdsourcing untuk melaporkan/i)).toBeInTheDocument();
     expect(screen.getByText('Cara pakai')).toBeInTheDocument();
-    expect(screen.getByText(/Dukung laporan warga lain/i)).toBeInTheDocument();
+
+    // Kartu fitur utama (poin 9: desain modern/minimal).
+    expect(screen.getByText('Lapor')).toBeInTheDocument();
+    expect(screen.getByText('Pantau')).toBeInTheDocument();
+    expect(screen.getByText('Dukung')).toBeInTheDocument();
+    expect(screen.getByText('Otoritas')).toBeInTheDocument();
+
+    // Teks ajakan dukungan muncul (di kartu fitur & langkah cara pakai).
+    expect(screen.getAllByText(/Dukung laporan warga lain/i).length).toBeGreaterThan(0);
   });
 });
 

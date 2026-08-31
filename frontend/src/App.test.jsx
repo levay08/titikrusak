@@ -29,6 +29,7 @@ const setMobile = (matches) =>
 describe('App: alur lapor kerusakan end-to-end', () => {
   beforeEach(() => {
     vi.unstubAllGlobals();
+    localStorage.clear();
   });
 
   afterEach(() => {
@@ -259,6 +260,50 @@ describe('App: alur lapor kerusakan end-to-end', () => {
     // ...dan TEPAT SATU tombol "Lapor Kerusakan" (dari kartu; tombol
     // floating disembunyikan — tidak ada duplikat).
     expect(screen.getAllByRole('button', { name: /lapor kerusakan/i })).toHaveLength(1);
+  });
+
+  it('sidebar: klik "Verifikasi e.id" membuka modal verifikasi warga Member level 1 (tanpa KTP)', async () => {
+    const verifyStart = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 201,
+      json: async () => ({ qr_data: { qr_token: 't', challenge: 'c' }, session_id: 's1' }),
+    });
+    const fetchMock = vi.fn((url, init) => {
+      const u = String(url);
+      if (init && init.method === 'POST' && u.includes('/api/verify/start')) {
+        return verifyStart(url, init);
+      }
+      if (u.startsWith('/api/reports?')) {
+        return Promise.resolve({ ok: true, status: 200, json: async () => [] });
+      }
+      if (u === '/api/reports') {
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          json: async () => [{ id: 1, location_name: 'X', lat: -7.2, lng: 107.8 }],
+        });
+      }
+      return Promise.resolve({ ok: true, status: 200, json: async () => [] });
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    const user = userEvent.setup();
+    render(<App />);
+    await waitFor(() => expect(fetchMock).toHaveBeenCalled());
+
+    await user.click(screen.getByRole('button', { name: /verifikasi e\.id/i }));
+
+    // Modal verifikasi WARGA terbuka + skema Member level 1 (email/nama/
+    // alamat/no. telp, tanpa KTP).
+    expect(await screen.findByText(/Verifikasi e\.id — Warga/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Verifikasi Member level 1: email, nama, alamat, dan nomor telepon — tanpa KTP\./i)
+    ).toBeInTheDocument();
+    await waitFor(() => expect(verifyStart).toHaveBeenCalledTimes(1));
+    expect(verifyStart).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({ body: JSON.stringify({ role: 'warga' }) })
+    );
   });
 
   it('header & footer memakai logo aplikasi; footer menampilkan sponsor PANDI, e.id, IDCloudHost (sejajar)', async () => {

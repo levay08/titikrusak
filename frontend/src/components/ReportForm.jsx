@@ -45,15 +45,14 @@ const MAX_RADIUS_M = 1500;
 
 const GEOCODE_URL = 'https://nominatim.openstreetmap.org/search';
 
-// Ikon pin custom (divIcon) agar tidak bergantung asset gambar Leaflet
-// dan tetap terlihat kontras di atas tile peta.
+// Ikon pin lokasi (bukan titik): simbol pin klasik dengan ujung runcing
+// di bawah — anchor tepat di UJUNG pin, jadi ujung pin = koordinat
+// persis lokasi. Warna oranye (tema maintenance/perbaikan).
 const PIN_ICON = L.divIcon({
   className: '',
-  html:
-    '<div style="width:18px;height:18px;border-radius:50%;background:#7c3aed;' +
-    'border:3px solid #fff;box-shadow:0 1px 5px rgba(0,0,0,.45);"></div>',
-  iconSize: [18, 18],
-  iconAnchor: [9, 9],
+  html: `<svg width="34" height="44" viewBox="0 0 34 44" xmlns="http://www.w3.org/2000/svg" style="filter:drop-shadow(0 2px 4px rgba(0,0,0,.35))"><path d="M17 2 C 9.7 2 3.8 8 3.8 15.4 C 3.8 25.6 17 42 17 42 C 17 42 30.2 25.6 30.2 15.4 C 30.2 8 24.3 2 17 2 Z" fill="#f97316" stroke="#ffffff" stroke-width="2.5"/><circle cx="17" cy="16" r="6.2" fill="#ffffff"/><circle cx="17" cy="16" r="3.2" fill="#f97316"/></svg>`,
+  iconSize: [34, 44],
+  iconAnchor: [17, 42], // ujung pin menunjuk koordinat
 });
 
 // Jarak great-circle dua titik dalam meter (haversine).
@@ -143,8 +142,11 @@ function LocationMiniMap({ anchor, pin, onPinChange }) {
     };
   }, [onPinChange]);
 
-  // Saat hasil geocoding baru masuk (anchor berubah): arahkan peta dan
-  // pindahkan pin ke titik hasil.
+  // Saat hasil geocoding BARU masuk (anchor berubah): arahkan peta dan
+  // pindahkan pin ke titik hasil. CATATAN: hanya bereaksi pada perubahan
+  // ANCHOR — JANGAN ikutkan `pin` di deps. Kalau `pin` ikut, setiap
+  // gerakan drag (yang memperbarui state pin) memicu setView + setLatLng
+  // ulang, sehingga pin terasa macet/terlompat dan tidak leluasa digeser.
   useEffect(() => {
     const map = mapRef.current;
     const marker = markerRef.current;
@@ -152,11 +154,8 @@ function LocationMiniMap({ anchor, pin, onPinChange }) {
     if (anchor) {
       map.setView([anchor.lat, anchor.lng], 14);
       marker.setLatLng([anchor.lat, anchor.lng]);
-    } else if (pin) {
-      map.setView([pin.lat, pin.lng], 12);
-      marker.setLatLng([pin.lat, pin.lng]);
     }
-  }, [anchor, pin]);
+  }, [anchor]);
 
   return (
     <div

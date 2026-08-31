@@ -61,6 +61,13 @@ export default function VerificationFlow({
   const sessionRef = useRef(null);
 
   const roleLabel = role === 'otoritas' ? 'Otoritas Lokal' : 'Warga';
+  // Penjelasan skema verifikasi (File 1/File 2, alur yang dikoreksi):
+  // otoritas = KYC e-KTP (identitas penuh/detail KTP); warga = Member
+  // level 1 (email, nama, alamat, nomor telepon — tanpa KTP).
+  const roleSchemaNote =
+    role === 'otoritas'
+      ? 'Verifikasi KYC e-KTP: identitas penuh dengan detail KTP untuk otoritas lokal.'
+      : 'Verifikasi Member level 1: email, nama, alamat, dan nomor telepon — tanpa KTP.';
 
   // ---- Langkah 1: buat VP Request ----
   const startVerification = useCallback(async () => {
@@ -185,8 +192,8 @@ export default function VerificationFlow({
       <h2 style={{ margin: '0 0 4px', fontSize: 18, color: '#0f172a' }}>
         Verifikasi e.id — {roleLabel}
       </h2>
-      <p style={{ margin: '0 0 14px', fontSize: 12, color: '#64748b' }}>
-        Verifikasi identitas Anda lewat aplikasi e.id sebelum melanjutkan.
+      <p style={{ margin: '0 0 14px', fontSize: 12, lineHeight: 1.5, color: '#64748b' }}>
+        {roleSchemaNote}
       </p>
 
       {/* Indikator tahapan (File 1 Bagian 9.8) */}

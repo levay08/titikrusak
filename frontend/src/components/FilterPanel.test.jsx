@@ -60,9 +60,40 @@ describe('FilterPanel', () => {
     expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ sort: 'terparah' }));
   });
 
-  it('dropdown status verifikasi nonaktif (disabled) sampai verifikasi e.id ada', () => {
-    render(<FilterPanel filters={EMPTY} onChange={vi.fn()} onReset={vi.fn()} />);
-    expect(screen.getByRole('combobox', { name: /status verifikasi/i })).toBeDisabled();
+  it('status verifikasi e.id: menampilkan "Belum terverifikasi" + tombol verifikasi saat belum', async () => {
+    const user = userEvent.setup();
+    const onRequestVerify = vi.fn();
+    render(
+      <FilterPanel
+        filters={EMPTY}
+        onChange={vi.fn()}
+        onReset={vi.fn()}
+        eidVerified={false}
+        onRequestVerify={onRequestVerify}
+      />
+    );
+
+    expect(screen.getByText('Status Verifikasi e.id')).toBeInTheDocument();
+    expect(screen.getByText('Belum terverifikasi e.id')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: /verifikasi e\.id/i }));
+    expect(onRequestVerify).toHaveBeenCalledTimes(1);
+  });
+
+  it('status verifikasi e.id: AKTIF (hijau, tanpa tombol) saat pengguna terverifikasi e.id', () => {
+    render(
+      <FilterPanel
+        filters={EMPTY}
+        onChange={vi.fn()}
+        onReset={vi.fn()}
+        eidVerified
+        onRequestVerify={vi.fn()}
+      />
+    );
+
+    expect(screen.getByText('Terverifikasi e.id')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /verifikasi e\.id/i })).not.toBeInTheDocument();
+    expect(screen.queryByText('Belum terverifikasi e.id')).not.toBeInTheDocument();
   });
 
   it('tombol Reset Filter memanggil onReset', async () => {

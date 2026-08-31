@@ -89,7 +89,14 @@ function CheckboxGroup({ title, options, selected, onToggle }) {
   );
 }
 
-export default function FilterPanel({ filters, onChange, onReset, onClose }) {
+export default function FilterPanel({
+  filters,
+  onChange,
+  onReset,
+  onClose,
+  eidVerified = false, // status verifikasi e.id pengguna (poin Alur Inti 5)
+  onRequestVerify = () => {},
+}) {
   // Toggle nilai multi-select (severity/authority/vital) -> onChange.
   const toggle = (key) => (value) => (e) => {
     const checked = e.target.checked;
@@ -212,24 +219,103 @@ export default function FilterPanel({ filters, onChange, onReset, onClose }) {
         onToggle={toggle('vital_status')}
       />
 
-      {/* Status verifikasi — nonaktif sampai verifikasi e.id ada (File 2 Bagian 7.1) */}
+      {/* Status verifikasi e.id (poin Alur Inti 5): AKTIF — hijau saat
+          pengguna terverifikasi e.id, abu-abu + tombol verifikasi saat
+          belum. Bukan lagi dropdown nonaktif. */}
       <div>
-        <span style={sectionTitleStyle}>Status Verifikasi</span>
-        <select
-          disabled
-          value=""
-          style={{ ...inputStyle, height: 34, color: '#94a3b8', background: '#f1f5f9' }}
-          aria-label="Status Verifikasi"
-        >
-          <option value="">Semua Status</option>
-          <option value="dilaporkan">Dilaporkan</option>
-          <option value="terverifikasi">Terverifikasi</option>
-          <option value="dalam_perbaikan">Dalam Perbaikan</option>
-          <option value="selesai_diperbaiki">Selesai Diperbaiki</option>
-        </select>
-        <p style={{ margin: '4px 0 0', fontSize: 11, color: '#94a3b8' }}>
-          Menyusul setelah verifikasi e.id aktif.
-        </p>
+        <span style={sectionTitleStyle}>Status Verifikasi e.id</span>
+        {eidVerified ? (
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              background: '#f0fdf4',
+              border: '1px solid #bbf7d0',
+              borderRadius: 8,
+              padding: '8px 10px',
+              fontSize: 12.5,
+              color: '#15803d',
+              fontWeight: 700,
+            }}
+          >
+            <span
+              style={{
+                width: 18,
+                height: 18,
+                borderRadius: '50%',
+                background: '#22c55e',
+                color: '#fff',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: 11,
+                fontWeight: 800,
+                flexShrink: 0,
+              }}
+            >
+              ✓
+            </span>
+            Terverifikasi e.id
+          </div>
+        ) : (
+          <div
+            style={{
+              background: '#f8fafc',
+              border: '1px solid #e2e8f0',
+              borderRadius: 8,
+              padding: '8px 10px',
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                fontSize: 12.5,
+                color: '#475569',
+                fontWeight: 600,
+                marginBottom: 8,
+              }}
+            >
+              <span
+                style={{
+                  width: 18,
+                  height: 18,
+                  borderRadius: '50%',
+                  background: '#cbd5e1',
+                  color: '#fff',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: 11,
+                  fontWeight: 800,
+                  flexShrink: 0,
+                }}
+              >
+                !
+              </span>
+              Belum terverifikasi e.id
+            </div>
+            <button
+              type="button"
+              onClick={onRequestVerify}
+              style={{
+                width: '100%',
+                padding: '8px 10px',
+                borderRadius: 6,
+                border: 'none',
+                background: '#f97316',
+                color: '#fff',
+                fontSize: 12,
+                fontWeight: 700,
+                cursor: 'pointer',
+              }}
+            >
+              Verifikasi e.id
+            </button>
+          </div>
+        )}
       </div>
     </aside>
   );

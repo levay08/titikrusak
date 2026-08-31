@@ -179,12 +179,14 @@ router.get('/result/:session_id', async (req, res) => {
       data.presentation && data.presentation.credentialSubject
         ? data.presentation.credentialSubject
         : {};
-    // Nama holder sesuai skema: warga -> fullname; otoritas -> email/telepon.
+    // Nama holder sesuai skema (File 1/File 2, koreksi alur): OTORITAS memakai
+    // skema KYC e-KTP (identitas KTP: fullname), WARGA memakai Member level 1
+    // (email, nama, alamat, nomor telepon — tanpa KTP).
     let holderName = null;
-    if (row.schema_type === 'warga') {
+    if (row.schema_type === 'otoritas') {
       holderName = subject.fullname || subject.name || null;
     } else {
-      holderName = subject.email || subject.phone_number || null;
+      holderName = subject.email || subject.phone_number || subject.name || null;
     }
 
     db.prepare(

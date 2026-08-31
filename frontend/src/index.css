@@ -31,11 +31,12 @@ body {
 }
 
 /* ============================================================
-   Tema Indonesia (poin 15) — aksen merah-putih tipis, tidak berlebihan
+   Tema maintenance (poin 6/8) — aksen kuning-oranye tipis (bukan merah),
+   seperti tanda "sedang ada pekerjaan", tidak berlebihan
    ============================================================ */
 .tk-flag-ribbon {
   height: 4px;
-  background: repeating-linear-gradient(90deg, #dc2626 0 14px, #ffffff 14px 28px);
+  background: repeating-linear-gradient(90deg, #f97316 0 14px, #fde68a 14px 28px);
   flex-shrink: 0;
 }
 
@@ -109,4 +110,13 @@ body {
 }
 .tk-logo:hover {
   transform: scale(1.06);
+}
+
+/* Fokus keyboard yang jelas & konsisten (aksen oranye) — modern & aksesibel */
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid #f97316;
+  outline-offset: 1px;
 }

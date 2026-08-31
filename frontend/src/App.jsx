@@ -67,6 +67,19 @@ function SponsorLogo({ name, src }) {
   );
 }
 
+// Baca status verifikasi e.id yang tersimpan lokal (dipakai status
+// verifikasi di sidebar FilterPanel — poin Alur Inti 5).
+function getStoredEidVerification() {
+  try {
+    const raw = localStorage.getItem('titikrusak_eid');
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    return parsed && parsed.isVerified ? parsed : null;
+  } catch (_e) {
+    return null;
+  }
+}
+
 // State filter kosong (semua laporan tampil, urut terbaru).
 const EMPTY_FILTERS = {
   severity: [],
@@ -261,6 +274,10 @@ export default function App() {
   const [statsOpen, setStatsOpen] = useState(false);
   const [pantauOpen, setPantauOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
+  // Status verifikasi e.id pengguna (poin Alur Inti 5) + modal verifikasi
+  // warga dari sidebar FilterPanel.
+  const [eidVerified, setEidVerified] = useState(() => Boolean(getStoredEidVerification()));
+  const [eidFlowOpen, setEidFlowOpen] = useState(false);
   // Drawer filter di mobile (File 1 Bagian 9.7) + drawer menu header.
   const isMobile = useIsMobile();
   const [filtersOpen, setFiltersOpen] = useState(false);
@@ -313,7 +330,12 @@ export default function App() {
     };
   }, [refreshKey]);
 
-  const handleSubmitted = () => setRefreshKey((k) => k + 1);
+  const handleSubmitted = () => {
+    setRefreshKey((k) => k + 1);
+    // Setelah submit (bisa lewat alur verifikasi e.id), segarkan status
+    // verifikasi di sidebar agar selalu sinkron dengan localStorage.
+    setEidVerified(Boolean(getStoredEidVerification()));
+  };
   const handleFilterChange = (next) => setFilters(next);
   const handleResetFilters = () => setFilters(EMPTY_FILTERS);
 
@@ -338,6 +360,12 @@ export default function App() {
     setStatsOpen(false);
     setPantauOpen(false);
     setNotifOpen(false);
+    setEidFlowOpen(false);
+  };
+
+  const openEidFlow = () => {
+    closeAllModals();
+    setEidFlowOpen(true);
   };
 
   const openHeaderModal = (setter) => () => {
@@ -557,6 +585,8 @@ export default function App() {
             filters={filters}
             onChange={handleFilterChange}
             onReset={handleResetFilters}
+            eidVerified={eidVerified}
+            onRequestVerify={openEidFlow}
           />
         )}
 
@@ -645,6 +675,11 @@ export default function App() {
                   onChange={handleFilterChange}
                   onReset={handleResetFilters}
                   onClose={() => setFiltersOpen(false)}
+                  eidVerified={eidVerified}
+                  onRequestVerify={() => {
+                    setFiltersOpen(false);
+                    openEidFlow();
+                  }}
                 />
               </div>
             </>
@@ -907,6 +942,63 @@ export default function App() {
             </div>
           )}
 
+          {/* Modal verifikasi e.id WARGA dari sidebar (poin Alur Inti 5):
+              Member level 1 (email/nama/alamat/no. telp, tanpa KTP) —
+              desktop alur QR penuh, mobile info scan QR. */}
+          {eidFlowOpen && (
+            <div
+              className="tk-modal-backdrop"
+              style={{
+                position: 'fixed',
+                inset: 0,
+                zIndex: 1200,
+                background: 'rgba(15, 23, 42, 0.55)',
+                display: 'flex',
+                alignItems: isMobile ? 'flex-end' : 'center',
+                justifyContent: 'center',
+                padding: isMobile ? 0 : 16,
+              }}
+              onClick={() => setEidFlowOpen(false)}
+            >
+              <div
+                className="tk-modal-panel"
+                style={{
+                  background: '#fff',
+                  borderRadius: isMobile ? '14px 14px 0 0' : 12,
+                  width: '100%',
+                  maxWidth: 440,
+                  maxHeight: isMobile ? '92dvh' : '90vh',
+                  overflowY: 'auto',
+                  padding: isMobile ? '18px 18px 24px' : '20px 24px',
+                  boxShadow: '0 10px 40px rgba(0, 0, 0, 0.4)',
+                }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                {isMobile ? (
+                  <EidDesktopInfo
+                    title="Verifikasi e.id"
+                    actionLabel="Tutup"
+                    onAction={() => setEidFlowOpen(false)}
+                  />
+                ) : (
+                  <VerificationFlow
+                    role="warga"
+                    onComplete={(result) => {
+                      try {
+                        localStorage.setItem('titikrusak_eid', JSON.stringify(result));
+                      } catch (_e) {
+                        // abaikan bila localStorage tidak tersedia
+                      }
+                      setEidVerified(true);
+                      setEidFlowOpen(false);
+                    }}
+                    onCancel={() => setEidFlowOpen(false)}
+                  />
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Modal menu header (poin Alur Inti 9) — semuanya modal, bukan
               halaman baru. Data statistik/pantau/notif dari allReports
               (seluruh laporan TANPA filter). */}
@@ -929,7 +1021,7 @@ export default function App() {
         style={{
           background: '#0f172a',
           color: '#cbd5e1',
-          borderTop: '4px solid #dc2626', // aksen merah tema Indonesia
+          borderTop: '4px solid #f97316', // aksen oranye tema maintenance
           padding: '14px 20px',
           fontSize: 12.5,
           flexShrink: 0,
@@ -937,12 +1029,12 @@ export default function App() {
       >
         <div
           style={{
-            maxWidth: 1080,
-            margin: '0 auto',
+            width: '100%',
             display: 'flex',
             flexWrap: 'wrap',
             alignItems: 'center',
             gap: 14,
+            justifyContent: 'space-between',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -962,8 +1054,7 @@ export default function App() {
               alignItems: 'center',
               gap: 10,
               flexWrap: 'wrap',
-              justifyContent: 'center',
-              marginLeft: 'auto',
+              justifyContent: 'flex-end', // logo sponsor rata kanan (poin 7)
             }}
           >
             <span style={{ fontSize: 11.5, opacity: 0.75 }}>Didukung oleh:</span>

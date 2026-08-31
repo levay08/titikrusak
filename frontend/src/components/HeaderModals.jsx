@@ -15,6 +15,7 @@ import {
   STATUS_COLORS,
 } from '../lib/labels.js';
 import { ISLAND_REGIONS, OTHER_ISLAND, detectIsland, detectProvince } from '../lib/regions.js';
+import Logo from './Logo.jsx';
 import useIsMobile from '../lib/useIsMobile.js';
 
 // ---- Utilitas kecil ----
@@ -72,6 +73,10 @@ export function ModalShell({ title, onClose, children, maxWidth = 640 }) {
         onClick={(e) => e.stopPropagation()}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+          {/* Aksen oranye khas modal (poin 9) */}
+          <span
+            style={{ width: 4, height: 22, borderRadius: 2, background: '#f97316', flexShrink: 0 }}
+          />
           <h2 style={{ margin: 0, flex: 1, fontSize: 17, color: '#0f172a' }}>{title}</h2>
           <button
             type="button"
@@ -137,26 +142,110 @@ function BarRow({ label, count, color, max }) {
 // ---- Tentang (poin 9: about web app ini) ----
 export function AboutModal({ onClose }) {
   return (
-    <ModalShell title="Tentang titikrusak.id" onClose={onClose} maxWidth={560}>
-      <p style={{ margin: '0 0 12px', fontSize: 13.5, lineHeight: 1.6, color: '#334155' }}>
+    <ModalShell title="Tentang titikrusak.id" onClose={onClose} maxWidth={600}>
+      {/* Hero: logo + tagline */}
+      <div
+        style={{
+          display: 'flex',
+          gap: 14,
+          alignItems: 'center',
+          marginBottom: 14,
+          background: 'linear-gradient(135deg, #fff7ed, #ffedd5)',
+          border: '1px solid #fed7aa',
+          borderRadius: 12,
+          padding: '14px 16px',
+        }}
+      >
+        <Logo size={54} />
+        <div>
+          <div style={{ fontSize: 16, fontWeight: 800, color: '#0f172a' }}>titikrusak.id</div>
+          <div style={{ fontSize: 12.5, color: '#9a3412', marginTop: 2 }}>
+            Laporkan &amp; pantau infrastruktur publik yang rusak di Indonesia
+          </div>
+        </div>
+      </div>
+
+      <p style={{ margin: '0 0 14px', fontSize: 13.5, lineHeight: 1.6, color: '#334155' }}>
         <strong>titikrusak.id</strong> adalah platform crowdsourcing untuk melaporkan dan
         memantau kerusakan infrastruktur publik di Indonesia — jembatan, jalan, sekolah,
         prasarana publik, dan utilitas. Warga melaporkan kondisi di lapangan, otoritas
         memverifikasi dan menindaklanjuti, dengan verifikasi identitas e.id untuk
         kepercayaan dan transparansi.
       </p>
-      <div style={{ marginBottom: 12 }}>
-        <div style={{ fontSize: 13, fontWeight: 700, color: '#0f172a', marginBottom: 6 }}>
+
+      {/* Kartu fitur utama */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
+          gap: 8,
+          marginBottom: 16,
+        }}
+      >
+        {[
+          { icon: '📝', title: 'Lapor', desc: 'Laporkan kerusakan dengan lokasi & deskripsi' },
+          { icon: '🛠️', title: 'Pantau', desc: 'Ikuti status perbaikan hingga selesai' },
+          { icon: '🤝', title: 'Dukung', desc: 'Dukung laporan warga lain (terverifikasi e.id)' },
+          { icon: '🏛', title: 'Otoritas', desc: 'Verifikasi & tindak lanjut via e.id KYC e-KTP' },
+        ].map((f) => (
+          <div
+            key={f.title}
+            style={{
+              background: '#f8fafc',
+              border: '1px solid #e2e8f0',
+              borderRadius: 10,
+              padding: '12px',
+            }}
+          >
+            <div style={{ fontSize: 20, lineHeight: 1 }}>{f.icon}</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: '#0f172a', marginTop: 6 }}>
+              {f.title}
+            </div>
+            <div style={{ fontSize: 11.5, color: '#64748b', marginTop: 2, lineHeight: 1.4 }}>
+              {f.desc}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Cara pakai */}
+      <div style={{ marginBottom: 14 }}>
+        <div
+          style={{
+            fontSize: 13,
+            fontWeight: 700,
+            color: '#0f172a',
+            marginBottom: 8,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+          }}
+        >
+          <span
+            style={{ width: 14, height: 3, borderRadius: 2, background: '#f97316', display: 'inline-block' }}
+          />
           Cara pakai
         </div>
-        <ul style={{ margin: 0, paddingLeft: 18, fontSize: 13, lineHeight: 1.6, color: '#334155' }}>
+        <ol style={{ margin: 0, paddingLeft: 18, fontSize: 13, lineHeight: 1.7, color: '#334155' }}>
           <li>Laporkan kerusakan lewat tombol "Lapor Kerusakan" (form + peta lokasi).</li>
           <li>Pantau status: Dilaporkan → Terverifikasi → Dalam Perbaikan → Selesai Diperbaiki.</li>
           <li>Dukung laporan warga lain (terverifikasi e.id) — dukungan menaikkan prioritas.</li>
           <li>Otoritas: masuk via e.id, verifikasi laporan, dan lanjutkan status perbaikan.</li>
-        </ul>
+        </ol>
       </div>
-      <p style={{ margin: 0, fontSize: 12, lineHeight: 1.5, color: '#64748b' }}>
+
+      <p
+        style={{
+          margin: 0,
+          fontSize: 12,
+          lineHeight: 1.5,
+          color: '#64748b',
+          background: '#f8fafc',
+          border: '1px solid #e2e8f0',
+          borderRadius: 8,
+          padding: '10px 12px',
+        }}
+      >
         Data laporan tersimpan di database lokal. Identitas e.id hanya ditampilkan sesuai
         pilihan Anda (nama asli atau alias/anonim).
       </p>
@@ -197,32 +286,34 @@ export function StatistikModal({ reports = [], onClose }) {
   const maxIsland = Math.max(1, ...islandCounts.map((i) => i.count));
   const maxProvince = Math.max(1, ...topProvinces.map((p) => p.count));
 
-  const cardStyle = {
+  const cardStyle = (color) => ({
     flex: 1,
     background: '#f8fafc',
     border: '1px solid #e2e8f0',
+    borderTop: `3px solid ${color}`,
     borderRadius: 8,
     padding: '8px 10px',
     textAlign: 'center',
-  };
+    minWidth: 110,
+  });
 
   return (
     <ModalShell title="Statistik Pelaporan" onClose={onClose} maxWidth={680}>
       {/* Kartu ringkasan */}
       <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
-        <div style={cardStyle}>
+        <div style={cardStyle('#0f172a')}>
           <div style={{ fontSize: 20, fontWeight: 800, color: '#0f172a' }}>{reports.length}</div>
           <div style={{ fontSize: 11, color: '#64748b' }}>Total Laporan</div>
         </div>
-        <div style={cardStyle}>
+        <div style={cardStyle('#22c55e')}>
           <div style={{ fontSize: 20, fontWeight: 800, color: '#15803d' }}>{verifiedCount}</div>
           <div style={{ fontSize: 11, color: '#64748b' }}>Terverifikasi e.id</div>
         </div>
-        <div style={cardStyle}>
+        <div style={cardStyle('#f59e0b')}>
           <div style={{ fontSize: 20, fontWeight: 800, color: '#b45309' }}>{inPerbaikan}</div>
           <div style={{ fontSize: 11, color: '#64748b' }}>Dalam Perbaikan</div>
         </div>
-        <div style={cardStyle}>
+        <div style={cardStyle('#22c55e')}>
           <div style={{ fontSize: 20, fontWeight: 800, color: '#15803d' }}>{selesai}</div>
           <div style={{ fontSize: 11, color: '#64748b' }}>Selesai Diperbaiki</div>
         </div>
