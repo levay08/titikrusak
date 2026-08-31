@@ -13,30 +13,7 @@
 //   - dropdown sorting (enam opsi File 1 Bagian 6.8.10)
 //   - tombol Reset Filter
 
-const SEVERITY_OPTIONS = [
-  { value: 'ringan', label: 'Ringan', color: '#22c55e' },
-  { value: 'sedang', label: 'Sedang', color: '#eab308' },
-  { value: 'berat', label: 'Berat', color: '#f97316' },
-  { value: 'ambruk', label: 'Ambruk', color: '#ef4444' },
-];
-
-const AUTHORITY_OPTIONS = [
-  { value: 'nasional', label: 'Nasional' },
-  { value: 'provinsi', label: 'Provinsi' },
-  { value: 'kabupaten_kota', label: 'Kabupaten/Kota' },
-  { value: 'desa_swadaya', label: 'Desa/Swadaya' },
-  { value: 'tidak_diketahui', label: 'Tidak Diketahui' },
-];
-
-const VITAL_OPTIONS = [
-  { value: 'akses_sekolah', label: 'Akses Sekolah' },
-  { value: 'akses_kesehatan', label: 'Akses Kesehatan' },
-  { value: 'akses_antar_kampung', label: 'Akses Antar Kampung' },
-  { value: 'akses_sungai', label: 'Akses Sungai' },
-  { value: 'akses_ekonomi', label: 'Akses Ekonomi' },
-  { value: 'aset_utilitas', label: 'Aset Utilitas' },
-  { value: 'lainnya', label: 'Lainnya' },
-];
+import { SEVERITIES, BRIDGE_AUTHORITIES, VITAL_STATUSES } from '../lib/labels.js';
 
 // Enam opsi sorting (File 1 Bagian 6.8.10), dipetakan ke pasangan
 // sort/order yang dipahami backend GET /api/reports.
@@ -193,7 +170,7 @@ export default function FilterPanel({ filters, onChange, onReset }) {
       {/* Tingkat kerusakan */}
       <CheckboxGroup
         title="Tingkat Kerusakan"
-        options={SEVERITY_OPTIONS}
+        options={SEVERITIES}
         selected={filters.severity}
         onToggle={toggle('severity')}
       />
@@ -201,7 +178,7 @@ export default function FilterPanel({ filters, onChange, onReset }) {
       {/* Kategori kewenangan */}
       <CheckboxGroup
         title="Kategori Kewenangan"
-        options={AUTHORITY_OPTIONS}
+        options={BRIDGE_AUTHORITIES}
         selected={filters.bridge_authority}
         onToggle={toggle('bridge_authority')}
       />
@@ -209,7 +186,7 @@ export default function FilterPanel({ filters, onChange, onReset }) {
       {/* Status vital */}
       <CheckboxGroup
         title="Status Vital"
-        options={VITAL_OPTIONS}
+        options={VITAL_STATUSES}
         selected={filters.vital_status}
         onToggle={toggle('vital_status')}
       />

@@ -23,42 +23,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-
-// ---- Katalog nilai tetap, rujukan tunggal File 1 Bagian 6.8 ----
-
-const INFRA_TYPES = [
-  { value: 'jembatan', label: 'Jembatan' },
-  { value: 'jalan', label: 'Jalan' },
-  { value: 'sekolah', label: 'Sekolah' },
-  { value: 'prasarana_publik', label: 'Prasarana Publik' },
-  { value: 'utilitas', label: 'Utilitas' },
-  { value: 'lainnya', label: 'Lainnya' },
-];
-
-const SEVERITIES = [
-  { value: 'ringan', label: 'Ringan', color: '#22c55e' },
-  { value: 'sedang', label: 'Sedang', color: '#eab308' },
-  { value: 'berat', label: 'Berat', color: '#f97316' },
-  { value: 'ambruk', label: 'Ambruk', color: '#ef4444' },
-];
-
-const BRIDGE_AUTHORITIES = [
-  { value: 'nasional', label: 'Nasional' },
-  { value: 'provinsi', label: 'Provinsi' },
-  { value: 'kabupaten_kota', label: 'Kabupaten/Kota' },
-  { value: 'desa_swadaya', label: 'Desa/Swadaya' },
-  { value: 'tidak_diketahui', label: 'Tidak Diketahui' },
-];
-
-const VITAL_STATUSES = [
-  { value: 'akses_sekolah', label: 'Akses Sekolah' },
-  { value: 'akses_kesehatan', label: 'Akses Kesehatan' },
-  { value: 'akses_antar_kampung', label: 'Akses Antar Kampung' },
-  { value: 'akses_sungai', label: 'Akses Sungai' },
-  { value: 'akses_ekonomi', label: 'Akses Ekonomi' },
-  { value: 'aset_utilitas', label: 'Aset Utilitas' },
-  { value: 'lainnya', label: 'Lainnya' },
-];
+import {
+  INFRA_TYPES,
+  SEVERITIES,
+  BRIDGE_AUTHORITIES,
+  VITAL_STATUSES,
+} from '../lib/labels.js';
 
 // ---- Konfigurasi geocoding & peta lokasi (File 1 Bagian 5.2) ----
 

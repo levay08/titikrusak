@@ -4,7 +4,10 @@
 // Pusat peta: -2.5, 118 dengan zoom menampilkan seluruh Indonesia
 // (File 1 Bagian 5.1). Marker berwarna sesuai severity (File 1 6.8.2):
 // ringan=hijau, sedang=kuning, berat=oranye, ambruk=merah.
-// Data dari GET /api/reports (via proxy Vite ke backend port 3000).
+//
+// Mode tampilan "Peta": data laporan TIDAK di-fetch di sini — diterima
+// sebagai props dari App (satu sumber data yang sama dengan ListView,
+// hasil filter/sorting aktif). Lihat ListView.jsx untuk mode "Daftar".
 
 import { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
@@ -13,88 +16,15 @@ import 'leaflet/dist/leaflet.css';
 import 'leaflet.markercluster';
 import 'leaflet.markercluster/dist/MarkerCluster.css';
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
-
-// Warna marker sesuai File 1 Bagian 6.8.2.
-const SEVERITY_COLORS = {
-  ringan: '#22c55e', // hijau
-  sedang: '#eab308', // kuning
-  berat: '#f97316',  // oranye
-  ambruk: '#ef4444', // merah
-};
-
-const SEVERITY_LABELS = {
-  ringan: 'Ringan',
-  sedang: 'Sedang',
-  berat: 'Berat',
-  ambruk: 'Ambruk',
-};
-
-const INFRA_LABELS = {
-  jembatan: 'Jembatan',
-  jalan: 'Jalan',
-  sekolah: 'Sekolah',
-  prasarana_publik: 'Prasarana Publik',
-  utilitas: 'Utilitas',
-  lainnya: 'Lainnya',
-};
-
-const STATUS_LABELS = {
-  dilaporkan: 'Dilaporkan',
-  terverifikasi: 'Terverifikasi',
-  dalam_perbaikan: 'Dalam Perbaikan',
-  selesai_diperbaiki: 'Selesai Diperbaiki',
-};
-
-// Urutan tampil legend (File 1 Bagian 9.3).
-const SEVERITY_ORDER = ['ringan', 'sedang', 'berat', 'ambruk'];
-
-// Enam opsi sorting FilterPanel (File 1 Bagian 6.8.10) -> pasangan
-// sort/order yang dipahami backend GET /api/reports (File 1 Bagian 7.4).
-const SORT_PARAMS = {
-  terbaru: ['created_at', 'desc'],
-  terlama: ['created_at', 'asc'],
-  terparah: ['severity', 'desc'],
-  teringan: ['severity', 'asc'],
-  lokasi_az: ['location_name', 'asc'],
-  lokasi_za: ['location_name', 'desc'],
-};
-
-const EMPTY_FILTERS = {
-  severity: [],
-  infra_type: [],
-  bridge_authority: [],
-  vital_status: [],
-  q: '',
-  sort: 'terbaru',
-};
-
-// Bangun query string GET /api/reports dari state filter.
-function buildQuery(filters) {
-  const f = { ...EMPTY_FILTERS, ...(filters || {}) };
-  const p = new URLSearchParams();
-  ['severity', 'infra_type', 'bridge_authority', 'vital_status'].forEach((key) => {
-    (f[key] || []).forEach((v) => p.append(key, v));
-  });
-  if (f.q && f.q.trim()) p.set('q', f.q.trim());
-  const [sort, order] = SORT_PARAMS[f.sort] || SORT_PARAMS.terbaru;
-  p.set('sort', sort);
-  p.set('order', order);
-  const s = p.toString();
-  return s ? `?${s}` : '';
-}
-
-// Definisi singkat tiap tingkat kerusakan, diringkas dari tabel lengkap
-// File 1 Bagian 6.8.2 (yang dirujuk oleh Bagian 9.3).
-const SEVERITY_DEFINITIONS = {
-  ringan:
-    'Kerusakan kosmetik atau kecil; infrastruktur masih aman dilalui atau dipakai tanpa risiko berarti terhadap keselamatan.',
-  sedang:
-    'Kerusakan struktural ringan yang mulai mengganggu fungsi; masih dapat dipakai dengan kehati-hatian, belum mengancam jiwa secara langsung.',
-  berat:
-    'Kerusakan struktural signifikan yang mengarah ke bahaya nyata bagi keselamatan; sangat berisiko, sebaiknya dihindari kecuali darurat.',
-  ambruk:
-    'Mengancam jiwa secara aktif; infrastruktur putus total, roboh, atau akses terputus — tidak boleh didekati atau dilalui sama sekali.',
-};
+import {
+  SEVERITY_COLORS,
+  SEVERITY_LABELS,
+  SEVERITY_ORDER,
+  SEVERITY_DEFINITIONS,
+  INFRA_LABELS,
+  STATUS_LABELS,
+} from '../lib/labels.js';
+import EmptyResults from './EmptyResults.jsx';
 
 // Batas pandang peta (File 1 Bagian 9.1): seluruh Indonesia plus sedikit
 // toleransi di tepi agar peta tidak bisa digeser jauh keluar wilayah.
@@ -243,12 +173,10 @@ function SeverityLegend() {
   );
 }
 
-export default function MapView({ refreshKey = 0, filters, onResetFilters }) {
+export default function MapView({ reports = [], error = null, onResetFilters }) {
   const containerRef = useRef(null);
   const mapRef = useRef(null);
   const clusterGroupRef = useRef(null);
-  const [error, setError] = useState(null);
-  const [reports, setReports] = useState([]);
 
   // Inisialisasi peta sekali.
   useEffect(() => {
@@ -296,74 +224,54 @@ export default function MapView({ refreshKey = 0, filters, onResetFilters }) {
     };
   }, []);
 
-  // Ambil laporan dan render marker. Di-refresh otomatis saat refreshKey
-  // berubah (setelah submit laporan baru) atau saat filter berubah
-  // (real-time, tanpa reload).
+  // Render marker dari props reports (satu sumber data dengan ListView).
+  // Effect berjalan ulang setiap data baru (filter berubah, laporan baru,
+  // dll.) — tanpa reload manual.
   useEffect(() => {
-    let cancelled = false;
+    const map = mapRef.current;
+    if (!map) return;
 
-    const query = buildQuery(filters);
-    fetch(`/api/reports${query}`)
-      .then((res) => {
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        return res.json();
-      })
-      .then((data) => {
-        if (cancelled) return;
-        setReports(data); // dipakai untuk kondisi hasil kosong
-        const map = mapRef.current;
-        if (!map) return;
+    // Buang group marker lama (jika ada) sebelum render ulang.
+    if (clusterGroupRef.current) {
+      map.removeLayer(clusterGroupRef.current);
+      clusterGroupRef.current = null;
+    }
 
-        // Buang group marker lama (jika ada) sebelum render ulang —
-        // dipakai saat refreshKey berubah setelah laporan baru terkirim.
-        if (clusterGroupRef.current) {
-          map.removeLayer(clusterGroupRef.current);
-          clusterGroupRef.current = null;
-        }
+    // Marker cluster group dari plugin resmi (File 1 Bagian 9.4).
+    const clusterGroup = L.markerClusterGroup();
+    clusterGroupRef.current = clusterGroup;
 
-        // Marker cluster group dari plugin resmi (File 1 Bagian 9.4).
-        const clusterGroup = L.markerClusterGroup();
-        clusterGroupRef.current = clusterGroup;
-
-        data.forEach((report) => {
-          const color = SEVERITY_COLORS[report.severity] || '#64748b';
-          const marker = L.circleMarker([report.lat, report.lng], {
-            radius: 9,
-            fillColor: color,
-            fillOpacity: 0.85,
-            // Outline putih tebal agar warna severity tetap kontras di atas
-            // tile peta berwarna serupa (hijau vegetasi, kuning/krem area
-            // terbangun) — File 1 Bagian 9.3.
-            color: '#ffffff',
-            weight: 3,
-          });
-
-          const popupHtml = `
-            <strong>${escapeHtml(report.location_name)}</strong><br/>
-            Jenis: ${escapeHtml(INFRA_LABELS[report.infra_type] || report.infra_type)}<br/>
-            Kerusakan: ${escapeHtml(SEVERITY_LABELS[report.severity] || report.severity)}<br/>
-            Status: ${escapeHtml(STATUS_LABELS[report.status] || report.status)}
-            ${report.description ? `<br/>${escapeHtml(report.description)}` : ''}
-          `;
-          marker.bindPopup(popupHtml);
-
-          // Semua marker masuk ke markerClusterGroup (File 1 Bagian 9.4):
-          // saat zoom-out, marker berdekatan menyatu jadi cluster dengan
-          // angka jumlah laporan; saat zoom-in atau cluster diklik, cluster
-          // pecah kembali menjadi marker individual (perilaku default plugin).
-          clusterGroup.addLayer(marker);
-        });
-
-        clusterGroup.addTo(map);
-      })
-      .catch((err) => {
-        if (!cancelled) setError(err.message);
+    reports.forEach((report) => {
+      const color = SEVERITY_COLORS[report.severity] || '#64748b';
+      const marker = L.circleMarker([report.lat, report.lng], {
+        radius: 9,
+        fillColor: color,
+        fillOpacity: 0.85,
+        // Outline putih tebal agar warna severity tetap kontras di atas
+        // tile peta berwarna serupa (hijau vegetasi, kuning/krem area
+        // terbangun) — File 1 Bagian 9.3.
+        color: '#ffffff',
+        weight: 3,
       });
 
-    return () => {
-      cancelled = true;
-    };
-  }, [refreshKey, filters]);
+      const popupHtml = `
+        <strong>${escapeHtml(report.location_name)}</strong><br/>
+        Jenis: ${escapeHtml(INFRA_LABELS[report.infra_type] || report.infra_type)}<br/>
+        Kerusakan: ${escapeHtml(SEVERITY_LABELS[report.severity] || report.severity)}<br/>
+        Status: ${escapeHtml(STATUS_LABELS[report.status] || report.status)}
+        ${report.description ? `<br/>${escapeHtml(report.description)}` : ''}
+      `;
+      marker.bindPopup(popupHtml);
+
+      // Semua marker masuk ke markerClusterGroup (File 1 Bagian 9.4):
+      // saat zoom-out, marker berdekatan menyatu jadi cluster dengan
+      // angka jumlah laporan; saat zoom-in atau cluster diklik, cluster
+      // pecah kembali menjadi marker individual (perilaku default plugin).
+      clusterGroup.addLayer(marker);
+    });
+
+    clusterGroup.addTo(map);
+  }, [reports]);
 
   return (
     <div style={{ position: 'relative', height: '100%', width: '100%' }}>
@@ -371,47 +279,8 @@ export default function MapView({ refreshKey = 0, filters, onResetFilters }) {
       <ResetViewButton onReset={() => mapRef.current?.setView(HOME_CENTER, HOME_ZOOM)} />
       <SeverityLegend />
 
-      {/* Kondisi hasil kosong (File 1 Bagian 9.1): filter tidak menemukan
-          laporan -> kartu pesan + tombol Reset Filter. */}
-      {!error && reports.length === 0 && (
-        <div
-          style={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            zIndex: 1000,
-            background: 'rgba(255, 255, 255, 0.97)',
-            borderRadius: 10,
-            boxShadow: '0 2px 12px rgba(0, 0, 0, 0.25)',
-            padding: '18px 22px',
-            textAlign: 'center',
-            maxWidth: 340,
-          }}
-        >
-          <p style={{ margin: '0 0 12px', fontSize: 14, fontWeight: 600, color: '#0f172a' }}>
-            Tidak ada laporan yang sesuai dengan filter ini
-          </p>
-          {onResetFilters && (
-            <button
-              type="button"
-              onClick={onResetFilters}
-              style={{
-                padding: '8px 16px',
-                borderRadius: 8,
-                border: 'none',
-                background: '#7c3aed',
-                color: '#fff',
-                fontSize: 13,
-                fontWeight: 600,
-                cursor: 'pointer',
-              }}
-            >
-              Reset Filter
-            </button>
-          )}
-        </div>
-      )}
+      {/* Kondisi hasil kosong (File 1 Bagian 9.1) — sama dengan ListView */}
+      {!error && reports.length === 0 && <EmptyResults onResetFilters={onResetFilters} />}
 
       {error && (
         <div
