@@ -115,6 +115,17 @@ router.post('/', reportLimiter, (req, res) => {
     }
   }
 
+  // vital_status_note: wajib jika 'lainnya' dipilih (File 1 Bagian 6.8.4),
+  // dikirim oleh ReportForm sebagai string bebas.
+  const vital_status_note =
+    body.vital_status_note !== undefined && body.vital_status_note !== null &&
+    String(body.vital_status_note).trim() !== ''
+      ? String(body.vital_status_note).trim()
+      : null;
+  if (vital_status && vital_status.includes('lainnya') && !vital_status_note) {
+    errors.push('vital_status_note wajib diisi saat Lainnya dipilih');
+  }
+
   const location_name = typeof body.location_name === 'string' && body.location_name.trim() !== '' ? body.location_name.trim() : null;
   if (!location_name) errors.push('location_name wajib diisi');
 
@@ -139,9 +150,9 @@ router.post('/', reportLimiter, (req, res) => {
 
   const stmt = db.prepare(`
     INSERT INTO reports (
-      infra_type, severity, bridge_authority, vital_status,
+      infra_type, severity, bridge_authority, vital_status, vital_status_note,
       location_name, lat, lng, description
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
 
   const info = stmt.run(
@@ -149,6 +160,7 @@ router.post('/', reportLimiter, (req, res) => {
     severity,
     bridge_authority || 'tidak_diketahui',
     JSON.stringify(vital_status),
+    vital_status_note,
     location_name,
     lat,
     lng,

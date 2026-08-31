@@ -66,6 +66,11 @@ const SEVERITY_DEFINITIONS = {
 const INDONESIA_BOUNDS = L.latLngBounds([-11, 95], [6, 141]);
 const VIEW_LIMITS = L.latLngBounds([-12, 94], [7, 142]);
 
+// Tampilan awal (File 1 Bagian 5.1) — dipakai kembali oleh tombol
+// "Kembali ke Tampilan Awal".
+const HOME_CENTER = [-2.5, 118];
+const HOME_ZOOM = 5;
+
 // Rentang vertikal Mercator (dalam "derajat ekuator") antara dua lintang.
 function mercatorYSpan(south, north) {
   const toMerc = (lat) =>
@@ -92,6 +97,40 @@ function escapeHtml(value) {
     .replaceAll('>', '&gt;')
     .replaceAll('"', '&quot;')
     .replaceAll("'", '&#39;');
+}
+
+// Kotak kecil di pojok kiri atas peta: kembali ke tampilan awal seluruh
+// Indonesia (center [-2.5, 118], zoom 5) setelah pengguna zoom ke
+// cluster/marker tertentu (File 1 Bagian 9.1).
+function ResetViewButton({ onReset }) {
+  return (
+    <button
+      type="button"
+      onClick={onReset}
+      title="Kembali ke tampilan awal (seluruh Indonesia)"
+      style={{
+        position: 'absolute',
+        left: 12,
+        top: 12,
+        zIndex: 1000,
+        background: '#fff',
+        border: '1px solid #cbd5e1',
+        borderRadius: 6,
+        boxShadow: '0 1px 4px rgba(0, 0, 0, 0.3)',
+        padding: '6px 10px',
+        fontSize: 12.5,
+        fontWeight: 600,
+        color: '#0f172a',
+        cursor: 'pointer',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 6,
+      }}
+    >
+      <span style={{ fontSize: 14, lineHeight: 1 }}>⟲</span>
+      Kembali ke Tampilan Awal
+    </button>
+  );
 }
 
 // Legend warna tingkat kerusakan + ikon info definisi (File 1 Bagian 9.3).
@@ -169,9 +208,10 @@ function SeverityLegend() {
   );
 }
 
-export default function MapView() {
+export default function MapView({ refreshKey = 0 }) {
   const containerRef = useRef(null);
   const mapRef = useRef(null);
+  const clusterGroupRef = useRef(null);
   const [error, setError] = useState(null);
 
   // Inisialisasi peta sekali.
@@ -220,7 +260,8 @@ export default function MapView() {
     };
   }, []);
 
-  // Ambil laporan dan render marker.
+  // Ambil laporan dan render marker. Di-refresh otomatis saat refreshKey
+  // berubah (misalnya setelah submit laporan baru dari ReportForm).
   useEffect(() => {
     let cancelled = false;
 
@@ -234,8 +275,16 @@ export default function MapView() {
         const map = mapRef.current;
         if (!map) return;
 
+        // Buang group marker lama (jika ada) sebelum render ulang —
+        // dipakai saat refreshKey berubah setelah laporan baru terkirim.
+        if (clusterGroupRef.current) {
+          map.removeLayer(clusterGroupRef.current);
+          clusterGroupRef.current = null;
+        }
+
         // Marker cluster group dari plugin resmi (File 1 Bagian 9.4).
         const clusterGroup = L.markerClusterGroup();
+        clusterGroupRef.current = clusterGroup;
 
         reports.forEach((report) => {
           const color = SEVERITY_COLORS[report.severity] || '#64748b';
@@ -243,8 +292,11 @@ export default function MapView() {
             radius: 9,
             fillColor: color,
             fillOpacity: 0.85,
-            color: '#1f2937', // outline gelap agar kontras di peta
-            weight: 1.5,
+            // Outline putih tebal agar warna severity tetap kontras di atas
+            // tile peta berwarna serupa (hijau vegetasi, kuning/krem area
+            // terbangun) — File 1 Bagian 9.3.
+            color: '#ffffff',
+            weight: 3,
           });
 
           const popupHtml = `
@@ -272,11 +324,12 @@ export default function MapView() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [refreshKey]);
 
   return (
     <div style={{ position: 'relative', height: '100%', width: '100%' }}>
       <div ref={containerRef} style={{ height: '100%', width: '100%' }} />
+      <ResetViewButton onReset={() => mapRef.current?.setView(HOME_CENTER, HOME_ZOOM)} />
       <SeverityLegend />
       {error && (
         <div

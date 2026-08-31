@@ -1,10 +1,20 @@
 // frontend/src/App.jsx
-// Halaman utama: header sederhana (File 1 Bagian 9.1) + MapView
-// full screen sebagai elemen utama.
+// Halaman utama: header sederhana (File 1 Bagian 9.1) + MapView full
+// screen, tombol floating "Lapor Kerusakan" (File 1 Bagian 5.2 langkah
+// kedua), dan modal ReportForm (File 1 Bagian 9.6). Setelah laporan
+// berhasil dikirim, refreshKey dinaikkan agar MapView me-refresh marker
+// tanpa reload manual.
 
+import { useState } from 'react';
 import MapView from './components/MapView.jsx';
+import ReportForm from './components/ReportForm.jsx';
 
 export default function App() {
+  const [formOpen, setFormOpen] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  const handleSubmitted = () => setRefreshKey((k) => k + 1);
+
   return (
     <div style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
       <header
@@ -22,8 +32,65 @@ export default function App() {
           Laporkan dan pantau infrastruktur publik yang rusak
         </span>
       </header>
+
       <main style={{ flex: 1, position: 'relative', minHeight: 0 }}>
-        <MapView />
+        <MapView refreshKey={refreshKey} />
+
+        {/* Tombol floating Lapor Kerusakan (File 1 Bagian 9.1) */}
+        <button
+          type="button"
+          onClick={() => setFormOpen(true)}
+          style={{
+            position: 'absolute',
+            left: 20,
+            bottom: 20,
+            zIndex: 1100,
+            background: '#7c3aed',
+            color: '#fff',
+            border: 'none',
+            borderRadius: 999,
+            padding: '12px 22px',
+            fontSize: 15,
+            fontWeight: 700,
+            boxShadow: '0 4px 14px rgba(0, 0, 0, 0.35)',
+            cursor: 'pointer',
+          }}
+        >
+          + Lapor Kerusakan
+        </button>
+
+        {/* Modal formulir laporan */}
+        {formOpen && (
+          <div
+            style={{
+              position: 'fixed',
+              inset: 0,
+              zIndex: 1200,
+              background: 'rgba(15, 23, 42, 0.55)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: 16,
+            }}
+            onClick={() => setFormOpen(false)}
+          >
+            <div
+              style={{
+                background: '#fff',
+                borderRadius: 12,
+                width: '100%',
+                maxWidth: 520,
+                maxHeight: '90vh',
+                overflowY: 'auto',
+                padding: '20px 24px',
+                boxShadow: '0 10px 40px rgba(0, 0, 0, 0.4)',
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <ReportForm onSubmitted={handleSubmitted} onClose={() => setFormOpen(false)} />
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );
