@@ -7,6 +7,7 @@
 const express = require('express');
 const env = require('./config/env.js');
 const reportsRouter = require('./routes/reports.js');
+const verifyRouter = require('./routes/verify.js');
 
 const app = express();
 
@@ -16,6 +17,9 @@ app.use(express.json());
 // Rate limiting untuk POST diterapkan di dalam routes/reports.js
 // (File 1 Bagian 11.3).
 app.use('/api/reports', reportsRouter);
+
+// Route verifikasi e.id (File 2 Bagian 7.1 langkah keempat-kelima-keenam).
+app.use('/api/verify', verifyRouter);
 
 // 404 JSON untuk endpoint yang tidak dikenal.
 app.use((req, res) => {
