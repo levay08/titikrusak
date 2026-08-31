@@ -48,6 +48,41 @@ const STATUS_LABELS = {
 // Urutan tampil legend (File 1 Bagian 9.3).
 const SEVERITY_ORDER = ['ringan', 'sedang', 'berat', 'ambruk'];
 
+// Enam opsi sorting FilterPanel (File 1 Bagian 6.8.10) -> pasangan
+// sort/order yang dipahami backend GET /api/reports (File 1 Bagian 7.4).
+const SORT_PARAMS = {
+  terbaru: ['created_at', 'desc'],
+  terlama: ['created_at', 'asc'],
+  terparah: ['severity', 'desc'],
+  teringan: ['severity', 'asc'],
+  lokasi_az: ['location_name', 'asc'],
+  lokasi_za: ['location_name', 'desc'],
+};
+
+const EMPTY_FILTERS = {
+  severity: [],
+  infra_type: [],
+  bridge_authority: [],
+  vital_status: [],
+  q: '',
+  sort: 'terbaru',
+};
+
+// Bangun query string GET /api/reports dari state filter.
+function buildQuery(filters) {
+  const f = { ...EMPTY_FILTERS, ...(filters || {}) };
+  const p = new URLSearchParams();
+  ['severity', 'infra_type', 'bridge_authority', 'vital_status'].forEach((key) => {
+    (f[key] || []).forEach((v) => p.append(key, v));
+  });
+  if (f.q && f.q.trim()) p.set('q', f.q.trim());
+  const [sort, order] = SORT_PARAMS[f.sort] || SORT_PARAMS.terbaru;
+  p.set('sort', sort);
+  p.set('order', order);
+  const s = p.toString();
+  return s ? `?${s}` : '';
+}
+
 // Definisi singkat tiap tingkat kerusakan, diringkas dari tabel lengkap
 // File 1 Bagian 6.8.2 (yang dirujuk oleh Bagian 9.3).
 const SEVERITY_DEFINITIONS = {
@@ -208,11 +243,12 @@ function SeverityLegend() {
   );
 }
 
-export default function MapView({ refreshKey = 0 }) {
+export default function MapView({ refreshKey = 0, filters, onResetFilters }) {
   const containerRef = useRef(null);
   const mapRef = useRef(null);
   const clusterGroupRef = useRef(null);
   const [error, setError] = useState(null);
+  const [reports, setReports] = useState([]);
 
   // Inisialisasi peta sekali.
   useEffect(() => {
@@ -261,17 +297,20 @@ export default function MapView({ refreshKey = 0 }) {
   }, []);
 
   // Ambil laporan dan render marker. Di-refresh otomatis saat refreshKey
-  // berubah (misalnya setelah submit laporan baru dari ReportForm).
+  // berubah (setelah submit laporan baru) atau saat filter berubah
+  // (real-time, tanpa reload).
   useEffect(() => {
     let cancelled = false;
 
-    fetch('/api/reports')
+    const query = buildQuery(filters);
+    fetch(`/api/reports${query}`)
       .then((res) => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return res.json();
       })
-      .then((reports) => {
+      .then((data) => {
         if (cancelled) return;
+        setReports(data); // dipakai untuk kondisi hasil kosong
         const map = mapRef.current;
         if (!map) return;
 
@@ -286,7 +325,7 @@ export default function MapView({ refreshKey = 0 }) {
         const clusterGroup = L.markerClusterGroup();
         clusterGroupRef.current = clusterGroup;
 
-        reports.forEach((report) => {
+        data.forEach((report) => {
           const color = SEVERITY_COLORS[report.severity] || '#64748b';
           const marker = L.circleMarker([report.lat, report.lng], {
             radius: 9,
@@ -324,13 +363,56 @@ export default function MapView({ refreshKey = 0 }) {
     return () => {
       cancelled = true;
     };
-  }, [refreshKey]);
+  }, [refreshKey, filters]);
 
   return (
     <div style={{ position: 'relative', height: '100%', width: '100%' }}>
       <div ref={containerRef} style={{ height: '100%', width: '100%' }} />
       <ResetViewButton onReset={() => mapRef.current?.setView(HOME_CENTER, HOME_ZOOM)} />
       <SeverityLegend />
+
+      {/* Kondisi hasil kosong (File 1 Bagian 9.1): filter tidak menemukan
+          laporan -> kartu pesan + tombol Reset Filter. */}
+      {!error && reports.length === 0 && (
+        <div
+          style={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            zIndex: 1000,
+            background: 'rgba(255, 255, 255, 0.97)',
+            borderRadius: 10,
+            boxShadow: '0 2px 12px rgba(0, 0, 0, 0.25)',
+            padding: '18px 22px',
+            textAlign: 'center',
+            maxWidth: 340,
+          }}
+        >
+          <p style={{ margin: '0 0 12px', fontSize: 14, fontWeight: 600, color: '#0f172a' }}>
+            Tidak ada laporan yang sesuai dengan filter ini
+          </p>
+          {onResetFilters && (
+            <button
+              type="button"
+              onClick={onResetFilters}
+              style={{
+                padding: '8px 16px',
+                borderRadius: 8,
+                border: 'none',
+                background: '#7c3aed',
+                color: '#fff',
+                fontSize: 13,
+                fontWeight: 600,
+                cursor: 'pointer',
+              }}
+            >
+              Reset Filter
+            </button>
+          )}
+        </div>
+      )}
+
       {error && (
         <div
           style={{

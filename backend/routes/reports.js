@@ -65,13 +65,130 @@ function parseVitalStatus(row) {
 }
 
 // GET /api/reports
-// Mengambil seluruh laporan, default urut terbaru dulu (created_at desc).
-// Belum ada parameter filter (severity, infra_type, dst.) pada langkah
-// kedua ini; filter menyusul di File 2 Bagian 6.3 langkah keenam.
+// Mengambil laporan dengan dukungan filter & sorting (File 1 Bagian 7.4):
+//   severity, infra_type, bridge_authority, status, vital_status (semua
+//   multi-value, boleh diulang atau comma-separated; OR antar nilai),
+//   since (created_at >= since), q (pencarian nama lokasi, LIKE),
+//   sort (created_at | updated_at | severity | location_name | status),
+//   order (asc | desc).
+// Parameter yang tidak dikirim = tanpa filter tersebut (semua data).
+// Sorting default: created_at desc (perilaku asli sebelum filter ada).
+
+// Nilai enum status laporan (File 1 Bagian 6.2).
+const STATUSES = ['dilaporkan', 'terverifikasi', 'dalam_perbaikan', 'selesai_diperbaiki'];
+
+// Kolom yang boleh dipakai sebagai sort (whitelist; selain ini 400).
+const SORT_COLUMNS = ['created_at', 'updated_at', 'severity', 'location_name', 'status'];
+
+// Normalisasi query param multi-value: string tunggal, array, atau
+// comma-separated semuanya menjadi array bersih.
+function toArray(value) {
+  if (value === undefined || value === null) return [];
+  const arr = Array.isArray(value) ? value : [value];
+  return arr.flatMap((x) => String(x).split(',').map((s) => s.trim())).filter(Boolean);
+}
+
+// since berupa tanggal 'YYYY-MM-DD' disetarakan ke awal hari agar laporan
+// di tanggal itu ikut termasuk (string compare dengan format UTC SQLite).
+function normalizeSince(since) {
+  const s = String(since).trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return `${s} 00:00:00`;
+  return s;
+}
+
 router.get('/', (req, res) => {
+  const q = req.query;
+
+  // ---- Validasi nilai yang tidak dikenal -> 400 (pesan jelas) ----
+  const bad = (param, allowed) => {
+    const unknown = toArray(q[param]).filter((v) => !allowed.includes(v));
+    return unknown.length > 0 ? `${param} tidak dikenal: ${unknown.join(', ')}` : null;
+  };
+  const badSeverity = bad('severity', SEVERITIES);
+  const badInfra = bad('infra_type', INFRA_TYPES);
+  const badAuthority = bad('bridge_authority', BRIDGE_AUTHORITIES);
+  const badStatus = bad('status', STATUSES);
+  const badVital = bad('vital_status', VITAL_STATUSES);
+  const badSort =
+    q.sort !== undefined && q.sort !== null && q.sort !== '' && !SORT_COLUMNS.includes(q.sort)
+      ? `sort tidak dikenal: ${q.sort} (pilihan: ${SORT_COLUMNS.join(', ')})`
+      : null;
+  const badOrder =
+    q.order !== undefined && q.order !== null && q.order !== '' && !['asc', 'desc'].includes(q.order)
+      ? `order tidak dikenal: ${q.order} (pilihan: asc, desc)`
+      : null;
+  const invalid = [badSeverity, badInfra, badAuthority, badStatus, badVital, badSort, badOrder].filter(Boolean);
+  if (invalid.length > 0) {
+    return res.status(400).json({ error: invalid.join('; ') });
+  }
+
+  // ---- Susun WHERE dinamis (prepared statement, aman dari injection) ----
+  const severity = toArray(q.severity);
+  const infraType = toArray(q.infra_type);
+  const authority = toArray(q.bridge_authority);
+  const status = toArray(q.status);
+  const vital = toArray(q.vital_status);
+
+  const clauses = [];
+  const args = [];
+  const placeholders = (n) => new Array(n).fill('?').join(', ');
+
+  if (severity.length > 0) {
+    clauses.push(`severity IN (${placeholders(severity.length)})`);
+    args.push(...severity);
+  }
+  if (infraType.length > 0) {
+    clauses.push(`infra_type IN (${placeholders(infraType.length)})`);
+    args.push(...infraType);
+  }
+  if (authority.length > 0) {
+    clauses.push(`bridge_authority IN (${placeholders(authority.length)})`);
+    args.push(...authority);
+  }
+  if (status.length > 0) {
+    clauses.push(`status IN (${placeholders(status.length)})`);
+    args.push(...status);
+  }
+  if (vital.length > 0) {
+    // vital_status tersimpan sebagai JSON array string (File 1 Bagian
+    // 6.8.4). SQLite tidak punya operator array native, jadi gunakan
+    // pencocokan string pada kolom JSON: nilai tunggal selalu dirender
+    // sebagai "nilai" (dengan tanda kutip ganda) oleh JSON.stringify.
+    // OR antar nilai: laporan yang mengandung setidaknya satu nilai.
+    clauses.push(`(${vital.map(() => 'vital_status LIKE ?').join(' OR ')})`);
+    vital.forEach((v) => args.push(`%"${v}"%`));
+  }
+  if (q.since !== undefined && q.since !== null && q.since !== '') {
+    clauses.push('created_at >= ?');
+    args.push(normalizeSince(q.since));
+  }
+  if (q.q !== undefined && q.q !== null && String(q.q).trim() !== '') {
+    clauses.push('location_name LIKE ?');
+    args.push(`%${String(q.q).trim()}%`);
+  }
+
+  // ---- Sorting (File 1 Bagian 6.8.10) ----
+  const sort = SORT_COLUMNS.includes(q.sort) ? q.sort : 'created_at';
+  const order = q.order === 'asc' ? 'ASC' : 'DESC';
+  let orderBy;
+  if (sort === 'severity') {
+    // severity disimpan sebagai TEXT ('ringan'..'ambruk'), bukan angka —
+    // ORDER BY alfabet biasa salah (ambruk < berat < ringan < sedang).
+    // Petakan tiap nilai ke angka urutan sebelum mengurutkan.
+    orderBy =
+      `CASE severity WHEN 'ringan' THEN 1 WHEN 'sedang' THEN 2 ` +
+      `WHEN 'berat' THEN 3 WHEN 'ambruk' THEN 4 ELSE 0 END ${order}`;
+  } else {
+    orderBy = `${sort} ${order}`;
+  }
+
+  const whereSql = clauses.length > 0 ? `WHERE ${clauses.join(' AND ')}` : '';
   const rows = db
-    .prepare(`SELECT ${PUBLIC_SELECT} FROM reports ORDER BY created_at DESC, id DESC`)
-    .all();
+    .prepare(
+      `SELECT ${PUBLIC_SELECT} FROM reports ${whereSql} ` +
+        `ORDER BY ${orderBy}, created_at DESC, id DESC`
+    )
+    .all(...args);
 
   res.json(rows.map(parseVitalStatus));
 });

@@ -9,7 +9,7 @@
 // yang dibungkus <label> (radio/checkbox).
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom/vitest';
 import App from './App.jsx';
@@ -48,17 +48,22 @@ describe('App: alur lapor kerusakan end-to-end', () => {
     // Buka modal via tombol floating.
     await user.click(screen.getByRole('button', { name: /lapor kerusakan/i }));
 
+    // Scope query ke dalam form modal (FilterPanel di sidebar punya
+    // checkbox dengan nama yang sama, mis. "Akses Kesehatan").
+    const form = screen.getByText('Lapor Kerusakan').closest('form');
+    expect(form).not.toBeNull();
+
     // Isi formulir (tanpa verifikasi e.id).
-    await user.selectOptions(screen.getByRole('combobox', { name: /jenis infrastruktur/i }), 'jalan');
-    await user.click(screen.getByRole('radio', { name: 'Sedang' }));
-    await user.click(screen.getByRole('checkbox', { name: 'Akses Kesehatan' }));
-    await user.type(screen.getByRole('textbox', { name: /nama lokasi/i }), 'Jl. Raya Cikajang, Garut');
+    await user.selectOptions(within(form).getByRole('combobox', { name: /jenis infrastruktur/i }), 'jalan');
+    await user.click(within(form).getByRole('radio', { name: 'Sedang' }));
+    await user.click(within(form).getByRole('checkbox', { name: 'Akses Kesehatan' }));
+    await user.type(within(form).getByRole('textbox', { name: /nama lokasi/i }), 'Jl. Raya Cikajang, Garut');
     // Geocoding: klik Cari Lokasi -> koordinat dari hasil Nominatim.
-    await user.click(screen.getByRole('button', { name: /cari lokasi/i }));
+    await user.click(within(form).getByRole('button', { name: /cari lokasi/i }));
     expect(await screen.findByText(/Lokasi ditemukan/i)).toBeInTheDocument();
 
     // Submit.
-    await user.click(screen.getByRole('button', { name: /kirim laporan/i }));
+    await user.click(within(form).getByRole('button', { name: /kirim laporan/i }));
 
     // POST terkirim, pesan sukses tampil, peta me-refresh (GET kedua).
     await waitFor(() => expect(postMock).toHaveBeenCalledTimes(1));
@@ -80,6 +85,7 @@ describe('App: alur lapor kerusakan end-to-end', () => {
     // Tutup modal.
     await user.click(screen.getByRole('button', { name: /^tutup$/i }));
     expect(screen.queryByText(/Laporan Terkirim/i)).not.toBeInTheDocument();
-    expect(screen.queryByRole('textbox', { name: /nama lokasi/i })).not.toBeInTheDocument();
+    // Form modal sudah tidak ada (textbox "Cari Nama Lokasi" di panel tetap ada).
+    expect(screen.queryByText('Lapor Kerusakan')).not.toBeInTheDocument();
   });
 });
