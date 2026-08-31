@@ -5,6 +5,21 @@
 
 import { vi } from 'vitest';
 
+// matchMedia tidak ada di jsdom — stub agar komponen yang memakai
+// useIsMobile bisa dirender (default desktop: matches=false).
+Object.defineProperty(window, 'matchMedia', {
+  writable: true,
+  value: vi.fn().mockImplementation((query) => ({
+    matches: false,
+    media: query,
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    addListener: vi.fn(),
+    removeListener: vi.fn(),
+    dispatchEvent: vi.fn(),
+  })),
+});
+
 vi.mock('leaflet', () => {
   const latLngBounds = () => ({
     getEast: () => 142,
@@ -27,6 +42,11 @@ vi.mock('leaflet', () => {
         off: vi.fn(),
       })),
       tileLayer: vi.fn(() => ({ addTo: vi.fn() })),
+      // Kontrol zoom dipasang ulang di pojok kanan-atas (MapView);
+      // addTo chainable seperti Leaflet asli.
+      control: {
+        zoom: vi.fn(() => ({ addTo: vi.fn() })),
+      },
       // Marker draggable pada mini-map pemilih lokasi (ReportForm).
       // addTo chainable (Leaflet asli mengembalikan `this`).
       marker: vi.fn(function () {

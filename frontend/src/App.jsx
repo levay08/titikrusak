@@ -1,14 +1,15 @@
 // frontend/src/App.jsx
 // Halaman utama: header sederhana (File 1 Bagian 9.1) + FilterPanel
-// (sidebar kiri) + area tampilan yang bisa ditukar antara MapView dan
-// ListView (File 1 Bagian 9.2), tombol floating "Lapor Kerusakan"
-// (File 1 Bagian 5.2 langkah kedua), dan modal ReportForm (File 1
-// Bagian 9.6).
+// (sidebar di desktop, drawer di mobile — File 1 Bagian 9.7) + area
+// tampilan yang bisa ditukar antara MapView dan ListView (File 1 Bagian
+// 9.2), tombol floating "Lapor Kerusakan" (File 1 Bagian 5.2 langkah
+// kedua), dan modal ReportForm (File 1 Bagian 9.6).
 //
 // Data laporan di-fetch DI SINI (satu-satunya sumber data) berdasarkan
 // state filter + sorting aktif, lalu diteruskan sebagai props yang sama
-// ke MapView dan ListView — dua mode tampilan dari data yang sama,
-// bukan dua fetch terpisah. FilterPanel dipakai bersama di kedua mode.
+// ke MapView dan ListView — dua mode tampilan dari data yang sama.
+// Fetch kedua tanpa filter menghitung total laporan di database untuk
+// membedakan kondisi hasil kosong (DB kosong vs filter tak cocok).
 
 import { useEffect, useState } from 'react';
 import MapView from './components/MapView.jsx';
@@ -16,6 +17,7 @@ import ListView from './components/ListView.jsx';
 import ReportForm from './components/ReportForm.jsx';
 import FilterPanel from './components/FilterPanel.jsx';
 import VerificationFlow from './components/VerificationFlow.jsx';
+import useIsMobile from './lib/useIsMobile.js';
 
 // State filter kosong (semua laporan tampil, urut terbaru).
 const EMPTY_FILTERS = {
@@ -111,10 +113,12 @@ export default function App() {
   // Sesi otoritas lokal (File 1 Bagian 5.2): null = belum masuk.
   const [otoritas, setOtoritas] = useState(null); // { displayName }
   const [otoritasOpen, setOtoritasOpen] = useState(false);
+  // Drawer filter di mobile (File 1 Bagian 9.7).
+  const isMobile = useIsMobile();
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
-  // Satu-satunya fetch data: ulang saat filter berubah (real-time) atau
-  // setelah laporan baru dikirim (refreshKey). Hasilnya dibagikan ke
-  // MapView dan ListView sebagai props yang sama.
+  // Satu-satunya fetch data hasil-filter: ulang saat filter berubah
+  // (real-time) atau setelah laporan baru dikirim (refreshKey).
   useEffect(() => {
     let cancelled = false;
     const query = buildQuery(filters);
@@ -138,8 +142,7 @@ export default function App() {
 
   // Hitung total laporan di database (TANPA filter apa pun) — hanya
   // berubah saat mount dan setelah laporan baru dikirim (refreshKey),
-  // tidak bergantung pada filter. Dipakai membedakan kondisi hasil
-  // kosong: DB benar-benar kosong vs filter yang tidak cocok.
+  // tidak bergantung pada filter.
   useEffect(() => {
     let cancelled = false;
     fetch('/api/reports')
@@ -163,77 +166,176 @@ export default function App() {
   const handleFilterChange = (next) => setFilters(next);
   const handleResetFilters = () => setFilters(EMPTY_FILTERS);
 
+  // Jumlah filter yang sedang aktif (untuk badge tombol Filter di mobile).
+  const activeFilterCount =
+    filters.severity.length +
+    filters.bridge_authority.length +
+    filters.vital_status.length +
+    (filters.q.trim() ? 1 : 0);
+
+  const openReportForm = () => setFormOpen(true);
+
   return (
-    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       <header
         style={{
-          padding: '10px 16px',
+          padding: '10px 12px',
           background: '#0f172a',
           color: '#fff',
           display: 'flex',
           alignItems: 'center',
           gap: 10,
+          flexWrap: 'wrap',
         }}
       >
         <h1 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>titikrusak.id</h1>
-        <span style={{ fontSize: 13, opacity: 0.8, flex: 1 }}>
-          Laporkan dan pantau infrastruktur publik yang rusak
-        </span>
+        {!isMobile && (
+          <span style={{ fontSize: 13, opacity: 0.8, flex: 1 }}>
+            Laporkan dan pantau infrastruktur publik yang rusak
+          </span>
+        )}
 
-        {/* Sesi otoritas lokal (File 1 Bagian 5.2) */}
-        {otoritas ? (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span
-              style={{
-                background: 'rgba(255, 255, 255, 0.12)',
-                border: '1px solid rgba(255, 255, 255, 0.25)',
-                borderRadius: 999,
-                padding: '5px 12px',
-                fontSize: 12.5,
-                fontWeight: 600,
-              }}
-            >
-              🏛 Otoritas: {otoritas.displayName}
-            </span>
+        <div style={{ marginLeft: isMobile ? 'auto' : 0, display: 'flex', gap: 8, alignItems: 'center' }}>
+          {/* Tombol buka drawer filter — hanya di mobile (File 1 9.7) */}
+          {isMobile && (
             <button
               type="button"
-              onClick={() => setOtoritas(null)}
+              onClick={() => setFiltersOpen(true)}
               style={{
-                background: 'none',
-                border: '1px solid rgba(255, 255, 255, 0.4)',
+                background: 'rgba(255, 255, 255, 0.12)',
+                border: '1px solid rgba(255, 255, 255, 0.3)',
                 color: '#fff',
-                borderRadius: 6,
-                padding: '5px 10px',
-                fontSize: 12,
+                borderRadius: 8,
+                padding: '9px 14px',
+                fontSize: 13,
+                fontWeight: 600,
                 cursor: 'pointer',
               }}
             >
-              Keluar
+              {activeFilterCount > 0 ? `Filter (${activeFilterCount})` : 'Filter'}
             </button>
-          </div>
-        ) : (
-          <button
-            type="button"
-            onClick={() => setOtoritasOpen(true)}
-            style={{
-              background: 'rgba(255, 255, 255, 0.12)',
-              border: '1px solid rgba(255, 255, 255, 0.3)',
-              color: '#fff',
-              borderRadius: 8,
-              padding: '7px 14px',
-              fontSize: 13,
-              fontWeight: 600,
-              cursor: 'pointer',
-            }}
-          >
-            Masuk sebagai Otoritas Lokal
-          </button>
-        )}
+          )}
+
+          {/* Sesi otoritas lokal (File 1 Bagian 5.2). Di mobile saat sudah
+              masuk, badge + tombol Keluar pindah ke baris header kedua
+              (lebar penuh) agar baris pertama tidak sesak/terpotong di
+              layar sempit (320-414px). */}
+          {isMobile && otoritas ? null : otoritas ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span
+                style={{
+                  background: 'rgba(255, 255, 255, 0.12)',
+                  border: '1px solid rgba(255, 255, 255, 0.25)',
+                  borderRadius: 999,
+                  padding: '5px 10px',
+                  fontSize: 12,
+                  fontWeight: 600,
+                  whiteSpace: 'nowrap',
+                  maxWidth: 220,
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                }}
+              >
+                🏛 {otoritas.displayName}
+              </span>
+              <button
+                type="button"
+                onClick={() => setOtoritas(null)}
+                style={{
+                  background: 'none',
+                  border: '1px solid rgba(255, 255, 255, 0.4)',
+                  color: '#fff',
+                  borderRadius: 6,
+                  padding: '5px 8px',
+                  fontSize: 12,
+                  cursor: 'pointer',
+                }}
+              >
+                Keluar
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setOtoritasOpen(true)}
+              style={{
+                background: 'rgba(255, 255, 255, 0.12)',
+                border: '1px solid rgba(255, 255, 255, 0.3)',
+                color: '#fff',
+                borderRadius: 8,
+                padding: isMobile ? '9px 14px' : '7px 12px',
+                fontSize: 13,
+                fontWeight: 600,
+                cursor: 'pointer',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {isMobile ? 'Otoritas' : 'Masuk sebagai Otoritas Lokal'}
+            </button>
+          )}
+        </div>
       </header>
 
+      {/* Baris kedua header (khusus mobile, saat sesi otoritas aktif):
+          badge nama + tombol Keluar selebar layar, agar tidak menumpuk
+          dengan judul dan tombol Filter di baris pertama. */}
+      {isMobile && otoritas && (
+        <div
+          style={{
+            background: '#0f172a',
+            color: '#fff',
+            padding: '0 12px 10px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            borderTop: '1px solid rgba(255, 255, 255, 0.12)',
+          }}
+        >
+          <span
+            style={{
+              background: 'rgba(255, 255, 255, 0.12)',
+              border: '1px solid rgba(255, 255, 255, 0.25)',
+              borderRadius: 999,
+              padding: '5px 10px',
+              fontSize: 12,
+              fontWeight: 600,
+              whiteSpace: 'nowrap',
+              flex: 1,
+              minWidth: 0,
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+            }}
+          >
+            🏛 {otoritas.displayName}
+          </span>
+          <button
+            type="button"
+            onClick={() => setOtoritas(null)}
+            style={{
+              background: 'none',
+              border: '1px solid rgba(255, 255, 255, 0.4)',
+              color: '#fff',
+              borderRadius: 6,
+              padding: '6px 12px',
+              fontSize: 12,
+              cursor: 'pointer',
+              flexShrink: 0,
+            }}
+          >
+            Keluar
+          </button>
+        </div>
+      )}
+
       <main style={{ flex: 1, display: 'flex', minHeight: 0 }}>
-        {/* Panel filter (File 1 Bagian 9.1) — dipakai bersama di mode Peta & Daftar */}
-        <FilterPanel filters={filters} onChange={handleFilterChange} onReset={handleResetFilters} />
+        {/* Panel filter desktop: sidebar permanen */}
+        {!isMobile && (
+          <FilterPanel
+            filters={filters}
+            onChange={handleFilterChange}
+            onReset={handleResetFilters}
+          />
+        )}
 
         <div style={{ position: 'relative', flex: 1, minWidth: 0 }}>
           {/* Toggle mode tampilan (File 1 Bagian 9.2) */}
@@ -245,7 +347,7 @@ export default function App() {
               error={dataError}
               onResetFilters={handleResetFilters}
               hasAnyData={totalCount === null ? null : totalCount > 0}
-              onOpenReportForm={() => setFormOpen(true)}
+              onOpenReportForm={openReportForm}
             />
           ) : (
             <ListView
@@ -253,32 +355,72 @@ export default function App() {
               error={dataError}
               onResetFilters={handleResetFilters}
               hasAnyData={totalCount === null ? null : totalCount > 0}
-              onOpenReportForm={() => setFormOpen(true)}
+              onOpenReportForm={openReportForm}
             />
           )}
 
-          {/* Tombol floating Lapor Kerusakan (File 1 Bagian 9.1) */}
-          <button
-            type="button"
-            onClick={() => setFormOpen(true)}
-            style={{
-              position: 'absolute',
-              left: 20,
-              bottom: 20,
-              zIndex: 1100,
-              background: '#7c3aed',
-              color: '#fff',
-              border: 'none',
-              borderRadius: 999,
-              padding: '12px 22px',
-              fontSize: 15,
-              fontWeight: 700,
-              boxShadow: '0 4px 14px rgba(0, 0, 0, 0.35)',
-              cursor: 'pointer',
-            }}
-          >
-            + Lapor Kerusakan
-          </button>
+          {/* Tombol floating Lapor Kerusakan (File 1 Bagian 9.1). Di
+              Kondisi A (database kosong) disembunyikan — EmptyResults
+              sudah menampilkan satu tombol ajakan beranimasi. */}
+          {totalCount !== 0 && (
+            <button
+              type="button"
+              onClick={openReportForm}
+              style={{
+                position: 'absolute',
+                left: isMobile ? 16 : 20,
+                bottom: isMobile ? 16 : 20,
+                zIndex: 1100,
+                background: '#7c3aed',
+                color: '#fff',
+                border: 'none',
+                borderRadius: 999,
+                padding: isMobile ? '13px 20px' : '12px 22px',
+                fontSize: 15,
+                fontWeight: 700,
+                boxShadow: '0 4px 14px rgba(0, 0, 0, 0.35)',
+                cursor: 'pointer',
+              }}
+            >
+              + Lapor Kerusakan
+            </button>
+          )}
+
+          {/* Drawer filter mobile (File 1 Bagian 9.7) */}
+          {isMobile && filtersOpen && (
+            <>
+              <div
+                style={{
+                  position: 'fixed',
+                  inset: 0,
+                  zIndex: 1290,
+                  background: 'rgba(15, 23, 42, 0.45)',
+                }}
+                onClick={() => setFiltersOpen(false)}
+              />
+              <div
+                style={{
+                  position: 'fixed',
+                  top: 0,
+                  left: 0,
+                  bottom: 0,
+                  zIndex: 1300,
+                  background: '#fff',
+                  boxShadow: '2px 0 16px rgba(0, 0, 0, 0.3)',
+                  width: 288,
+                  maxWidth: '85vw',
+                  overflowY: 'auto',
+                }}
+              >
+                <FilterPanel
+                  filters={filters}
+                  onChange={handleFilterChange}
+                  onReset={handleResetFilters}
+                  onClose={() => setFiltersOpen(false)}
+                />
+              </div>
+            </>
+          )}
 
           {/* Modal formulir laporan */}
           {formOpen && (
@@ -289,21 +431,23 @@ export default function App() {
                 zIndex: 1200,
                 background: 'rgba(15, 23, 42, 0.55)',
                 display: 'flex',
-                alignItems: 'center',
+                alignItems: isMobile ? 'flex-end' : 'center',
                 justifyContent: 'center',
-                padding: 16,
+                padding: isMobile ? 0 : 16,
               }}
               onClick={() => setFormOpen(false)}
             >
               <div
                 style={{
                   background: '#fff',
-                  borderRadius: 12,
+                  borderTopLeftRadius: 14,
+                  borderTopRightRadius: 14,
+                  borderRadius: isMobile ? '14px 14px 0 0' : 12,
                   width: '100%',
                   maxWidth: 520,
-                  maxHeight: '90vh',
+                  maxHeight: isMobile ? '92dvh' : '90vh',
                   overflowY: 'auto',
-                  padding: '20px 24px',
+                  padding: isMobile ? '18px 18px 24px' : '20px 24px',
                   boxShadow: '0 10px 40px rgba(0, 0, 0, 0.4)',
                 }}
                 onClick={(e) => e.stopPropagation()}
@@ -322,21 +466,21 @@ export default function App() {
                 zIndex: 1200,
                 background: 'rgba(15, 23, 42, 0.55)',
                 display: 'flex',
-                alignItems: 'center',
+                alignItems: isMobile ? 'flex-end' : 'center',
                 justifyContent: 'center',
-                padding: 16,
+                padding: isMobile ? 0 : 16,
               }}
               onClick={() => setOtoritasOpen(false)}
             >
               <div
                 style={{
                   background: '#fff',
-                  borderRadius: 12,
+                  borderRadius: isMobile ? '14px 14px 0 0' : 12,
                   width: '100%',
                   maxWidth: 440,
-                  maxHeight: '90vh',
+                  maxHeight: isMobile ? '92dvh' : '90vh',
                   overflowY: 'auto',
-                  padding: '20px 24px',
+                  padding: isMobile ? '18px 18px 24px' : '20px 24px',
                   boxShadow: '0 10px 40px rgba(0, 0, 0, 0.4)',
                 }}
                 onClick={(e) => e.stopPropagation()}

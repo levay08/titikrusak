@@ -669,6 +669,13 @@ export default function ReportForm({ onSubmitted, onClose }) {
             type="text"
             value={form.location_name}
             onChange={set('location_name')}
+            onKeyDown={(e) => {
+              // Enter memicu geocoding yang sama dengan tombol Cari Lokasi.
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                searchLocation();
+              }
+            }}
             placeholder="Contoh: Jembatan Gantung Cibeureum, Garut"
             style={inputStyle}
           />

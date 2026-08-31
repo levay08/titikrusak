@@ -20,6 +20,7 @@ import {
   STATUS_LABELS,
   STATUS_COLORS,
 } from '../lib/labels.js';
+import useIsMobile from '../lib/useIsMobile.js';
 import EmptyResults from './EmptyResults.jsx';
 
 // Urutan + label seluruh field laporan untuk modal detail.
@@ -147,7 +148,9 @@ function ReportRow({ report, onClick }) {
 }
 
 // Modal detail sederhana: seluruh field laporan dari database.
+// Layout field menyesuaikan layar (mobile: label di atas nilai).
 function DetailModal({ report, onClose }) {
+  const isMobile = useIsMobile();
   return (
     <div
       style={{
@@ -156,21 +159,23 @@ function DetailModal({ report, onClose }) {
         zIndex: 1200,
         background: 'rgba(15, 23, 42, 0.55)',
         display: 'flex',
-        alignItems: 'center',
+        // Mobile: bottom sheet (File 1 Bagian 9.7) — sama dengan modal
+        // ReportForm & otoritas; desktop: kartu di tengah.
+        alignItems: isMobile ? 'flex-end' : 'center',
         justifyContent: 'center',
-        padding: 16,
+        padding: isMobile ? 0 : 16,
       }}
       onClick={onClose}
     >
       <div
         style={{
           background: '#fff',
-          borderRadius: 12,
+          borderRadius: isMobile ? '14px 14px 0 0' : 12,
           width: '100%',
           maxWidth: 560,
-          maxHeight: '85vh',
+          maxHeight: isMobile ? '92dvh' : '85vh',
           overflowY: 'auto',
-          padding: '20px 24px',
+          padding: isMobile ? '18px 18px 24px' : '20px 24px',
           boxShadow: '0 10px 40px rgba(0, 0, 0, 0.4)',
         }}
         onClick={(e) => e.stopPropagation()}
@@ -221,17 +226,18 @@ function DetailModal({ report, onClose }) {
               key={key}
               style={{
                 display: 'flex',
-                gap: 10,
+                gap: isMobile ? 2 : 10,
                 padding: '7px 0',
                 borderBottom: '1px solid #f1f5f9',
-                alignItems: 'flex-start',
+                alignItems: isMobile ? 'flex-start' : 'center',
+                flexDirection: isMobile ? 'column' : 'row',
               }}
             >
               <span
                 style={{
-                  width: 150,
+                  width: isMobile ? 'auto' : 150,
                   flexShrink: 0,
-                  fontSize: 12,
+                  fontSize: isMobile ? 11 : 12,
                   color: '#64748b',
                   paddingTop: 1,
                 }}

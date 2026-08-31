@@ -10,3 +10,22 @@ body,
 body {
   font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
 }
+
+/* Mobile-first (File 1 Bagian 9.7): 100vh di browser HP lebih tinggi dari
+   area yang terlihat (URL bar), sehingga bagian bawah terpotong. dvh
+   mengikuti viewport dinamis — dipakai bila didukung. */
+@supports (height: 100dvh) {
+  #root {
+    height: 100dvh;
+  }
+}
+
+/* Cegah auto-zoom iOS saat fokus input (font < 16px memicu zoom otomatis
+   ke field tersebut) — semua kontrol form dibuat 16px di layar kecil. */
+@media (max-width: 640px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}

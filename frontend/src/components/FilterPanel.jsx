@@ -89,7 +89,7 @@ function CheckboxGroup({ title, options, selected, onToggle }) {
   );
 }
 
-export default function FilterPanel({ filters, onChange, onReset }) {
+export default function FilterPanel({ filters, onChange, onReset, onClose }) {
   // Toggle nilai multi-select (severity/authority/vital) -> onChange.
   const toggle = (key) => (value) => (e) => {
     const checked = e.target.checked;
@@ -118,26 +118,47 @@ export default function FilterPanel({ filters, onChange, onReset }) {
         gap: 15,
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6 }}>
         <h2 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: '#0f172a' }}>
           Filter Laporan
         </h2>
-        <button
-          type="button"
-          onClick={onReset}
-          style={{
-            padding: '5px 10px',
-            borderRadius: 6,
-            border: '1px solid #cbd5e1',
-            background: '#fff',
-            color: '#0f172a',
-            fontSize: 12,
-            fontWeight: 600,
-            cursor: 'pointer',
-          }}
-        >
-          Reset Filter
-        </button>
+        <div style={{ display: 'flex', gap: 6 }}>
+          <button
+            type="button"
+            onClick={onReset}
+            style={{
+              padding: '5px 10px',
+              borderRadius: 6,
+              border: '1px solid #cbd5e1',
+              background: '#fff',
+              color: '#0f172a',
+              fontSize: 12,
+              fontWeight: 600,
+              cursor: 'pointer',
+            }}
+          >
+            Reset Filter
+          </button>
+          {onClose && (
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Tutup panel filter"
+              style={{
+                padding: '5px 9px',
+                borderRadius: 6,
+                border: '1px solid #cbd5e1',
+                background: '#fff',
+                color: '#475569',
+                fontSize: 12,
+                fontWeight: 600,
+                cursor: 'pointer',
+              }}
+            >
+              ✕
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Search nama lokasi */}

@@ -167,6 +167,23 @@ describe('ReportForm', () => {
     expect(screen.queryByText(/Laporan Terkirim/i)).not.toBeInTheDocument();
   });
 
+  it('menekan Enter pada input nama lokasi memicu geocoding (sama seperti tombol Cari Lokasi)', async () => {
+    vi.stubGlobal('fetch', buildFetchMock({ postResponse: { ok: true, status: 201, json: async () => ({ id: 99 }) } }));
+
+    const user = userEvent.setup();
+    render(<ReportForm onSubmitted={vi.fn()} onClose={vi.fn()} />);
+    await openForm(user);
+
+    await user.selectOptions(screen.getByRole('combobox', { name: /jenis infrastruktur/i }), 'jalan');
+    await user.click(screen.getByRole('radio', { name: 'Ringan' }));
+    await user.click(screen.getByRole('checkbox', { name: 'Akses Sekolah' }));
+    const lokasiInput = screen.getByRole('textbox', { name: /nama lokasi/i });
+    await user.type(lokasiInput, 'Jembatan Cibeureum, Garut');
+    await user.keyboard('{Enter}'); // bukan klik tombol Cari Lokasi
+
+    expect(await screen.findByText(/Lokasi ditemukan/i)).toBeInTheDocument();
+  });
+
   it('saat geocoding tidak menemukan hasil, menampilkan pesan dan menolak submit sampai pin digeser', async () => {
     vi.stubGlobal('fetch', buildFetchMock({ postResponse: { ok: true, status: 201, json: async () => ({ id: 99 }) }, geoResult: [] }));
 

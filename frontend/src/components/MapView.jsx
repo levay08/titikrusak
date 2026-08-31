@@ -24,6 +24,7 @@ import {
   INFRA_LABELS,
   STATUS_LABELS,
 } from '../lib/labels.js';
+import useIsMobile from '../lib/useIsMobile.js';
 import EmptyResults from './EmptyResults.jsx';
 
 // Batas pandang peta (File 1 Bagian 9.1): seluruh Indonesia plus sedikit
@@ -64,37 +65,118 @@ function escapeHtml(value) {
     .replaceAll("'", '&#39;');
 }
 
-// Kotak kecil di pojok kiri atas peta: kembali ke tampilan awal seluruh
-// Indonesia (center [-2.5, 118], zoom 5) setelah pengguna zoom ke
-// cluster/marker tertentu (File 1 Bagian 9.1).
-function ResetViewButton({ onReset }) {
+// Tombol navigasi peta (File 1 Bagian 9.1/9.4): "Kembali" (satu langkah
+// zoom sebelumnya, aksi utama) dan "Kembali ke Tampilan Awal" (reset penuh
+// ke zoom nasional). zIndex 1100 — selalu di atas popup Leaflet (z ~700)
+// dan elemen peta lain, sehingga tidak tertutup modal/popup detail.
+// Di mobile dirender sebagai dua tombol ikon kecil (tidak menabrak
+// toggle Peta/Daftar di tengah atas pada lebar 375/414px).
+function NavButtons({ canGoBack, onBack, onHome, isMobile }) {
+  const columnStyle = {
+    position: 'absolute',
+    left: 12,
+    top: 12,
+    zIndex: 1100,
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 6,
+    alignItems: 'flex-start',
+  };
+
+  if (isMobile) {
+    return (
+      <div style={columnStyle}>
+        <button
+          type="button"
+          aria-label="Kembali"
+          title="Kembali ke tampilan sebelumnya"
+          onClick={onBack}
+          disabled={!canGoBack}
+          style={{
+            width: 38,
+            height: 38,
+            borderRadius: 9,
+            border: 'none',
+            background: canGoBack ? '#7c3aed' : '#94a3b8',
+            color: '#fff',
+            fontSize: 18,
+            lineHeight: 1,
+            cursor: canGoBack ? 'pointer' : 'default',
+            boxShadow: '0 1px 4px rgba(0, 0, 0, 0.35)',
+          }}
+        >
+          ←
+        </button>
+        <button
+          type="button"
+          aria-label="Kembali ke Tampilan Awal"
+          title="Kembali ke tampilan awal (seluruh Indonesia)"
+          onClick={onHome}
+          style={{
+            width: 38,
+            height: 38,
+            borderRadius: 9,
+            border: '1px solid #cbd5e1',
+            background: '#fff',
+            color: '#0f172a',
+            fontSize: 17,
+            lineHeight: 1,
+            cursor: 'pointer',
+            boxShadow: '0 1px 4px rgba(0, 0, 0, 0.35)',
+          }}
+        >
+          ⟲
+        </button>
+      </div>
+    );
+  }
+
   return (
-    <button
-      type="button"
-      onClick={onReset}
-      title="Kembali ke tampilan awal (seluruh Indonesia)"
-      style={{
-        position: 'absolute',
-        left: 12,
-        top: 12,
-        zIndex: 1000,
-        background: '#fff',
-        border: '1px solid #cbd5e1',
-        borderRadius: 6,
-        boxShadow: '0 1px 4px rgba(0, 0, 0, 0.3)',
-        padding: '6px 10px',
-        fontSize: 12.5,
-        fontWeight: 600,
-        color: '#0f172a',
-        cursor: 'pointer',
-        display: 'flex',
-        alignItems: 'center',
-        gap: 6,
-      }}
-    >
-      <span style={{ fontSize: 14, lineHeight: 1 }}>⟲</span>
-      Kembali ke Tampilan Awal
-    </button>
+    <div style={columnStyle}>
+      <button
+        type="button"
+        onClick={onBack}
+        disabled={!canGoBack}
+        title="Kembali ke tampilan sebelumnya"
+        style={{
+          padding: '7px 12px',
+          borderRadius: 7,
+          border: 'none',
+          background: canGoBack ? '#7c3aed' : '#94a3b8',
+          color: '#fff',
+          fontSize: 13,
+          fontWeight: 700,
+          cursor: canGoBack ? 'pointer' : 'default',
+          boxShadow: '0 1px 4px rgba(0, 0, 0, 0.3)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 5,
+        }}
+      >
+        <span style={{ fontSize: 15, lineHeight: 1 }}>←</span> Kembali
+      </button>
+      <button
+        type="button"
+        onClick={onHome}
+        title="Kembali ke tampilan awal (seluruh Indonesia)"
+        style={{
+          padding: '6px 11px',
+          borderRadius: 7,
+          border: '1px solid #cbd5e1',
+          background: '#fff',
+          color: '#0f172a',
+          fontSize: 12.5,
+          fontWeight: 600,
+          cursor: 'pointer',
+          boxShadow: '0 1px 4px rgba(0, 0, 0, 0.3)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 5,
+        }}
+      >
+        <span style={{ fontSize: 14, lineHeight: 1 }}>⟲</span> Kembali ke Tampilan Awal
+      </button>
+    </div>
   );
 }
 
@@ -183,6 +265,34 @@ export default function MapView({
   const containerRef = useRef(null);
   const mapRef = useRef(null);
   const clusterGroupRef = useRef(null);
+  const isMobile = useIsMobile();
+  // Riwayat navigasi zoom (File 1 Bagian 9.1): array {center, zoom} yang
+  // didorong setiap kali pengguna zoom in ke cluster/marker; tombol
+  // "Kembali" mem-pop satu langkah.
+  const [navHistory, setNavHistory] = useState([]);
+  const navHistoryRef = useRef([]);
+
+  const pushNav = (center, zoom) => {
+    const next = [...navHistoryRef.current, { center, zoom }];
+    if (next.length > 20) next.shift(); // batasi riwayat
+    navHistoryRef.current = next;
+    setNavHistory(next);
+  };
+
+  const goBack = () => {
+    const history = navHistoryRef.current;
+    if (history.length === 0) return;
+    const prev = history[history.length - 1];
+    navHistoryRef.current = history.slice(0, -1);
+    setNavHistory(navHistoryRef.current);
+    mapRef.current?.setView(prev.center, prev.zoom, { animate: true });
+  };
+
+  const goHome = () => {
+    navHistoryRef.current = [];
+    setNavHistory([]);
+    mapRef.current?.setView(HOME_CENTER, HOME_ZOOM, { animate: true });
+  };
 
   // Inisialisasi peta sekali.
   useEffect(() => {
@@ -206,11 +316,20 @@ export default function MapView({
       zoom: 5,             // sementara; disesuaikan fitBounds di bawah
       minZoom,
       maxZoom: 18,
-      zoomControl: true,   // kontrol zoom in/out standar
+      // Kontrol zoom default Leaflet menempel di pojok KIRI-ATAS — tepat di
+      // bawah/sekitar tombol navigasi NavButtons (File 1 Bagian 9.1), sehingga
+      // di layar sempit tombol +/− terlihat "tumpang tindih" dengan ← dan ⟲.
+      // Matikan bawaan lalu pasang ulang di pojok kanan-atas (area kosong).
+      zoomControl: false,
       maxBounds: VIEW_LIMITS,        // batas geser: Indonesia + toleransi (9.1)
       maxBoundsViscosity: 1.0,       // "memantul" halus, tidak berhenti kaku
     });
     mapRef.current = map;
+
+    // Kontrol zoom in/out standar — dipindah ke kanan-atas agar tidak pernah
+    // bertabrakan dengan NavButtons (kiri-atas) maupun toggle Peta/Daftar
+    // (tengah-atas) di semua ukuran layar.
+    L.control.zoom({ position: 'topright' }).addTo(map);
 
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
@@ -244,8 +363,17 @@ export default function MapView({
     }
 
     // Marker cluster group dari plugin resmi (File 1 Bagian 9.4).
-    const clusterGroup = L.markerClusterGroup();
+    // zoomToBoundsOnClick (default true, dibuat eksplisit): klik cluster
+    // -> zoom in halus (animated) ke area cluster tersebut.
+    const clusterGroup = L.markerClusterGroup({ zoomToBoundsOnClick: true });
     clusterGroupRef.current = clusterGroup;
+
+    // Klik cluster: catat posisi peta SEBELUM zoom ke riwayat navigasi,
+    // sehingga tombol "Kembali" bisa memulihkan satu langkah.
+    clusterGroup.on('clusterclick', () => {
+      const map = mapRef.current;
+      if (map) pushNav(map.getCenter(), map.getZoom());
+    });
 
     reports.forEach((report) => {
       const color = SEVERITY_COLORS[report.severity] || '#64748b';
@@ -258,6 +386,18 @@ export default function MapView({
         // terbangun) — File 1 Bagian 9.3.
         color: '#ffffff',
         weight: 3,
+      });
+
+      // Klik marker individual: catat posisi sebelum zoom, lalu zoom in
+      // lebih dekat ke titik lokasi (bukan sekadar membuka popup di zoom
+      // yang sama) supaya konteks lokasi persis terlihat jelas.
+      marker.on('click', () => {
+        const map = mapRef.current;
+        if (!map) return;
+        pushNav(map.getCenter(), map.getZoom());
+        const targetZoom = Math.max(map.getZoom(), 14) + 2; // minimal street level
+        map.setView([report.lat, report.lng], targetZoom, { animate: true });
+        marker.openPopup();
       });
 
       const popupHtml = `
@@ -282,7 +422,7 @@ export default function MapView({
   return (
     <div style={{ position: 'relative', height: '100%', width: '100%' }}>
       <div ref={containerRef} style={{ height: '100%', width: '100%' }} />
-      <ResetViewButton onReset={() => mapRef.current?.setView(HOME_CENTER, HOME_ZOOM)} />
+      <NavButtons canGoBack={navHistory.length > 0} onBack={goBack} onHome={goHome} isMobile={isMobile} />
       <SeverityLegend />
 
       {/* Kondisi hasil kosong (File 1 Bagian 9.1/9.2) — sama dengan

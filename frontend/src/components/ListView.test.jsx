@@ -4,11 +4,24 @@
 // kondisi hasil kosong (pesan + tombol Reset Filter) yang sama seperti
 // MapView.
 
-import { describe, it, expect, vi } from 'vitest';
+import { afterEach, describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom/vitest';
 import ListView from './ListView.jsx';
+
+// Override stub matchMedia per tes (default setup: matches=false = desktop).
+// Dipakai untuk menguji cabang mobile (File 1 Bagian 9.7).
+const setMobile = (matches) =>
+  window.matchMedia.mockImplementation((query) => ({
+    matches,
+    media: query,
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    addListener: vi.fn(),
+    removeListener: vi.fn(),
+    dispatchEvent: vi.fn(),
+  }));
 
 // Contoh laporan dengan seluruh field yang mungkin ada di response API.
 const SAMPLE = [
@@ -69,6 +82,11 @@ const SAMPLE = [
 ];
 
 describe('ListView', () => {
+  afterEach(() => {
+    // Kembalikan stub matchMedia ke default desktop untuk tes berikutnya.
+    setMobile(false);
+  });
+
   it('menampilkan baris ringkas: badge severity, nama lokasi, jenis, status', () => {
     render(<ListView reports={SAMPLE} onResetFilters={vi.fn()} />);
 
@@ -104,6 +122,27 @@ describe('ListView', () => {
     // Tutup modal.
     await user.click(screen.getByRole('button', { name: /tutup detail laporan/i }));
     expect(screen.queryByText('Kategori Kewenangan')).not.toBeInTheDocument();
+  });
+
+  it('mobile: modal detail dirender sebagai bottom sheet (File 1 9.7)', async () => {
+    setMobile(true);
+    const user = userEvent.setup();
+    const { container } = render(<ListView reports={SAMPLE} onResetFilters={vi.fn()} />);
+
+    await user.click(screen.getByText('Jembatan Gantung Cibeureum, Garut'));
+
+    // Overlay modal menempel ke bawah (flex-end, tanpa padding samping).
+    const overlay = [...container.querySelectorAll('div')].find(
+      (d) => d.style.position === 'fixed'
+    );
+    expect(overlay).toBeDefined();
+    expect(overlay.style.alignItems).toBe('flex-end');
+    expect(overlay.style.padding).toBe('0px');
+
+    // Lembar modal melebar penuh dengan sudut atas melengkung.
+    const sheet = overlay.firstElementChild;
+    expect(sheet.style.borderRadius).toBe('14px 14px 0 0');
+    expect(sheet.style.maxHeight).toContain('dvh');
   });
 
   it('Kondisi B: ada data tapi filter kosong -> pesan filter + Reset Filter', async () => {
