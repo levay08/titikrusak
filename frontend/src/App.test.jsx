@@ -8,15 +8,31 @@
 // @testing-library/dom v10 mengembalikan elemen duplikat untuk kontrol
 // yang dibungkus <label> (radio/checkbox).
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { afterEach, describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom/vitest';
 import App from './App.jsx';
 
+// Override stub matchMedia per tes (default setup: matches=false = desktop).
+const setMobile = (matches) =>
+  window.matchMedia.mockImplementation((query) => ({
+    matches,
+    media: query,
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    addListener: vi.fn(),
+    removeListener: vi.fn(),
+    dispatchEvent: vi.fn(),
+  }));
+
 describe('App: alur lapor kerusakan end-to-end', () => {
   beforeEach(() => {
     vi.unstubAllGlobals();
+  });
+
+  afterEach(() => {
+    setMobile(false);
   });
 
   it('geocoding, submit laporan baru, lalu peta me-refresh otomatis tanpa reload', async () => {
@@ -100,5 +116,38 @@ describe('App: alur lapor kerusakan end-to-end', () => {
     expect(screen.queryByText(/Laporan Terkirim/i)).not.toBeInTheDocument();
     // Form modal sudah tidak ada (textbox "Cari Nama Lokasi" di panel tetap ada).
     expect(screen.queryByText('Lapor Kerusakan')).not.toBeInTheDocument();
+  });
+
+  it('mobile: tombol Otoritas menampilkan info scan QR/desktop, bukan alur verifikasi', async () => {
+    setMobile(true);
+    const verifyStart = vi.fn();
+    const fetchMock = vi.fn((url, init) => {
+      const u = String(url);
+      if (init && init.method === 'POST' && u.includes('/api/verify/start')) return verifyStart();
+      if (u.startsWith('/api/reports?')) {
+        return Promise.resolve({ ok: true, status: 200, json: async () => [] });
+      }
+      if (u === '/api/reports') {
+        return Promise.resolve({ ok: true, status: 200, json: async () => [] });
+      }
+      return Promise.resolve({ ok: true, status: 200, json: async () => [] });
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    const user = userEvent.setup();
+    render(<App />);
+    await waitFor(() => expect(fetchMock).toHaveBeenCalled());
+
+    await user.click(screen.getByRole('button', { name: /^otoritas$/i }));
+
+    // Info tampil: butuh scan QR + hanya optimal di desktop.
+    expect(screen.getByText(/pemindaian QR/i)).toBeInTheDocument();
+    expect(screen.getByText(/optimal dan lancar di tampilan/i)).toBeInTheDocument();
+    // Alur verifikasi e.id TIDAK dimulai dari HP (tidak ada POST /api/verify/start).
+    expect(verifyStart).not.toHaveBeenCalled();
+
+    // Tutup -> modal hilang.
+    await user.click(screen.getByRole('button', { name: /^tutup$/i }));
+    expect(screen.queryByText(/pemindaian QR/i)).not.toBeInTheDocument();
   });
 });

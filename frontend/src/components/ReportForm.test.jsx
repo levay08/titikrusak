@@ -8,11 +8,23 @@
 // @testing-library/dom v10 mengembalikan elemen duplikat untuk kontrol
 // yang dibungkus <label> (radio/checkbox).
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { afterEach, describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom/vitest';
 import ReportForm from './ReportForm.jsx';
+
+// Override stub matchMedia per tes (default setup: matches=false = desktop).
+const setMobile = (matches) =>
+  window.matchMedia.mockImplementation((query) => ({
+    matches,
+    media: query,
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    addListener: vi.fn(),
+    removeListener: vi.fn(),
+    dispatchEvent: vi.fn(),
+  }));
 
 // Hasil geocoding stub: 1 hasil dengan koordinat Garut.
 const GEO_RESULT = [
@@ -41,11 +53,41 @@ describe('ReportForm', () => {
     vi.unstubAllGlobals();
   });
 
+  afterEach(() => {
+    setMobile(false);
+  });
+
   it('menampilkan layar awal dengan opsi verifikasi e.id', () => {
     render(<ReportForm onSubmitted={vi.fn()} onClose={vi.fn()} />);
     expect(
       screen.getByRole('button', { name: /verifikasi dengan e\.id/i })
     ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: /lanjut tanpa verifikasi/i })
+    ).toBeInTheDocument();
+  });
+
+  it('mobile: tombol verifikasi e.id menampilkan info scan QR/desktop, bukan alur QR', async () => {
+    setMobile(true);
+    const fetchMock = buildFetchMock({
+      postResponse: { ok: true, status: 201, json: async () => ({ id: 99 }) },
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    const user = userEvent.setup();
+    render(<ReportForm onSubmitted={vi.fn()} onClose={vi.fn()} />);
+
+    await user.click(screen.getByRole('button', { name: /verifikasi dengan e\.id/i }));
+
+    // Info tampil: butuh scan QR + hanya optimal di desktop.
+    expect(screen.getByText(/pemindaian QR/i)).toBeInTheDocument();
+    expect(screen.getByText(/optimal dan lancar di tampilan/i)).toBeInTheDocument();
+
+    // Alur QR TIDAK dimulai dari HP (tidak ada POST /api/verify/start).
+    expect(fetchMock).not.toHaveBeenCalledWith('/api/verify/start', expect.anything());
+
+    // Kembali ke layar awal pilihan verifikasi.
+    await user.click(screen.getByRole('button', { name: /^kembali$/i }));
     expect(
       screen.getByRole('button', { name: /lanjut tanpa verifikasi/i })
     ).toBeInTheDocument();

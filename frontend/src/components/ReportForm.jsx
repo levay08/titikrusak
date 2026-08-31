@@ -30,6 +30,7 @@ import {
   VITAL_STATUSES,
 } from '../lib/labels.js';
 import VerificationFlow from './VerificationFlow.jsx';
+import useIsMobile from '../lib/useIsMobile.js';
 
 // ---- Konfigurasi geocoding & peta lokasi (File 1 Bagian 5.2) ----
 
@@ -204,6 +205,9 @@ export default function ReportForm({ onSubmitted, onClose }) {
   // null = belum memilih, {displayName, isVerified} = hasil keputusan.
   const [verification, setVerification] = useState(null);
   const [verificationOpen, setVerificationOpen] = useState(false);
+  // Di mobile alur e.id (scan QR) tidak praktis — tampilkan info, bukan QR.
+  const isMobile = useIsMobile();
+  const [eidInfoOpen, setEidInfoOpen] = useState(false);
 
   // State lokasi: anchor = titik hasil geocoding (acuan radius), pin =
   // posisi pin saat ini, pinConfirmed = lokasi sudah ditentukan (hasil
@@ -345,6 +349,40 @@ export default function ReportForm({ onSubmitted, onClose }) {
     setGeoError('');
   };
 
+  // ---- Layar info e.id di mobile (File 1 Bagian 9.7) ----
+  // Verifikasi e.id memerlukan scan QR dengan aplikasi e.id di perangkat
+  // lain — tidak praktis dari HP itu sendiri. Tampilkan penjelasan, bukan
+  // alur QR; desktop tetap memakai VerificationFlow.
+  if (eidInfoOpen) {
+    return (
+      <div>
+        <h2 style={{ margin: '0 0 6px', fontSize: 18, color: '#0f172a' }}>Verifikasi e.id</h2>
+        <p style={{ margin: '0 0 16px', fontSize: 13.5, lineHeight: 1.55, color: '#334155' }}>
+          Verifikasi identitas e.id memerlukan pemindaian QR menggunakan aplikasi
+          e.id di perangkat lain. Fitur ini hanya optimal dan lancar di tampilan{' '}
+          <strong>desktop</strong> — silakan lakukan dari komputer, atau lanjut
+          tanpa verifikasi.
+        </p>
+        <button
+          type="button"
+          onClick={() => setEidInfoOpen(false)}
+          style={{
+            padding: '12px 16px',
+            borderRadius: 8,
+            border: '1px solid #cbd5e1',
+            background: '#fff',
+            color: '#0f172a',
+            fontSize: 14,
+            fontWeight: 600,
+            cursor: 'pointer',
+          }}
+        >
+          Kembali
+        </button>
+      </div>
+    );
+  }
+
   // ---- Layar awal: pilihan verifikasi e.id (File 1 5.2 langkah 4a) ----
   if (verification === null && !verificationOpen) {
     return (
@@ -357,7 +395,7 @@ export default function ReportForm({ onSubmitted, onClose }) {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           <button
             type="button"
-            onClick={() => setVerificationOpen(true)}
+            onClick={() => (isMobile ? setEidInfoOpen(true) : setVerificationOpen(true))}
             style={{
               padding: '12px 16px',
               borderRadius: 8,
