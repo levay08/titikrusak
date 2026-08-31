@@ -112,6 +112,7 @@ function ReportRow({ report, onClick, otoritasMode = false }) {
   return (
     <button
       type="button"
+      className="tk-row-hover"
       onClick={onClick}
       style={{
         display: 'flex',
@@ -342,6 +343,7 @@ function DetailModal({ report, onClose, otoritas = null, onReportUpdated }) {
 
   return (
     <div
+      className="tk-modal-backdrop"
       style={{
         position: 'fixed',
         inset: 0,
@@ -357,6 +359,7 @@ function DetailModal({ report, onClose, otoritas = null, onReportUpdated }) {
       onClick={onClose}
     >
       <div
+        className="tk-modal-panel"
         style={{
           background: '#fff',
           borderRadius: isMobile ? '14px 14px 0 0' : 12,

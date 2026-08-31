@@ -18,6 +18,7 @@ import ReportForm from './components/ReportForm.jsx';
 import FilterPanel from './components/FilterPanel.jsx';
 import VerificationFlow from './components/VerificationFlow.jsx';
 import EidDesktopInfo from './components/EidDesktopInfo.jsx';
+import Logo from './components/Logo.jsx';
 import {
   AboutModal,
   StatistikModal,
@@ -25,6 +26,46 @@ import {
   NotifikasiModal,
 } from './components/HeaderModals.jsx';
 import useIsMobile from './lib/useIsMobile.js';
+
+// Logo sponsor di footer (poin Alur Inti: "supported by"):
+// PANDI, e.id, dan IDCloudHost. Bila gambar gagal dimuat (mis. CDN
+// tidak terjangkau), fallback ke teks nama sponsor.
+const SPONSORS = [
+  { name: 'PANDI', src: 'https://pandi.id/public/images/2022/9/ppnd-new-1663309705.png' },
+  { name: 'e.id', src: 'https://e.id/eid-logo.png' },
+  { name: 'IDCloudHost', src: 'https://cdn.theorg.com/00338df6-fc27-4b80-8835-e54ad48378ad_medium.jpg' },
+];
+
+// Satu chip logo sponsor: tinggi seragam agar sejajar & rapi.
+function SponsorLogo({ name, src }) {
+  const [failed, setFailed] = useState(false);
+  return (
+    <span
+      title={name}
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: '#fff',
+        borderRadius: 8,
+        height: 36,
+        padding: '0 12px',
+        minWidth: 64,
+      }}
+    >
+      {failed ? (
+        <span style={{ fontWeight: 700, fontSize: 12.5, color: '#0f172a' }}>{name}</span>
+      ) : (
+        <img
+          src={src}
+          alt={`Logo ${name}`}
+          onError={() => setFailed(true)}
+          style={{ height: 24, maxWidth: 130, objectFit: 'contain' }}
+        />
+      )}
+    </span>
+  );
+}
 
 // State filter kosong (semua laporan tampil, urut terbaru).
 const EMPTY_FILTERS = {
@@ -283,10 +324,40 @@ export default function App() {
     filters.vital_status.length +
     (filters.q.trim() ? 1 : 0);
 
-  const openReportForm = () => setFormOpen(true);
+  const openReportForm = () => {
+    closeAllModals();
+    setFormOpen(true);
+  };
+
+  // Pastikan HANYA SATU modal terbuka dalam satu waktu (poin Alur Inti 18):
+  // membuka modal apa pun menutup modal lain yang mungkin masih terbuka.
+  const closeAllModals = () => {
+    setFormOpen(false);
+    setOtoritasOpen(false);
+    setAboutOpen(false);
+    setStatsOpen(false);
+    setPantauOpen(false);
+    setNotifOpen(false);
+  };
+
+  const openHeaderModal = (setter) => () => {
+    closeAllModals();
+    setter(true);
+  };
+
+  // Tombol floating disembunyikan saat kondisi hasil kosong Kondisi A
+  // (database kosong) menampilkan tombol ajakannya sendiri — dan selama
+  // pemuatan awal — sehingga hanya ada SATU tombol "Lapor Kerusakan"
+  // (poin Alur Inti 14). Saat fetch total gagal (dataError) tombol tetap
+  // muncul agar pengguna tidak kehilangan akses melapor.
+  const showFloatingLapor =
+    totalCount !== 0 &&
+    !(totalCount === null && reports.length === 0 && !dataError);
 
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+      {/* Pita merah-putih tipis — aksen tema Indonesia (poin 15) */}
+      <div className="tk-flag-ribbon" />
       <header
         style={{
           padding: '10px 12px',
@@ -298,7 +369,12 @@ export default function App() {
           flexWrap: 'wrap',
         }}
       >
-        <h1 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>titikrusak.id</h1>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+          <Logo size={30} />
+          <h1 style={{ margin: 0, fontSize: 18, fontWeight: 700, whiteSpace: 'nowrap' }}>
+            titikrusak.id
+          </h1>
+        </div>
         {!isMobile && (
           <span style={{ fontSize: 13, opacity: 0.8, flex: 1 }}>
             Laporkan dan pantau infrastruktur publik yang rusak
@@ -309,14 +385,14 @@ export default function App() {
             mobile: lewat drawer "Menu". Semua membuka MODAL, bukan halaman. */}
         {!isMobile && (
           <nav style={{ display: 'flex', alignItems: 'center', gap: 2, marginLeft: 'auto' }}>
-            <HeaderNavItem label="Tentang" onClick={() => setAboutOpen(true)} />
-            <HeaderNavItem label="Statistik" onClick={() => setStatsOpen(true)} />
-            <HeaderNavItem label="Pantau" onClick={() => setPantauOpen(true)} />
+            <HeaderNavItem label="Tentang" onClick={openHeaderModal(setAboutOpen)} />
+            <HeaderNavItem label="Statistik" onClick={openHeaderModal(setStatsOpen)} />
+            <HeaderNavItem label="Pantau" onClick={openHeaderModal(setPantauOpen)} />
             <button
               type="button"
               aria-label="Notifikasi aktivitas laporan"
               title="Notifikasi aktivitas laporan"
-              onClick={() => setNotifOpen(true)}
+              onClick={openHeaderModal(setNotifOpen)}
               style={{
                 background: 'none',
                 border: 'none',
@@ -412,7 +488,13 @@ export default function App() {
               </button>
             </div>
           ) : (
-            <LoginButton onLogin={() => setOtoritasOpen(true)} isMobile={isMobile} />
+            <LoginButton
+              onLogin={() => {
+                closeAllModals();
+                setOtoritasOpen(true);
+              }}
+              isMobile={isMobile}
+            />
           )}
         </div>
       </header>
@@ -504,10 +586,12 @@ export default function App() {
 
           {/* Tombol floating Lapor Kerusakan (File 1 Bagian 9.1). Di
               Kondisi A (database kosong) disembunyikan — EmptyResults
-              sudah menampilkan satu tombol ajakan beranimasi. */}
-          {totalCount !== 0 && (
+              sudah menampilkan satu tombol ajakan beranimasi, sehingga
+              tidak ada dua tombol "Lapor" sekaligus (poin Alur Inti 14). */}
+          {showFloatingLapor && (
             <button
               type="button"
+              className="tk-fab"
               onClick={openReportForm}
               style={{
                 position: 'absolute',
@@ -542,6 +626,7 @@ export default function App() {
                 onClick={() => setFiltersOpen(false)}
               />
               <div
+                className="tk-drawer-left"
                 style={{
                   position: 'fixed',
                   top: 0,
@@ -580,6 +665,7 @@ export default function App() {
                 onClick={() => setMenuOpen(false)}
               />
               <div
+                className="tk-drawer-right"
                 style={{
                   position: 'fixed',
                   top: 0,
@@ -625,10 +711,10 @@ export default function App() {
                   </button>
                 </div>
                 {[
-                  { icon: 'ℹ️', label: 'Tentang', open: () => setAboutOpen(true) },
-                  { icon: '📊', label: 'Statistik', open: () => setStatsOpen(true) },
-                  { icon: '🚧', label: 'Pantau', open: () => setPantauOpen(true) },
-                  { icon: '🔔', label: 'Notifikasi', open: () => setNotifOpen(true) },
+                  { icon: 'ℹ️', label: 'Tentang', open: openHeaderModal(setAboutOpen) },
+                  { icon: '📊', label: 'Statistik', open: openHeaderModal(setStatsOpen) },
+                  { icon: '🚧', label: 'Pantau', open: openHeaderModal(setPantauOpen) },
+                  { icon: '🔔', label: 'Notifikasi', open: openHeaderModal(setNotifOpen) },
                 ].map((item) => (
                   <button
                     key={item.label}
@@ -704,6 +790,7 @@ export default function App() {
                       type="button"
                       onClick={() => {
                         setMenuOpen(false);
+                        closeAllModals();
                         setOtoritasOpen(true);
                       }}
                       style={{
@@ -733,6 +820,7 @@ export default function App() {
           {/* Modal formulir laporan */}
           {formOpen && (
             <div
+              className="tk-modal-backdrop"
               style={{
                 position: 'fixed',
                 inset: 0,
@@ -746,6 +834,7 @@ export default function App() {
               onClick={() => setFormOpen(false)}
             >
               <div
+                className="tk-modal-panel"
                 style={{
                   background: '#fff',
                   borderTopLeftRadius: 14,
@@ -768,6 +857,7 @@ export default function App() {
           {/* Modal masuk otoritas lokal: alur verifikasi e.id role otoritas */}
           {otoritasOpen && (
             <div
+              className="tk-modal-backdrop"
               style={{
                 position: 'fixed',
                 inset: 0,
@@ -781,6 +871,7 @@ export default function App() {
               onClick={() => setOtoritasOpen(false)}
             >
               <div
+                className="tk-modal-panel"
                 style={{
                   background: '#fff',
                   borderRadius: isMobile ? '14px 14px 0 0' : 12,
@@ -831,6 +922,57 @@ export default function App() {
           )}
         </div>
       </main>
+
+      {/* Footer: logo + tagline + sponsor (PANDI, e.id, IDCloudHost) —
+          logo sponsor disejajarkan dalam chip putih berukuran sama. */}
+      <footer
+        style={{
+          background: '#0f172a',
+          color: '#cbd5e1',
+          borderTop: '4px solid #dc2626', // aksen merah tema Indonesia
+          padding: '14px 20px',
+          fontSize: 12.5,
+          flexShrink: 0,
+        }}
+      >
+        <div
+          style={{
+            maxWidth: 1080,
+            margin: '0 auto',
+            display: 'flex',
+            flexWrap: 'wrap',
+            alignItems: 'center',
+            gap: 14,
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <Logo size={26} />
+            <div>
+              <div style={{ fontWeight: 700, color: '#fff', fontSize: 13 }}>
+                titikrusak.id
+              </div>
+              <div style={{ fontSize: 11.5, opacity: 0.75 }}>
+                Laporkan &amp; pantau infrastruktur publik yang rusak
+              </div>
+            </div>
+          </div>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+              flexWrap: 'wrap',
+              justifyContent: 'center',
+              marginLeft: 'auto',
+            }}
+          >
+            <span style={{ fontSize: 11.5, opacity: 0.75 }}>Didukung oleh:</span>
+            {SPONSORS.map((s) => (
+              <SponsorLogo key={s.name} name={s.name} src={s.src} />
+            ))}
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

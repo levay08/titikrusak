@@ -29,3 +29,84 @@ body {
     font-size: 16px !important;
   }
 }
+
+/* ============================================================
+   Tema Indonesia (poin 15) — aksen merah-putih tipis, tidak berlebihan
+   ============================================================ */
+.tk-flag-ribbon {
+  height: 4px;
+  background: repeating-linear-gradient(90deg, #dc2626 0 14px, #ffffff 14px 28px);
+  flex-shrink: 0;
+}
+
+/* ============================================================
+   Animasi modal & drawer (poin 18/19) — muncul halus, tidak heboh
+   ============================================================ */
+@keyframes tk-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes tk-slide-up {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes tk-drawer-left {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+@keyframes tk-drawer-right {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+.tk-modal-backdrop { animation: tk-fade-in 0.18s ease; }
+.tk-modal-panel { animation: tk-slide-up 0.22s ease; }
+.tk-drawer-left { animation: tk-drawer-left 0.22s ease; }
+.tk-drawer-right { animation: tk-drawer-right 0.22s ease; }
+
+/* ============================================================
+   Glow severity marker (poin 8):
+   - ambruk (critical) : berkedip/glow kuat + cincin menyebar (urgensi)
+   - sedang & berat    : glow biasa (tetap menyala, tidak berkedip)
+   - ringan (aman)     : TANPA glow
+   ============================================================ */
+@keyframes tk-critical-glow {
+  0%, 100% { filter: drop-shadow(0 0 2px rgba(239, 68, 68, 0.9)); }
+  50% { filter: drop-shadow(0 0 11px rgba(239, 68, 68, 1)); }
+}
+@keyframes tk-critical-ring {
+  0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.55); }
+  70% { box-shadow: 0 0 0 12px rgba(239, 68, 68, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+}
+.tk-marker-critical {
+  animation:
+    tk-critical-glow 1.2s ease-in-out infinite,
+    tk-critical-ring 1.2s ease-in-out infinite;
+}
+.tk-marker-soft {
+  filter: drop-shadow(0 0 5px rgba(249, 115, 22, 0.8));
+}
+
+/* ============================================================
+   Animasi halus lainnya (poin 19)
+   ============================================================ */
+.tk-row-hover {
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.tk-row-hover:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+.tk-fab {
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.tk-fab:hover {
+  transform: scale(1.04);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+}
+.tk-logo {
+  transition: transform 0.2s ease;
+}
+.tk-logo:hover {
+  transform: scale(1.06);
+}

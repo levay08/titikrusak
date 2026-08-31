@@ -335,9 +335,20 @@ export default function MapView({
     // sementara warna titik TETAP mengikuti tingkat kerusakan (6.8.2).
     const APPROVED_STATUSES = ['terverifikasi', 'dalam_perbaikan', 'selesai_diperbaiki'];
 
+    // Glow severity (poin Alur Inti 8): ambruk (critical) berkedip/glow
+    // kuat menandakan urgensi; sedang & berat glow biasa; ringan (aman)
+    // TANPA glow. Kelas CSS di index.css.
+    const GLOW_CLASS = {
+      ambruk: 'tk-marker-critical',
+      berat: 'tk-marker-soft',
+      sedang: 'tk-marker-soft',
+      ringan: '',
+    };
+
     reports.forEach((report) => {
       const color = SEVERITY_COLORS[report.severity] || '#64748b';
       const approved = APPROVED_STATUSES.includes(report.status);
+      const glowClass = GLOW_CLASS[report.severity] || '';
 
       let marker;
       if (approved) {
@@ -346,7 +357,7 @@ export default function MapView({
         // dalam path circleMarker (SVG).
         const icon = L.divIcon({
           className: '',
-          html: `<div style="width:26px;height:26px;border-radius:50%;background:${color};border:3px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:#fff;line-height:1">✓</div>`,
+          html: `<div class="${glowClass}" style="width:26px;height:26px;border-radius:50%;background:${color};border:3px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:#fff;line-height:1">✓</div>`,
           iconSize: [26, 26],
           iconAnchor: [13, 13],
         });
@@ -361,6 +372,8 @@ export default function MapView({
           // terbangun) — File 1 Bagian 9.3.
           color: '#ffffff',
           weight: 3,
+          // Glow severity via CSS class pada path SVG (Leaflet Path option).
+          className: glowClass || undefined,
         });
       }
 

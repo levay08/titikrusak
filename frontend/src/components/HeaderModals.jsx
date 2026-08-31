@@ -44,6 +44,7 @@ export function ModalShell({ title, onClose, children, maxWidth = 640 }) {
   const isMobile = useIsMobile();
   return (
     <div
+      className="tk-modal-backdrop"
       style={{
         position: 'fixed',
         inset: 0,
@@ -57,6 +58,7 @@ export function ModalShell({ title, onClose, children, maxWidth = 640 }) {
       onClick={onClose}
     >
       <div
+        className="tk-modal-panel"
         style={{
           background: '#fff',
           borderRadius: isMobile ? '14px 14px 0 0' : 12,

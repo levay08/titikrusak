@@ -239,4 +239,55 @@ describe('App: alur lapor kerusakan end-to-end', () => {
     await user.unhover(loginBtn);
     expect(screen.queryByText('Login sebagai Otoritas')).not.toBeInTheDocument();
   });
+
+  it('database kosong: hanya SATU tombol Lapor Kerusakan (poin Alur Inti 14)', async () => {
+    const fetchMock = vi.fn((url) => {
+      const u = String(url);
+      if (u.startsWith('/api/reports')) {
+        return Promise.resolve({ ok: true, status: 200, json: async () => [] });
+      }
+      return Promise.resolve({ ok: true, status: 200, json: async () => [] });
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    render(<App />);
+
+    // Kartu ajakan tampil (DB kosong)...
+    expect(
+      await screen.findByText(/Belum ada laporan infrastruktur rusak di sini/i)
+    ).toBeInTheDocument();
+    // ...dan TEPAT SATU tombol "Lapor Kerusakan" (dari kartu; tombol
+    // floating disembunyikan — tidak ada duplikat).
+    expect(screen.getAllByRole('button', { name: /lapor kerusakan/i })).toHaveLength(1);
+  });
+
+  it('header & footer memakai logo aplikasi; footer menampilkan sponsor PANDI, e.id, IDCloudHost (sejajar)', async () => {
+    const fetchMock = vi.fn((url) => {
+      const u = String(url);
+      if (u.startsWith('/api/reports?')) {
+        return Promise.resolve({ ok: true, status: 200, json: async () => [] });
+      }
+      if (u === '/api/reports') {
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          json: async () => [{ id: 1, location_name: 'X', lat: -7.2, lng: 107.8 }],
+        });
+      }
+      return Promise.resolve({ ok: true, status: 200, json: async () => [] });
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    render(<App />);
+    await waitFor(() => expect(fetchMock).toHaveBeenCalled());
+
+    // Logo aplikasi (header + footer) dengan tema peta/koordinat/rusak.
+    expect(screen.getAllByRole('img', { name: 'Logo titikrusak.id' }).length).toBeGreaterThanOrEqual(1);
+
+    // Footer: label + tiga logo sponsor.
+    expect(screen.getByText('Didukung oleh:')).toBeInTheDocument();
+    expect(screen.getByAltText('Logo PANDI')).toBeInTheDocument();
+    expect(screen.getByAltText('Logo e.id')).toBeInTheDocument();
+    expect(screen.getByAltText('Logo IDCloudHost')).toBeInTheDocument();
+  });
 });

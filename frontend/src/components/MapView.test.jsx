@@ -101,6 +101,44 @@ describe('MapView: marker laporan approved menampilkan centang (poin Alur Inti 2
   });
 });
 
+describe('MapView: glow severity (poin Alur Inti 8)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  const base = { lat: -7.2, lng: 107.8, location_name: 'X', infra_type: 'jalan', status: 'dilaporkan' };
+
+  it('ambruk (critical) berkedip/glow kuat, sedang & berat glow biasa, ringan (aman) TANPA glow', () => {
+    render(
+      <MapView
+        reports={[
+          { ...base, id: 1, severity: 'ambruk' },
+          { ...base, id: 2, severity: 'berat' },
+          { ...base, id: 3, severity: 'sedang' },
+          { ...base, id: 4, severity: 'ringan' },
+        ]}
+      />
+    );
+
+    // Urutan pemanggilan circleMarker sama dengan urutan reports.
+    const classes = L.circleMarker.mock.calls.map(([, options]) => options.className);
+    expect(classes[0]).toBe('tk-marker-critical'); // ambruk -> berkedip/glow
+    expect(classes[1]).toBe('tk-marker-soft'); // berat -> glow biasa
+    expect(classes[2]).toBe('tk-marker-soft'); // sedang -> glow biasa
+    expect(classes[3]).toBeUndefined(); // ringan -> aman, tidak glow
+  });
+
+  it('marker approved (divIcon) ambruk juga memakai glow critical di dalam HTML-nya', () => {
+    render(
+      <MapView
+        reports={[{ ...base, id: 5, severity: 'ambruk', status: 'terverifikasi' }]}
+      />
+    );
+    const iconHtml = L.divIcon.mock.calls[0][0].html;
+    expect(iconHtml).toContain('tk-marker-critical');
+  });
+});
+
 describe('MapView: navigasi bertahap (poin Alur Inti 17)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
