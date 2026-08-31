@@ -1,0 +1,37 @@
+'use strict';
+
+// backend/server.js
+// Entry point backend titikrusak.id. Dijalankan dengan: node server.js
+// (File 2 Bagian 6.1). Port dari env PORT, default 3000.
+
+const express = require('express');
+const env = require('./config/env.js');
+const reportsRouter = require('./routes/reports.js');
+
+const app = express();
+
+app.use(express.json());
+
+// Route laporan (File 2 Bagian 6.3 langkah kedua).
+// Rate limiting untuk POST diterapkan di dalam routes/reports.js
+// (File 1 Bagian 11.3).
+app.use('/api/reports', reportsRouter);
+
+// 404 JSON untuk endpoint yang tidak dikenal.
+app.use((req, res) => {
+  res.status(404).json({ error: 'Endpoint tidak ditemukan' });
+});
+
+// Error handler: pastikan error selalu dikembalikan sebagai JSON,
+// bukan HTML, termasuk JSON body yang tidak valid.
+app.use((err, req, res, next) => {
+  console.error(err);
+  if (err.type === 'entity.parse.failed') {
+    return res.status(400).json({ error: 'Body JSON tidak valid' });
+  }
+  res.status(500).json({ error: 'Terjadi kesalahan internal server' });
+});
+
+app.listen(env.PORT, () => {
+  console.log(`Backend titikrusak.id berjalan di port ${env.PORT}`);
+});
