@@ -1,0 +1,416 @@
+// frontend/src/components/VerificationFlow.jsx
+// Alur verifikasi e.id secara visual (File 2 Bagian 7.1 langkah kedelapan;
+// File 1 Bagian 5.2 langkah 4a dan Bagian 9.8).
+//
+// Alur:
+//   1. POST /api/verify/start dengan role (warga | otoritas).
+//   2. Tampilkan QR (value = eid_oauth_url dari e.id, fallback JSON qr_data)
+//      + indikator tahapan (File 1 9.8):
+//        "Permintaan verifikasi telah dikirim" -> "Menunggu persetujuan pada
+//        wallet" -> "Verifikasi berhasil diterima".
+//   3. Polling GET /api/verify/status/:session_id tiap 4 detik (File 1 5.2:
+//      3-5 detik), maksimal 5 menit sejak QR tampil.
+//   4. approved -> hentikan polling, GET /api/verify/result/:session_id,
+//      tawarkan "Tampilkan nama asli saya" / "Gunakan alias/anonim"
+//      (File 1 3.5), lalu onComplete({ displayName, isVerified: true }).
+//   5. expired/rejected/timeout -> hentikan polling, pesan jelas + tombol
+//      coba lagi dari awal.
+
+import { useCallback, useEffect, useRef, useState } from 'react';
+import QRCode from 'react-qr-code';
+
+const STEPS = [
+  'Permintaan verifikasi telah dikirim',
+  'Menunggu persetujuan pada wallet',
+  'Verifikasi berhasil diterima',
+];
+
+const stepDot = (bg) => ({
+  width: 22,
+  height: 22,
+  borderRadius: '50%',
+  background: bg,
+  color: '#fff',
+  fontSize: 12,
+  fontWeight: 700,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  flexShrink: 0,
+});
+
+// pollIntervalMs & maxWaitMs dapat disuntikkan lewat props untuk uji
+// (default sesuai File 1 Bagian 5.2: polling 3-5 detik, maks 5 menit).
+export default function VerificationFlow({
+  role,
+  onComplete,
+  onCancel,
+  pollIntervalMs = 4000,
+  maxWaitMs = 5 * 60 * 1000,
+}) {
+  const [phase, setPhase] = useState('starting'); // starting | qr | approved | failed
+  const [qrData, setQrData] = useState(null);
+  const [qrUrl, setQrUrl] = useState(null);
+  const [sessionId, setSessionId] = useState(null);
+  const [errorMsg, setErrorMsg] = useState('');
+  const [holderName, setHolderName] = useState(null);
+  const [aliasMode, setAliasMode] = useState(false);
+  const [alias, setAlias] = useState('');
+
+  const deadlineRef = useRef(0);
+  const sessionRef = useRef(null);
+
+  const roleLabel = role === 'otoritas' ? 'Otoritas Lokal' : 'Warga';
+
+  // ---- Langkah 1: buat VP Request ----
+  const startVerification = useCallback(async () => {
+    setPhase('starting');
+    setErrorMsg('');
+    setAliasMode(false);
+    setAlias('');
+    try {
+      const res = await fetch('/api/verify/start', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ role }),
+      });
+      if (!res.ok) {
+        let msg = `HTTP ${res.status}`;
+        try {
+          const d = await res.json();
+          if (d.error) msg = d.error;
+        } catch (_e) {
+          // body bukan JSON
+        }
+        throw new Error(msg);
+      }
+      const data = await res.json();
+      setQrData(data.qr_data);
+      setQrUrl(data.eid_oauth_url || null);
+      setSessionId(data.session_id);
+      sessionRef.current = data.session_id;
+      deadlineRef.current = Date.now() + maxWaitMs;
+      setPhase('qr');
+    } catch (err) {
+      setErrorMsg(err.message);
+      setPhase('failed');
+    }
+  }, [role]);
+
+  // ---- Mulai verifikasi segera saat komponen dipasang ----
+  useEffect(() => {
+    startVerification();
+  }, [startVerification]);
+
+  // ---- Langkah 4-7: polling status sampai selesai ----
+  useEffect(() => {
+    if (phase !== 'qr' || !sessionId) return undefined;
+
+    const finish = (nextPhase, message) => {
+      setErrorMsg(message);
+      setPhase(nextPhase);
+    };
+
+    const tick = async () => {
+      // Batas waktu polling maksimal 5 menit sejak QR ditampilkan (File 1 5.2).
+      if (Date.now() > deadlineRef.current) {
+        finish('failed', 'Waktu verifikasi habis (5 menit). Silakan coba lagi.');
+        return;
+      }
+      try {
+        const res = await fetch(`/api/verify/status/${sessionId}`);
+        if (!res.ok) {
+          let msg = `HTTP ${res.status}`;
+          try {
+            const d = await res.json();
+            if (d.error) msg = d.error;
+          } catch (_e) {
+            // body bukan JSON
+          }
+          throw new Error(msg);
+        }
+        const { status } = await res.json();
+
+        if (status === 'approved') {
+          // Langkah 5: ambil holder_did + holder_name.
+          const r2 = await fetch(`/api/verify/result/${sessionId}`);
+          if (!r2.ok) {
+            let msg = `HTTP ${r2.status}`;
+            try {
+              const d = await r2.json();
+              if (d.error) msg = d.error;
+            } catch (_e) {
+              // body bukan JSON
+            }
+            throw new Error(msg);
+          }
+          const result = await r2.json();
+          setHolderName(result.holder_name || null);
+          setPhase('approved');
+        } else if (status === 'expired' || status === 'rejected') {
+          finish(
+            'failed',
+            status === 'expired'
+              ? 'Sesi verifikasi kedaluwarsa. Silakan coba lagi.'
+              : 'Verifikasi ditolak. Silakan coba lagi.'
+          );
+        }
+        // status 'pending' -> lanjut polling pada interval berikutnya.
+      } catch (err) {
+        finish('failed', `Gagal memeriksa status: ${err.message}`);
+      }
+    };
+
+    tick();
+    const interval = setInterval(tick, pollIntervalMs);
+    return () => clearInterval(interval);
+  }, [phase, sessionId, pollIntervalMs]);
+
+  // ---- Langkah 5: kirim hasil ke pemanggil sesuai pilihan (File 1 3.5) ----
+  const handleRealName = () => {
+    onComplete({ displayName: holderName, isVerified: true });
+  };
+  const handleAlias = () => {
+    const name = alias.trim() === '' ? 'Anonim' : alias.trim();
+    onComplete({ displayName: name, isVerified: true });
+  };
+
+  // Indeks tahap aktif: -1 = gagal, 0 = starting, 1 = qr, 2 = approved.
+  const currentStep = phase === 'approved' ? 2 : phase === 'failed' ? -1 : phase === 'qr' ? 1 : 0;
+
+  const qrValue = qrUrl || (qrData ? JSON.stringify(qrData) : '');
+
+  return (
+    <div>
+      <h2 style={{ margin: '0 0 4px', fontSize: 18, color: '#0f172a' }}>
+        Verifikasi e.id — {roleLabel}
+      </h2>
+      <p style={{ margin: '0 0 14px', fontSize: 12, color: '#64748b' }}>
+        Verifikasi identitas Anda lewat aplikasi e.id sebelum melanjutkan.
+      </p>
+
+      {/* Indikator tahapan (File 1 Bagian 9.8) */}
+      <ol
+        style={{
+          margin: '0 0 16px',
+          padding: 0,
+          listStyle: 'none',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 8,
+        }}
+      >
+        {STEPS.map((label, i) => {
+          const done = currentStep >= 2 || i < currentStep;
+          const active = i === currentStep && currentStep !== -1;
+          return (
+            <li key={label} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <span style={stepDot(done ? '#22c55e' : active ? '#7c3aed' : '#cbd5e1')}>
+                {done ? '✓' : i + 1}
+              </span>
+              <span
+                style={{
+                  fontSize: 13,
+                  color: done || active ? '#0f172a' : '#94a3b8',
+                  fontWeight: active ? 700 : 400,
+                }}
+              >
+                {label}
+              </span>
+            </li>
+          );
+        })}
+      </ol>
+
+      {/* ---- Tahap starting ---- */}
+      {phase === 'starting' && (
+        <p style={{ fontSize: 14, color: '#334155' }}>Mengirim permintaan verifikasi…</p>
+      )}
+
+      {/* ---- Tahap QR ---- */}
+      {phase === 'qr' && (
+        <div style={{ textAlign: 'center' }}>
+          <div
+            style={{
+              display: 'inline-block',
+              background: '#fff',
+              border: '1px solid #e2e8f0',
+              borderRadius: 12,
+              padding: 14,
+              boxShadow: '0 2px 10px rgba(0,0,0,0.08)',
+            }}
+          >
+            <QRCode value={qrValue} size={200} />
+          </div>
+          <p style={{ margin: '12px 0 0', fontSize: 13, lineHeight: 1.5, color: '#334155' }}>
+            Scan QR ini dengan aplikasi e.id Anda untuk menyetujui verifikasi.
+            <br />
+            Sesi berlaku maksimal 5 menit.
+          </p>
+        </div>
+      )}
+
+      {/* ---- Tahap approved: pilihan nama (File 1 3.5) ---- */}
+      {phase === 'approved' && (
+        <div>
+          <p style={{ margin: '0 0 12px', fontSize: 14, lineHeight: 1.5, color: '#0f172a' }}>
+            Verifikasi berhasil diterima.
+            {holderName ? ` Nama yang terverifikasi: ${holderName}.` : ''}
+          </p>
+          {!aliasMode ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <button
+                type="button"
+                onClick={handleRealName}
+                style={{
+                  padding: '11px 14px',
+                  borderRadius: 8,
+                  border: 'none',
+                  background: '#7c3aed',
+                  color: '#fff',
+                  fontSize: 14,
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                }}
+              >
+                Tampilkan nama asli saya
+              </button>
+              <button
+                type="button"
+                onClick={() => setAliasMode(true)}
+                style={{
+                  padding: '11px 14px',
+                  borderRadius: 8,
+                  border: '1px solid #cbd5e1',
+                  background: '#fff',
+                  color: '#0f172a',
+                  fontSize: 14,
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                }}
+              >
+                Gunakan alias/anonim
+              </button>
+            </div>
+          ) : (
+            <div>
+              <label
+                htmlFor="alias"
+                style={{ display: 'block', fontSize: 13, fontWeight: 600, marginBottom: 6, color: '#0f172a' }}
+              >
+                Nama alias (kosongkan untuk "Anonim")
+              </label>
+              <input
+                id="alias"
+                type="text"
+                value={alias}
+                onChange={(e) => setAlias(e.target.value)}
+                placeholder="Contoh: Warga Garut"
+                style={{
+                  width: '100%',
+                  boxSizing: 'border-box',
+                  padding: '9px 10px',
+                  borderRadius: 8,
+                  border: '1px solid #cbd5e1',
+                  fontSize: 14,
+                  marginBottom: 8,
+                }}
+              />
+              <button
+                type="button"
+                onClick={handleAlias}
+                style={{
+                  width: '100%',
+                  padding: '11px 14px',
+                  borderRadius: 8,
+                  border: 'none',
+                  background: '#7c3aed',
+                  color: '#fff',
+                  fontSize: 14,
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                }}
+              >
+                Lanjut dengan alias
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ---- Tahap failed (expired/rejected/error/timeout) ---- */}
+      {phase === 'failed' && (
+        <div>
+          <div
+            style={{
+              background: '#fef2f2',
+              border: '1px solid #fecaca',
+              color: '#b91c1c',
+              borderRadius: 8,
+              padding: '10px 12px',
+              fontSize: 13,
+              marginBottom: 12,
+            }}
+          >
+            {errorMsg}
+          </div>
+          <div style={{ display: 'flex', gap: 10 }}>
+            <button
+              type="button"
+              onClick={startVerification}
+              style={{
+                flex: 1,
+                padding: '11px 14px',
+                borderRadius: 8,
+                border: 'none',
+                background: '#7c3aed',
+                color: '#fff',
+                fontSize: 14,
+                fontWeight: 600,
+                cursor: 'pointer',
+              }}
+            >
+              Coba Lagi
+            </button>
+            <button
+              type="button"
+              onClick={onCancel}
+              style={{
+                padding: '11px 14px',
+                borderRadius: 8,
+                border: '1px solid #cbd5e1',
+                background: '#fff',
+                color: '#0f172a',
+                fontSize: 14,
+                cursor: 'pointer',
+              }}
+            >
+              Batal
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Batal di tahap QR/starting/approved */}
+      {(phase === 'qr' || phase === 'starting' || phase === 'approved') && (
+        <div style={{ marginTop: 16, textAlign: 'center' }}>
+          <button
+            type="button"
+            onClick={onCancel}
+            style={{
+              padding: '8px 18px',
+              borderRadius: 8,
+              border: '1px solid #cbd5e1',
+              background: '#fff',
+              color: '#475569',
+              fontSize: 13,
+              cursor: 'pointer',
+            }}
+          >
+            Batal
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}

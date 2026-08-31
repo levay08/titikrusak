@@ -1,8 +1,9 @@
 // frontend/src/components/ReportForm.test.jsx
 // Tes pengisian dan submit ReportForm secara nyata via kode (user-event),
-// dengan fetch di-stub. Membuktikan: validasi field wajib, alur geocoding
-// Nominatim (Cari Lokasi), payload POST persis sesuai skema backend,
-// pesan sukses, dan panggilan onSubmitted.
+// dengan fetch di-stub. Membuktikan: layar awal pilihan verifikasi,
+// validasi field wajib, alur geocoding Nominatim (Cari Lokasi), payload
+// POST persis sesuai skema backend, pesan sukses, dan panggilan
+// onSubmitted.
 // Catatan: query memakai getByRole (bukan getByLabelText) karena
 // @testing-library/dom v10 mengembalikan elemen duplikat untuk kontrol
 // yang dibungkus <label> (radio/checkbox).
@@ -30,14 +31,30 @@ function buildFetchMock({ postResponse, geoResult = GEO_RESULT }) {
   });
 }
 
+// Lewati layar awal pilihan verifikasi -> masuk form utama tanpa verifikasi.
+async function openForm(user) {
+  await user.click(screen.getByRole('button', { name: /lanjut tanpa verifikasi/i }));
+}
+
 describe('ReportForm', () => {
   beforeEach(() => {
     vi.unstubAllGlobals();
   });
 
+  it('menampilkan layar awal dengan opsi verifikasi e.id', () => {
+    render(<ReportForm onSubmitted={vi.fn()} onClose={vi.fn()} />);
+    expect(
+      screen.getByRole('button', { name: /verifikasi dengan e\.id/i })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: /lanjut tanpa verifikasi/i })
+    ).toBeInTheDocument();
+  });
+
   it('menampilkan error validasi saat field wajib kosong (termasuk lokasi belum ditentukan)', async () => {
     const user = userEvent.setup();
     render(<ReportForm onSubmitted={vi.fn()} onClose={vi.fn()} />);
+    await openForm(user);
 
     await user.click(screen.getByRole('button', { name: /kirim laporan/i }));
 
@@ -53,6 +70,7 @@ describe('ReportForm', () => {
 
     const user = userEvent.setup();
     render(<ReportForm onSubmitted={vi.fn()} onClose={vi.fn()} />);
+    await openForm(user);
 
     // Field note belum ada sebelum Lainnya dicentang.
     expect(screen.queryByRole('textbox', { name: /keterangan status vital/i })).not.toBeInTheDocument();
@@ -83,6 +101,7 @@ describe('ReportForm', () => {
     const onSubmitted = vi.fn();
     const onClose = vi.fn();
     render(<ReportForm onSubmitted={onSubmitted} onClose={onClose} />);
+    await openForm(user);
 
     // Isi seluruh field.
     await user.selectOptions(screen.getByRole('combobox', { name: /jenis infrastruktur/i }), 'jembatan');
@@ -132,6 +151,7 @@ describe('ReportForm', () => {
 
     const user = userEvent.setup();
     render(<ReportForm onSubmitted={vi.fn()} onClose={vi.fn()} />);
+    await openForm(user);
 
     await user.selectOptions(screen.getByRole('combobox', { name: /jenis infrastruktur/i }), 'jalan');
     await user.click(screen.getByRole('radio', { name: 'Sedang' }));
@@ -152,6 +172,7 @@ describe('ReportForm', () => {
 
     const user = userEvent.setup();
     render(<ReportForm onSubmitted={vi.fn()} onClose={vi.fn()} />);
+    await openForm(user);
 
     await user.selectOptions(screen.getByRole('combobox', { name: /jenis infrastruktur/i }), 'jalan');
     await user.click(screen.getByRole('radio', { name: 'Ringan' }));

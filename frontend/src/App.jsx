@@ -15,6 +15,7 @@ import MapView from './components/MapView.jsx';
 import ListView from './components/ListView.jsx';
 import ReportForm from './components/ReportForm.jsx';
 import FilterPanel from './components/FilterPanel.jsx';
+import VerificationFlow from './components/VerificationFlow.jsx';
 
 // State filter kosong (semua laporan tampil, urut terbaru).
 const EMPTY_FILTERS = {
@@ -104,6 +105,9 @@ export default function App() {
   const [view, setView] = useState('map'); // 'map' | 'list'
   const [reports, setReports] = useState([]);
   const [dataError, setDataError] = useState(null);
+  // Sesi otoritas lokal (File 1 Bagian 5.2): null = belum masuk.
+  const [otoritas, setOtoritas] = useState(null); // { displayName }
+  const [otoritasOpen, setOtoritasOpen] = useState(false);
 
   // Satu-satunya fetch data: ulang saat filter berubah (real-time) atau
   // setelah laporan baru dikirim (refreshKey). Hasilnya dibagikan ke
@@ -141,14 +145,64 @@ export default function App() {
           background: '#0f172a',
           color: '#fff',
           display: 'flex',
-          alignItems: 'baseline',
+          alignItems: 'center',
           gap: 10,
         }}
       >
         <h1 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>titikrusak.id</h1>
-        <span style={{ fontSize: 13, opacity: 0.8 }}>
+        <span style={{ fontSize: 13, opacity: 0.8, flex: 1 }}>
           Laporkan dan pantau infrastruktur publik yang rusak
         </span>
+
+        {/* Sesi otoritas lokal (File 1 Bagian 5.2) */}
+        {otoritas ? (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span
+              style={{
+                background: 'rgba(255, 255, 255, 0.12)',
+                border: '1px solid rgba(255, 255, 255, 0.25)',
+                borderRadius: 999,
+                padding: '5px 12px',
+                fontSize: 12.5,
+                fontWeight: 600,
+              }}
+            >
+              🏛 Otoritas: {otoritas.displayName}
+            </span>
+            <button
+              type="button"
+              onClick={() => setOtoritas(null)}
+              style={{
+                background: 'none',
+                border: '1px solid rgba(255, 255, 255, 0.4)',
+                color: '#fff',
+                borderRadius: 6,
+                padding: '5px 10px',
+                fontSize: 12,
+                cursor: 'pointer',
+              }}
+            >
+              Keluar
+            </button>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setOtoritasOpen(true)}
+            style={{
+              background: 'rgba(255, 255, 255, 0.12)',
+              border: '1px solid rgba(255, 255, 255, 0.3)',
+              color: '#fff',
+              borderRadius: 8,
+              padding: '7px 14px',
+              fontSize: 13,
+              fontWeight: 600,
+              cursor: 'pointer',
+            }}
+          >
+            Masuk sebagai Otoritas Lokal
+          </button>
+        )}
       </header>
 
       <main style={{ flex: 1, display: 'flex', minHeight: 0 }}>
@@ -217,6 +271,46 @@ export default function App() {
                 onClick={(e) => e.stopPropagation()}
               >
                 <ReportForm onSubmitted={handleSubmitted} onClose={() => setFormOpen(false)} />
+              </div>
+            </div>
+          )}
+
+          {/* Modal masuk otoritas lokal: alur verifikasi e.id role otoritas */}
+          {otoritasOpen && (
+            <div
+              style={{
+                position: 'fixed',
+                inset: 0,
+                zIndex: 1200,
+                background: 'rgba(15, 23, 42, 0.55)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: 16,
+              }}
+              onClick={() => setOtoritasOpen(false)}
+            >
+              <div
+                style={{
+                  background: '#fff',
+                  borderRadius: 12,
+                  width: '100%',
+                  maxWidth: 440,
+                  maxHeight: '90vh',
+                  overflowY: 'auto',
+                  padding: '20px 24px',
+                  boxShadow: '0 10px 40px rgba(0, 0, 0, 0.4)',
+                }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <VerificationFlow
+                  role="otoritas"
+                  onComplete={(result) => {
+                    setOtoritas({ displayName: result.displayName });
+                    setOtoritasOpen(false);
+                  }}
+                  onCancel={() => setOtoritasOpen(false)}
+                />
               </div>
             </div>
           )}

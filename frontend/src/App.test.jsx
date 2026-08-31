@@ -48,6 +48,9 @@ describe('App: alur lapor kerusakan end-to-end', () => {
     // Buka modal via tombol floating.
     await user.click(screen.getByRole('button', { name: /lapor kerusakan/i }));
 
+    // Lewati layar awal pilihan verifikasi -> form utama.
+    await user.click(screen.getByRole('button', { name: /lanjut tanpa verifikasi/i }));
+
     // Scope query ke dalam form modal (FilterPanel di sidebar punya
     // checkbox dengan nama yang sama, mis. "Akses Kesehatan").
     const form = screen.getByText('Lapor Kerusakan').closest('form');

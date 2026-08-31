@@ -29,6 +29,7 @@ import {
   BRIDGE_AUTHORITIES,
   VITAL_STATUSES,
 } from '../lib/labels.js';
+import VerificationFlow from './VerificationFlow.jsx';
 
 // ---- Konfigurasi geocoding & peta lokasi (File 1 Bagian 5.2) ----
 
@@ -199,6 +200,10 @@ export default function ReportForm({ onSubmitted, onClose }) {
   const [errors, setErrors] = useState({});
   const [submitState, setSubmitState] = useState('idle'); // idle | submitting | success | error
   const [serverError, setServerError] = useState('');
+  // Hasil verifikasi e.id (File 1 Bagian 5.2 langkah 4a):
+  // null = belum memilih, {displayName, isVerified} = hasil keputusan.
+  const [verification, setVerification] = useState(null);
+  const [verificationOpen, setVerificationOpen] = useState(false);
 
   // State lokasi: anchor = titik hasil geocoding (acuan radius), pin =
   // posisi pin saat ini, pinConfirmed = lokasi sudah ditentukan (hasil
@@ -297,6 +302,11 @@ export default function ReportForm({ onSubmitted, onClose }) {
     if (form.vital_status.includes('lainnya') && form.vital_status_note.trim()) {
       payload.vital_status_note = form.vital_status_note.trim();
     }
+    // Hasil verifikasi e.id ikut dikirim bila pengguna memilih terverifikasi.
+    if (verification && verification.isVerified) {
+      payload.reporter_display_name = verification.displayName || null;
+      payload.reporter_is_verified = true;
+    }
 
     try {
       const res = await fetch('/api/reports', {
@@ -334,6 +344,82 @@ export default function ReportForm({ onSubmitted, onClose }) {
     setGeoState('idle');
     setGeoError('');
   };
+
+  // ---- Layar awal: pilihan verifikasi e.id (File 1 5.2 langkah 4a) ----
+  if (verification === null && !verificationOpen) {
+    return (
+      <div>
+        <h2 style={{ margin: '0 0 6px', fontSize: 18, color: '#0f172a' }}>Lapor Kerusakan</h2>
+        <p style={{ margin: '0 0 16px', fontSize: 13, lineHeight: 1.5, color: '#334155' }}>
+          Laporkan kerusakan infrastruktur publik di sekitar Anda. Verifikasi identitas
+          dengan e.id bersifat opsional dan memperkuat kredibilitas laporan.
+        </p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <button
+            type="button"
+            onClick={() => setVerificationOpen(true)}
+            style={{
+              padding: '12px 16px',
+              borderRadius: 8,
+              border: 'none',
+              background: '#7c3aed',
+              color: '#fff',
+              fontSize: 14,
+              fontWeight: 700,
+              cursor: 'pointer',
+            }}
+          >
+            Verifikasi dengan e.id
+          </button>
+          <button
+            type="button"
+            onClick={() => setVerification({ displayName: null, isVerified: false })}
+            style={{
+              padding: '12px 16px',
+              borderRadius: 8,
+              border: '1px solid #cbd5e1',
+              background: '#fff',
+              color: '#0f172a',
+              fontSize: 14,
+              fontWeight: 600,
+              cursor: 'pointer',
+            }}
+          >
+            Lanjut tanpa verifikasi
+          </button>
+          <button
+            type="button"
+            onClick={onClose}
+            style={{
+              padding: '10px 16px',
+              borderRadius: 8,
+              border: 'none',
+              background: 'none',
+              color: '#64748b',
+              fontSize: 13,
+              cursor: 'pointer',
+            }}
+          >
+            Batal
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // ---- Alur verifikasi e.id (role warga) ----
+  if (verificationOpen) {
+    return (
+      <VerificationFlow
+        role="warga"
+        onComplete={(result) => {
+          setVerification(result);
+          setVerificationOpen(false);
+        }}
+        onCancel={() => setVerificationOpen(false)}
+      />
+    );
+  }
 
   // ---- Tampilan sukses ----
   if (submitState === 'success') {
@@ -386,8 +472,60 @@ export default function ReportForm({ onSubmitted, onClose }) {
     <form onSubmit={handleSubmit} noValidate>
       <h2 style={{ margin: '0 0 4px', fontSize: 18, color: '#0f172a' }}>Lapor Kerusakan</h2>
       <p style={{ margin: '0 0 16px', fontSize: 12, color: '#64748b' }}>
-        Laporkan tanpa verifikasi. Semua field bertanda * wajib diisi.
+        Semua field bertanda * wajib diisi.
       </p>
+
+      {/* Badge status verifikasi (File 1 Bagian 5.2 langkah 4a) */}
+      {verification && verification.isVerified ? (
+        <div
+          style={{
+            background: '#f0fdf4',
+            border: '1px solid #bbf7d0',
+            color: '#15803d',
+            borderRadius: 8,
+            padding: '8px 12px',
+            fontSize: 12.5,
+            marginBottom: 14,
+          }}
+        >
+          ✓ Terverifikasi e.id — melapor sebagai <strong>{verification.displayName}</strong>
+        </div>
+      ) : (
+        <div
+          style={{
+            background: '#f8fafc',
+            border: '1px solid #e2e8f0',
+            color: '#475569',
+            borderRadius: 8,
+            padding: '8px 12px',
+            fontSize: 12.5,
+            marginBottom: 14,
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            gap: 8,
+          }}
+        >
+          <span>Melapor tanpa verifikasi identitas</span>
+          <button
+            type="button"
+            onClick={() => setVerificationOpen(true)}
+            style={{
+              border: 'none',
+              background: '#7c3aed',
+              color: '#fff',
+              borderRadius: 6,
+              padding: '5px 10px',
+              fontSize: 12,
+              fontWeight: 600,
+              cursor: 'pointer',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            Verifikasi dengan e.id
+          </button>
+        </div>
+      )}
 
       {/* 1. Jenis Infrastruktur */}
       <div style={{ marginBottom: 16 }}>

@@ -265,11 +265,23 @@ router.post('/', reportLimiter, (req, res) => {
     ? String(body.description)
     : null;
 
+  // Hasil verifikasi e.id dari frontend (File 1 Bagian 5.2 langkah 4a).
+  // reporter_display_name opsional; reporter_is_verified true hanya jika
+  // pengguna menyelesaikan alur verifikasi e.id. Catatan: verifikasi
+  // penuh sisi server (mencocokkan holder_did dengan sesi) menyusul di
+  // langkah berikutnya — untuk sekarang flag dikirim klien.
+  const reporter_display_name =
+    body.reporter_display_name !== undefined && body.reporter_display_name !== null &&
+    String(body.reporter_display_name).trim() !== ''
+      ? String(body.reporter_display_name).trim()
+      : null;
+  const reporter_is_verified = body.reporter_is_verified === true ? 1 : 0;
+
   const stmt = db.prepare(`
     INSERT INTO reports (
       infra_type, severity, bridge_authority, vital_status, vital_status_note,
-      location_name, lat, lng, description
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      location_name, lat, lng, description, reporter_display_name, reporter_is_verified
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
 
   const info = stmt.run(
@@ -281,7 +293,9 @@ router.post('/', reportLimiter, (req, res) => {
     location_name,
     lat,
     lng,
-    description
+    description,
+    reporter_display_name,
+    reporter_is_verified
   );
 
   const created = db

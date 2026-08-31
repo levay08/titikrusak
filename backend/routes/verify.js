@@ -122,7 +122,13 @@ router.post('/start', async (req, res) => {
        VALUES (?, ?, 'pending', ?)`
     ).run(sessionId, role, data.expires_at || null);
 
-    res.status(201).json({ qr_data: qrData, session_id: sessionId });
+    res.status(201).json({
+      qr_data: qrData,
+      session_id: sessionId,
+      // URL wallet e.id yang dibuka holder (mengandung challenge + qr_token)
+      // — value QR yang tepat untuk discan (docs create-vp).
+      eid_oauth_url: data.eid_oauth_url || null,
+    });
   } catch (err) {
     res.status(502).json({ error: err.message });
   }
