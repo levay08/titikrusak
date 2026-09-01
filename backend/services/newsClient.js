@@ -14,10 +14,10 @@ const BROWSER_UA =
   'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36';
 
 const NEWS_QUERIES = [
-  'infrastruktur rusak',
-  'perbaikan infrastruktur',
-  'bencana alam',
-  'jembatan ambruk',
+  'infrastruktur rusak Indonesia',
+  'perbaikan infrastruktur Indonesia',
+  'bencana alam Indonesia',
+  'jembatan ambruk Indonesia',
 ];
 
 const NEWS_TTL_MS = 30 * 60 * 1000; // 30 menit
