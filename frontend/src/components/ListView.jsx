@@ -9,6 +9,7 @@
 // seluruh field laporan dari database (DetailModal.jsx — dipakai juga oleh
 // MapView, modal pencarian, dan halaman Admin).
 
+import Breadcrumb from './Breadcrumb.jsx';
 import { useState } from 'react';
 import {
   SEVERITIES,
@@ -218,6 +219,7 @@ export default function ListView({
 
       {reports.length > 0 && !otoritasMode && (
         <div style={{ maxWidth: 860, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <Breadcrumb current="Daftar Laporan" />
           <div style={{ fontSize: 12, color: '#64748b', padding: '0 4px' }}>
             {reports.length} laporan
           </div>
@@ -230,6 +232,7 @@ export default function ListView({
       {/* Mode otoritas: daftar dikelompokkan per tier prioritas */}
       {reports.length > 0 && otoritasMode && (
         <div style={{ maxWidth: 860, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <Breadcrumb current="Daftar Laporan" />
           <div style={{ fontSize: 12, color: '#64748b', padding: '0 4px' }}>
             {reports.length} laporan · dikelompokkan berdasarkan prioritas (severity + e.id + kelengkapan)
           </div>
