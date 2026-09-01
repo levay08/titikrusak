@@ -18,6 +18,38 @@ const EMPTY = {
   sort: 'terbaru',
 };
 
+describe('FilterPanel: status e.id sejalan dengan sesi otoritas', () => {
+  it('saat otoritas login: kartu terverifikasi menampilkan Role Otoritas + nama KTP + tombol keluar', async () => {
+    const user = userEvent.setup();
+    const onLogoutOtoritas = vi.fn();
+    render(
+      <FilterPanel
+        filters={EMPTY}
+        onChange={vi.fn()}
+        onReset={vi.fn()}
+        otoritas={{ displayName: 'Budi Santoso' }}
+        onLogoutOtoritas={onLogoutOtoritas}
+      />
+    );
+
+    expect(screen.getByText('Terverifikasi e.id')).toBeInTheDocument();
+    expect(screen.getByText('Otoritas')).toBeInTheDocument();
+    expect(screen.getByText(/KYC e-KTP — nama sesuai KTP/)).toBeInTheDocument();
+    expect(screen.getByText(/sebagai Budi Santoso/)).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: /Keluar \/ Logout e.id/ }));
+    expect(onLogoutOtoritas).toHaveBeenCalledTimes(1);
+  });
+
+  it('tombol "Verifikasi e.id" (belum terverifikasi) berwarna biru muda #60a5fa', () => {
+    render(<FilterPanel filters={EMPTY} onChange={vi.fn()} onReset={vi.fn()} />);
+
+    const btn = screen.getByRole('button', { name: 'Verifikasi e.id' });
+    expect(btn.style.background).toBe('rgb(96, 165, 250)'); // #60a5fa
+    expect(btn.style.color).toBe('rgb(255, 255, 255)');
+  });
+});
+
 describe('FilterPanel', () => {
   it('toggle checkbox tingkat kerusakan memicu onChange dengan nilai baru', async () => {
     const user = userEvent.setup();

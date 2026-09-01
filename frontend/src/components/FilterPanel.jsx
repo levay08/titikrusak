@@ -99,6 +99,10 @@ export default function FilterPanel({
   eidDisplayName = null, // nama pengguna terverifikasi (untuk ditampilkan)
   onRequestVerify = () => {},
   onLogoutEid = () => {},
+  otoritas = null, // sesi otoritas aktif (null = belum masuk) — kartu e.id
+  // menampilkan status OTORITAS (KYC) dengan tombol keluar, sejalan dengan
+  // login otoritas di header/admin.
+  onLogoutOtoritas = () => {},
 }) {
   // Toggle nilai multi-select (severity/authority/vital) -> onChange.
   const toggle = (key) => (value) => (e) => {
@@ -243,11 +247,83 @@ export default function FilterPanel({
       />
 
       {/* Status verifikasi e.id (poin Alur Inti 5): AKTIF — menampilkan
-          ROLE yang terverifikasi (Warga — Member Lv1) + tombol keluar;
-          saat belum: abu-abu + tombol verifikasi. */}
+          ROLE yang terverifikasi. Prioritas: sesi OTORITAS (KYC e-KTP, nama
+          sesuai KTP) > warga (Member Lv1). Saat belum: abu-abu + tombol
+          verifikasi BIRU MUDA. */}
       <div>
         <span style={sectionTitleStyle}>Status Verifikasi e.id</span>
-        {eidVerified ? (
+        {otoritas ? (
+          <div
+            style={{
+              // Warna biru MUDA brand e.id (permintaan user: biru muda).
+              background: '#eff6ff',
+              border: '1px solid #bfdbfe',
+              borderRadius: 8,
+              padding: '10px 12px',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+              <span
+                style={{
+                  width: 20,
+                  height: 20,
+                  borderRadius: '50%',
+                  background: '#60a5fa',
+                  color: '#fff',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: 11,
+                  fontWeight: 800,
+                  flexShrink: 0,
+                  marginTop: 1,
+                }}
+              >
+                ✓
+              </span>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 12.5, fontWeight: 700, color: '#2563eb' }}>
+                  Terverifikasi e.id
+                </div>
+                <div style={{ fontSize: 11.5, color: '#475569', marginTop: 2 }}>
+                  Role: <strong>Otoritas</strong> (KYC e-KTP — nama sesuai KTP)
+                </div>
+                {otoritas.displayName && (
+                  <div
+                    style={{
+                      fontSize: 11.5,
+                      color: '#2563eb',
+                      marginTop: 2,
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    sebagai {otoritas.displayName}
+                  </div>
+                )}
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={onLogoutOtoritas}
+              style={{
+                width: '100%',
+                marginTop: 10,
+                padding: '7px 10px',
+                borderRadius: 6,
+                border: '1px solid #cbd5e1',
+                background: '#fff',
+                color: '#475569',
+                fontSize: 12,
+                fontWeight: 600,
+                cursor: 'pointer',
+              }}
+            >
+              Keluar / Logout e.id
+            </button>
+          </div>
+        ) : eidVerified ? (
           <div
             style={{
               // Warna biru MUDA brand e.id (permintaan user: biru muda).
@@ -365,8 +441,9 @@ export default function FilterPanel({
                 padding: '8px 10px',
                 borderRadius: 6,
                 border: 'none',
-                background: '#facc15',
-                color: '#1c1917',
+                // Biru MUDA (bukan kuning) — warna brand e.id.
+                background: '#60a5fa',
+                color: '#fff',
                 fontSize: 12,
                 fontWeight: 700,
                 cursor: 'pointer',

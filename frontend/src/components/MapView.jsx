@@ -34,12 +34,12 @@ import DetailModal from './DetailModal.jsx';
 const VIEW_LIMITS = L.latLngBounds([-12, 94], [7, 142]);
 
 // Tampilan awal (File 1 Bagian 5.1) — dipakai kembali oleh tombol
-// "Kembali ke Tampilan Awal". fitBounds agar SELURUH Indonesia terlihat
-// utuh (Sumatera & Papua tidak terpotong) di semua ukuran layar;
-// maxZoom 6 mencegah zoom terlalu dekat di layar besar.
-const HOME_BOUNDS = L.latLngBounds([-11.5, 95.5], [6.5, 140.8]);
-const HOME_PADDING = [14, 14];
-const HOME_MAX_ZOOM = 6;
+// "Kembali ke Tampilan Awal". fitBounds dengan bounds PERSIS Indonesia
+// (tanpa margin berlebih) agar peta terisi 100% layar — Sumatra & Papua
+// tetap utuh, space kosong di samping/atas-bawah diminimalkan.
+const HOME_BOUNDS = L.latLngBounds([-11, 95], [6, 141]);
+const HOME_PADDING = [6, 6];
+const HOME_MAX_ZOOM = 7;
 
 // Rentang vertikal Mercator (dalam "derajat ekuator") antara dua lintang.
 function mercatorYSpan(south, north) {
@@ -212,6 +212,86 @@ function SeverityLegend() {
   );
 }
 
+// Slider zoom peta: diposisikan di TENGAH-BAWAH area peta (di atas area
+// footer), bisa digeser untuk zoom in/out. Posisi default = zoom tampilan
+// awal (fit-screen); saat digeser muncul bubble persentase (0% = zoom min,
+// 100% = zoom max).
+function ZoomSlider({ map }) {
+  const [zoom, setZoom] = useState(() => (map ? map.getZoom() : 6));
+  const [dragging, setDragging] = useState(false);
+
+  useEffect(() => {
+    if (!map) return undefined;
+    const sync = () => setZoom(map.getZoom());
+    sync();
+    map.on('zoomend', sync);
+    map.on('zoom', sync);
+    return () => {
+      map.off('zoomend', sync);
+      map.off('zoom', sync);
+    };
+  }, [map]);
+
+  if (!map) return null;
+  const min = typeof map.getMinZoom === 'function' ? map.getMinZoom() : 3;
+  const max = typeof map.getMaxZoom === 'function' ? map.getMaxZoom() : 18;
+  const pct = Math.round(((zoom - min) / (max - min)) * 100);
+
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        bottom: 14,
+        left: '50%',
+        transform: 'translateX(-50%)',
+        zIndex: 1100,
+        background: 'rgba(255, 255, 255, 0.95)',
+        borderRadius: 999,
+        boxShadow: '0 1px 6px rgba(0, 0, 0, 0.3)',
+        padding: '6px 14px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 8,
+      }}
+    >
+      <span style={{ fontSize: 13, color: '#475569', lineHeight: 1 }}>−</span>
+      <input
+        type="range"
+        aria-label="Zoom peta"
+        min={min}
+        max={max}
+        value={zoom}
+        onChange={(e) => map.setZoom(Number(e.target.value))}
+        onPointerDown={() => setDragging(true)}
+        onPointerUp={() => setDragging(false)}
+        onPointerLeave={() => setDragging(false)}
+        style={{ width: 180, accentColor: '#eab308', cursor: 'pointer', margin: 0 }}
+      />
+      <span style={{ fontSize: 13, color: '#475569', lineHeight: 1 }}>+</span>
+      {dragging && (
+        <span
+          style={{
+            position: 'absolute',
+            bottom: 'calc(100% + 6px)',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            background: '#1c1917',
+            color: '#fff',
+            fontSize: 11,
+            fontWeight: 700,
+            padding: '3px 8px',
+            borderRadius: 6,
+            whiteSpace: 'nowrap',
+            pointerEvents: 'none',
+          }}
+        >
+          {pct}%
+        </span>
+      )}
+    </div>
+  );
+}
+
 export default function MapView({
   reports = [],
   error = null,
@@ -232,6 +312,8 @@ export default function MapView({
   const isMobile = useIsMobile();
   // Laporan yang sedang dibuka detailnya (fallback internal MapView).
   const [selected, setSelected] = useState(null);
+  // Peta sudah diinisialisasi (untuk merender kontrol yang butuh instance).
+  const [mapReady, setMapReady] = useState(false);
   // Riwayat navigasi zoom (File 1 Bagian 9.1): array {center, zoom} yang
   // didorong setiap kali pengguna zoom in ke cluster/marker; tombol
   // "Kembali" mem-pop satu langkah.
@@ -293,6 +375,7 @@ export default function MapView({
       maxBoundsViscosity: 1.0,       // "memantul" halus, tidak berhenti kaku
     });
     mapRef.current = map;
+    setMapReady(true);
 
     // Kontrol zoom in/out standar — dipindah ke kanan-atas agar tidak pernah
     // bertabrakan dengan NavButtons (kiri-atas) maupun toggle Peta/Daftar
@@ -476,6 +559,7 @@ export default function MapView({
       <div ref={containerRef} style={{ height: '100%', width: '100%' }} />
       <NavButtons canGoBack={navHistory.length > 0} onBack={goBack} onHome={goHome} isMobile={isMobile} />
       <SeverityLegend />
+      {mapReady && <ZoomSlider map={mapRef.current} />}
 
       {/* Kondisi hasil kosong (File 1 Bagian 9.1/9.2) — sama dengan
           ListView; hasAnyData membedakan DB kosong vs filter tak cocok */}

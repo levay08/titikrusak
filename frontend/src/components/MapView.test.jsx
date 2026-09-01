@@ -7,7 +7,7 @@
 // Leaflet di-mock global (lihat src/test/setup.js).
 
 import { beforeEach, describe, it, expect, vi } from 'vitest';
-import { render, screen, act } from '@testing-library/react';
+import { render, screen, act, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom/vitest';
 import L from 'leaflet';
 import MapView from './MapView.jsx';
@@ -216,7 +216,7 @@ describe('MapView: navigasi bertahap (poin Alur Inti 17)', () => {
     // Tampilan awal = fitBounds (bukan setView) agar Indonesia utuh.
     expect(map.fitBounds).toHaveBeenCalledWith(
       expect.anything(),
-      expect.objectContaining({ maxZoom: 6 })
+      expect.objectContaining({ maxZoom: 7 })
     );
     // Riwayat navigasi dibersihkan -> tombol Kembali hilang.
     expect(screen.queryByRole('button', { name: /kembali/i })).not.toBeInTheDocument();
@@ -323,5 +323,34 @@ describe('MapView: hover tooltip jumlah titik + provinsi', () => {
 
     act(() => out());
     expect(map.closeTooltip).toHaveBeenCalled();
+  });
+});
+
+describe('MapView: slider zoom (tengah-bawah, geser untuk zoom in/out)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('menampilkan slider zoom (default = zoom awal) dan geser memanggil setZoom', () => {
+    render(<MapView reports={[]} />);
+
+    const slider = screen.getByRole('slider', { name: /zoom peta/i });
+    expect(slider).toBeInTheDocument();
+    // Default = zoom peta saat ini (mock getZoom -> 5).
+    expect(slider).toHaveValue('5');
+
+    fireEvent.change(slider, { target: { value: '10' } });
+    expect(L.map.mock.results[0].value.setZoom).toHaveBeenCalledWith(10);
+  });
+
+  it('persentase zoom tampil saat slider digeser', () => {
+    render(<MapView reports={[]} />);
+    const slider = screen.getByRole('slider', { name: /zoom peta/i });
+
+    fireEvent.pointerDown(slider);
+    // zoom 5 dari rentang 3-18 -> 13%.
+    expect(screen.getByText('13%')).toBeInTheDocument();
+    fireEvent.pointerUp(slider);
+    expect(screen.queryByText('13%')).not.toBeInTheDocument();
   });
 });

@@ -61,7 +61,7 @@ function SponsorLogo({ name, src, url }) {
         justifyContent: 'center',
         background: '#fff',
         borderRadius: 8,
-        height: 36,
+        height: 40,
         padding: '0 12px',
         minWidth: 64,
         textDecoration: 'none',
@@ -108,7 +108,7 @@ function SponsorLogo({ name, src, url }) {
           src={src}
           alt={`Logo ${name}`}
           onError={() => setFailed(true)}
-          style={{ height: 24, maxWidth: 130, objectFit: 'contain' }}
+          style={{ height: 28, maxWidth: 150, objectFit: 'contain' }}
         />
       )}
     </a>
@@ -824,6 +824,8 @@ export default function App() {
             eidDisplayName={storedEid?.displayName || null}
             onRequestVerify={openEidFlow}
             onLogoutEid={handleLogoutEid}
+            otoritas={otoritas}
+            onLogoutOtoritas={() => setOtoritas(null)}
           />
         )}
         {/* Tab tipis untuk memunculkan kembali sidebar yang disembunyikan */}
@@ -973,6 +975,11 @@ export default function App() {
                   onLogoutEid={() => {
                     setFiltersOpen(false);
                     handleLogoutEid();
+                  }}
+                  otoritas={otoritas}
+                  onLogoutOtoritas={() => {
+                    setFiltersOpen(false);
+                    setOtoritas(null);
                   }}
                 />
               </div>
