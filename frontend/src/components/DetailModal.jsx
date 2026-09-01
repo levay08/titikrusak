@@ -100,6 +100,9 @@ export default function DetailModal({ report, onClose, otoritas = null, onReport
   const [voteError, setVoteError] = useState('');
   const [voteCount, setVoteCount] = useState(Number(report.vote_count) || 0);
   const [eidVerified, setEidVerified] = useState(() => Boolean(getStoredEidVerification()));
+  // Foto yang sedang dibuka dalam frame (lightbox dalam situs — tidak
+  // membuka tab baru / tidak menutup layar; bisa ditutup).
+  const [photoView, setPhotoView] = useState(null);
 
   // Status berikutnya dalam alur (null bila sudah di status akhir).
   const flowIndex = STATUS_FLOW.indexOf(report.status);
@@ -315,7 +318,20 @@ export default function DetailModal({ report, onClose, otoritas = null, onReport
                 {key === 'photo_urls' && Array.isArray(report[key]) && report[key].length > 0 ? (
                   <span style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                     {report[key].map((u) => (
-                      <a key={u} href={u} target="_blank" rel="noreferrer" title={u}>
+                      <button
+                        key={u}
+                        type="button"
+                        onClick={() => setPhotoView(u)}
+                        title="Klik untuk melihat foto lebih besar"
+                        aria-label="Lihat foto laporan lebih besar"
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          padding: 0,
+                          cursor: 'zoom-in',
+                          display: 'block',
+                        }}
+                      >
                         <img
                           src={u}
                           alt="Foto laporan"
@@ -331,7 +347,7 @@ export default function DetailModal({ report, onClose, otoritas = null, onReport
                             e.currentTarget.style.display = 'none';
                           }}
                         />
-                      </a>
+                      </button>
                     ))}
                   </span>
                 ) : (
@@ -506,6 +522,73 @@ export default function DetailModal({ report, onClose, otoritas = null, onReport
           )}
         </div>
       </div>
+
+      {/* ---- Foto dalam frame (lightbox dalam situs): tidak membuka tab
+          baru, tidak menutup layar penuh; bisa ditutup via ✕ / klik
+          backdrop ---- */}
+      {photoView && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 1400, // di atas modal detail (1200)
+            background: 'rgba(15, 23, 42, 0.75)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 16,
+          }}
+          onClick={() => setPhotoView(null)}
+        >
+          <div
+            style={{
+              background: '#fff',
+              borderRadius: 12,
+              padding: 10,
+              maxWidth: '92vw',
+              maxHeight: '88vh',
+              boxShadow: '0 10px 40px rgba(0, 0, 0, 0.5)',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'flex-end',
+              gap: 8,
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={() => setPhotoView(null)}
+              aria-label="Tutup foto"
+              title="Tutup foto"
+              style={{
+                border: '1px solid #cbd5e1',
+                background: '#fff',
+                borderRadius: 6,
+                width: 30,
+                height: 30,
+                fontSize: 16,
+                lineHeight: 1,
+                cursor: 'pointer',
+                color: '#475569',
+                flexShrink: 0,
+              }}
+            >
+              ✕
+            </button>
+            <img
+              src={photoView}
+              alt="Foto laporan (besar)"
+              style={{
+                maxWidth: '88vw',
+                maxHeight: '72vh',
+                objectFit: 'contain',
+                borderRadius: 8,
+                display: 'block',
+              }}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
