@@ -29,6 +29,7 @@ import useIsMobile from './lib/useIsMobile.js';
 import SearchModal from './components/SearchModal.jsx';
 import AdminView from './components/AdminView.jsx';
 import DetailModal from './components/DetailModal.jsx';
+import NewsTicker from './components/NewsTicker.jsx';
 import WelcomeModal from './components/WelcomeModal.jsx';
 import { DocModal, TermsModal } from './components/FooterModals.jsx';
 
@@ -738,6 +739,10 @@ export default function App() {
           ) : null}
         </div>
       </header>
+
+      {/* News Flash / Berita Terkini — ticker berjalan (desktop & tablet
+          saja; NewsTicker sendiri mengembalikan null saat mobile). */}
+      <NewsTicker />
 
       {/* Baris kedua header (khusus mobile, saat sesi otoritas aktif):
           badge nama + tombol Keluar selebar layar, agar tidak menumpuk

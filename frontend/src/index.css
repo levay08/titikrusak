@@ -120,6 +120,70 @@ body {
 }
 
 /* ============================================================
+   News Flash / Berita Terkini (ticker berjalan ala TV news).
+   Warna lembut sesuai tema (kuning) agar tidak menyilaukan.
+   ============================================================ */
+.tk-news-flash {
+  display: flex;
+  align-items: stretch;
+  background: #fefce8; /* tint kuning lembut */
+  border-bottom: 1px solid #eab308;
+  height: 34px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.tk-news-flash-label {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  background: #facc15;
+  color: #1c1917;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 0 12px;
+  border-right: 1px solid #eab308;
+  white-space: nowrap;
+}
+.tk-news-flash-viewport {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.tk-news-flash-track {
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+  will-change: transform;
+  animation: tk-news-scroll 40s linear infinite;
+}
+.tk-news-flash:hover .tk-news-flash-track {
+  animation-play-state: paused; /* hover -> pause, judul bisa diklik */
+}
+.tk-news-flash-item {
+  display: inline-flex;
+  align-items: center;
+  color: #1c1917;
+  font-size: 12.5px;
+  text-decoration: none;
+  padding: 0 6px;
+}
+.tk-news-flash-item:hover {
+  color: #854d0e;
+  text-decoration: underline;
+}
+.tk-news-flash-dot {
+  color: #eab308;
+  font-weight: 800;
+  margin-right: 10px;
+}
+@keyframes tk-news-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+/* ============================================================
    Animasi halus lainnya (poin 19)
    ============================================================ */
 .tk-row-hover {
