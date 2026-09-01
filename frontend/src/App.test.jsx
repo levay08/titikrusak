@@ -79,7 +79,7 @@ describe('App: alur lapor kerusakan end-to-end', () => {
 
     // Scope query ke dalam form modal (FilterPanel di sidebar punya
     // checkbox dengan nama yang sama, mis. "Akses Kesehatan").
-    const form = screen.getByText('Lapor Kerusakan').closest('form');
+    const form = screen.getByRole('heading', { name: 'Lapor Kerusakan' }).closest('form');
     expect(form).not.toBeNull();
 
     // Isi formulir (tanpa verifikasi e.id).
