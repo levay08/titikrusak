@@ -336,6 +336,20 @@ describe('MapView: hover tooltip jumlah titik + provinsi', () => {
     expect(icon.html).not.toContain('#f97316');
     expect(icon.html).not.toContain('#ef4444');
   });
+
+  it('cluster berisi titik critical (ambruk) diberi glow merah + badge urgent', () => {
+    render(<MapView reports={[REPORT]} />);
+
+    const opts = L.markerClusterGroup.mock.calls[0][0];
+    const icon = opts.iconCreateFunction({
+      getChildCount: () => 5,
+      getAllChildMarkers: () => [{ options: { severity: 'ambruk' } }],
+    });
+
+    expect(icon.html).toContain('tk-cluster-critical');
+    expect(icon.html).toContain('tk-cluster-alert');
+    expect(icon.html).toContain('>5<');
+  });
 });
 
 describe('MapView: slider zoom (tengah-bawah, geser untuk zoom in/out)', () => {

@@ -592,13 +592,24 @@ export default function MapView({
       // Warna cluster BIRU TUA — sengaja BUKAN warna severity di legend
       // (hijau/kuning/oranye/merah) agar titik cluster tidak tertukar dengan
       // marker tingkat kerusakan.
-      iconCreateFunction: (cluster) =>
-        L.divIcon({
-          html: `<div style="box-sizing:border-box;width:40px;height:40px;border-radius:50%;background:#1e3a8a;color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;border:3px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.45);line-height:1">${cluster.getChildCount()}</div>`,
+      iconCreateFunction: (cluster) => {
+        // Jika cluster berisi titik critical (ambruk/merah), tandai dengan
+        // badge "!" + ring merah berdenyut agar menonjol & menarik perhatian
+        // ke hal yang urgent (File 1 6.8.2).
+        const children = cluster.getAllChildMarkers ? cluster.getAllChildMarkers() : [];
+        const hasCritical = children.some(
+          (m) => m.options && m.options.severity === 'ambruk'
+        );
+        const count = cluster.getChildCount();
+        return L.divIcon({
+          html: hasCritical
+            ? `<div class="tk-cluster-critical" style="box-sizing:border-box;width:44px;height:44px;border-radius:50%;background:#1e3a8a;color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;border:3px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.45);line-height:1">${count}<span class="tk-cluster-alert">!</span></div>`
+            : `<div style="box-sizing:border-box;width:40px;height:40px;border-radius:50%;background:#1e3a8a;color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;border:3px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.45);line-height:1">${count}</div>`,
           className: '',
-          iconSize: [40, 40],
-          iconAnchor: [20, 20],
-        }),
+          iconSize: hasCritical ? [48, 48] : [40, 40],
+          iconAnchor: hasCritical ? [24, 24] : [20, 20],
+        });
+      },
     });
     clusterGroupRef.current = clusterGroup;
 
@@ -657,7 +668,7 @@ export default function MapView({
           iconSize: [26, 26],
           iconAnchor: [13, 13],
         });
-        marker = L.marker([report.lat, report.lng], { icon });
+        marker = L.marker([report.lat, report.lng], { icon, severity: report.severity });
       } else {
         marker = L.circleMarker([report.lat, report.lng], {
           radius: 9,
@@ -670,6 +681,9 @@ export default function MapView({
           weight: 3,
           // Glow severity via CSS class pada path SVG (Leaflet Path option).
           className: glowClass || undefined,
+          // Simpan severity pada marker agar cluster bisa mendeteksi titik
+          // critical (ambruk) untuk badge urgent.
+          severity: report.severity,
         });
       }
 

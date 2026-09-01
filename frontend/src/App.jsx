@@ -629,7 +629,7 @@ export default function App() {
                 borderRadius: 6,
               }}
             >
-              🔔
+              🚧
             </button>
             {/* Login Otoritas (gabungan menu login + Admin): buka halaman
                 Administrator; isinya digate otoritas bila belum masuk. */}
@@ -1038,7 +1038,7 @@ export default function App() {
                   { icon: 'ℹ️', label: 'Tentang', open: openHeaderModal(setAboutOpen) },
                   { icon: '📊', label: 'Statistik', open: openHeaderModal(setStatsOpen) },
                   { icon: '🚧', label: 'Pantau', open: openHeaderModal(setPantauOpen) },
-                  { icon: '🔔', label: 'Notifikasi', open: openHeaderModal(setNotifOpen) },
+                  { icon: '🚧', label: 'Notifikasi', open: openHeaderModal(setNotifOpen) },
                   { icon: '🔒', label: 'Login Otoritas', open: openAdmin },
                 ].map((item) => (
                   <button

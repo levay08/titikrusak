@@ -90,6 +90,36 @@ body {
 }
 
 /* ============================================================
+   Cluster berisi titik critical/ambruk (merah): ring merah
+   berdenyut (sonar) + badge "!" agar menonjol & menarik
+   perhatian ke hal yang urgent.
+   ============================================================ */
+.tk-cluster-critical {
+  position: relative;
+  animation: tk-cluster-critical-glow 1.2s ease-in-out infinite;
+}
+@keyframes tk-cluster-critical-glow {
+  0%, 100% { filter: drop-shadow(0 0 3px rgba(239, 68, 68, 0.85)); }
+  50% { filter: drop-shadow(0 0 16px rgba(239, 68, 68, 1)); }
+}
+.tk-cluster-alert {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  background: #ef4444;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 15px;
+  text-align: center;
+  border: 2px solid #fff;
+  box-sizing: border-box;
+}
+
+/* ============================================================
    Animasi halus lainnya (poin 19)
    ============================================================ */
 .tk-row-hover {
