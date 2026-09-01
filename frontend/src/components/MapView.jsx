@@ -29,13 +29,14 @@ import EmptyResults from './EmptyResults.jsx';
 
 // Batas pandang peta (File 1 Bagian 9.1): seluruh Indonesia plus sedikit
 // toleransi di tepi agar peta tidak bisa digeser jauh keluar wilayah.
-const INDONESIA_BOUNDS = L.latLngBounds([-11, 95], [6, 141]);
 const VIEW_LIMITS = L.latLngBounds([-12, 94], [7, 142]);
 
 // Tampilan awal (File 1 Bagian 5.1) — dipakai kembali oleh tombol
-// "Kembali ke Tampilan Awal".
+// "Kembali ke Tampilan Awal". Zoom 6: Indonesia terisi penuh, sedikit
+// lebih dekat daripada fitBounds dengan padding besar (poin: fokus
+// wilayah Indonesia).
 const HOME_CENTER = [-2.5, 118];
-const HOME_ZOOM = 5;
+const HOME_ZOOM = 6;
 
 // Rentang vertikal Mercator (dalam "derajat ekuator") antara dua lintang.
 function mercatorYSpan(south, north) {
@@ -95,7 +96,7 @@ function NavButtons({ canGoBack, onBack, onHome, isMobile }) {
           padding: '8px 14px',
           borderRadius: 999,
           border: 'none',
-          background: '#7c3aed',
+          background: '#f97316',
           color: '#fff',
           fontSize: 13,
           fontWeight: 700,
@@ -117,7 +118,7 @@ function NavButtons({ canGoBack, onBack, onHome, isMobile }) {
           borderRadius: 999,
           border: '1px solid #cbd5e1',
           background: 'rgba(255, 255, 255, 0.95)',
-          color: '#0f172a',
+          color: '#1c1917',
           fontSize: 12.5,
           fontWeight: 600,
           cursor: 'pointer',
@@ -152,7 +153,7 @@ function SeverityLegend() {
         boxShadow: '0 1px 6px rgba(0, 0, 0, 0.35)',
         padding: '10px 12px',
         fontSize: 13,
-        color: '#0f172a',
+        color: '#1c1917',
         maxWidth: 300,
       }}
       onMouseEnter={() => setOpen(true)}
@@ -292,11 +293,9 @@ export default function MapView({
         '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
     }).addTo(map);
 
-    // Tampilan awal: wilayah Indonesia memenuhi area pandang dengan
-    // proporsi yang pas, berapa pun ukuran layar.
-    if (size) {
-      map.fitBounds(INDONESIA_BOUNDS, { padding: [24, 24] });
-    }
+    // Tampilan awal: Indonesia terisi penuh — zoom 6 (lebih dekat daripada
+    // fitBounds ber-padding besar), fokus wilayah Indonesia.
+    map.setView(HOME_CENTER, HOME_ZOOM);
 
     return () => {
       map.remove();

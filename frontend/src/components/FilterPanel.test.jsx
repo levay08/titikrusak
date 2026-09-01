@@ -80,20 +80,29 @@ describe('FilterPanel', () => {
     expect(onRequestVerify).toHaveBeenCalledTimes(1);
   });
 
-  it('status verifikasi e.id: AKTIF (hijau, tanpa tombol) saat pengguna terverifikasi e.id', () => {
+  it('status verifikasi e.id: AKTIF saat terverifikasi — menampilkan role Warga + nama + tombol Keluar', async () => {
+    const user = userEvent.setup();
+    const onLogout = vi.fn();
     render(
       <FilterPanel
         filters={EMPTY}
         onChange={vi.fn()}
         onReset={vi.fn()}
         eidVerified
-        onRequestVerify={vi.fn()}
+        eidDisplayName="Warga Garut"
+        onLogoutEid={onLogout}
       />
     );
 
     expect(screen.getByText('Terverifikasi e.id')).toBeInTheDocument();
+    expect(screen.getByText(/Role:/)).toBeInTheDocument();
+    expect(screen.getByText('Warga')).toBeInTheDocument();
+    expect(screen.getByText(/Member Lv1 — email, nama, alamat, no\. telepon/)).toBeInTheDocument();
+    expect(screen.getByText(/sebagai Warga Garut/)).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /verifikasi e\.id/i })).not.toBeInTheDocument();
-    expect(screen.queryByText('Belum terverifikasi e.id')).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: /keluar \/ logout e\.id/i }));
+    expect(onLogout).toHaveBeenCalledTimes(1);
   });
 
   it('tombol Reset Filter memanggil onReset', async () => {

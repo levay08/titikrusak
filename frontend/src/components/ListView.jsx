@@ -148,7 +148,7 @@ function ReportRow({ report, onClick, otoritasMode = false }) {
             display: 'block',
             fontWeight: 600,
             fontSize: 14,
-            color: '#0f172a',
+            color: '#1c1917',
             whiteSpace: 'nowrap',
             overflow: 'hidden',
             textOverflow: 'ellipsis',
@@ -374,7 +374,7 @@ function DetailModal({ report, onClose, otoritas = null, onReportUpdated }) {
       >
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: 12 }}>
           <div style={{ flex: 1 }}>
-            <h2 style={{ margin: '0 0 4px', fontSize: 17, color: '#0f172a' }}>
+            <h2 style={{ margin: '0 0 4px', fontSize: 17, color: '#1c1917' }}>
               {report.location_name}
             </h2>
             <span
@@ -453,11 +453,35 @@ function DetailModal({ report, onClose, otoritas = null, onReportUpdated }) {
                 style={{
                   flex: 1,
                   fontSize: 13,
-                  color: '#0f172a',
+                  color: '#1c1917',
                   wordBreak: 'break-word',
                 }}
               >
-                {formatValue(key, report[key])}
+                {key === 'photo_urls' && Array.isArray(report[key]) && report[key].length > 0 ? (
+                  <span style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                    {report[key].map((u) => (
+                      <a key={u} href={u} target="_blank" rel="noreferrer" title={u}>
+                        <img
+                          src={u}
+                          alt="Foto laporan"
+                          style={{
+                            height: 84,
+                            maxWidth: 180,
+                            borderRadius: 8,
+                            objectFit: 'cover',
+                            border: '1px solid #e2e8f0',
+                            display: 'block',
+                          }}
+                          onError={(e) => {
+                            e.currentTarget.style.display = 'none';
+                          }}
+                        />
+                      </a>
+                    ))}
+                  </span>
+                ) : (
+                  formatValue(key, report[key])
+                )}
               </span>
             </div>
           ))}
@@ -493,7 +517,7 @@ function DetailModal({ report, onClose, otoritas = null, onReportUpdated }) {
                 padding: '11px 14px',
                 borderRadius: 8,
                 border: 'none',
-                background: '#7c3aed',
+                background: '#f97316',
                 color: '#fff',
                 fontSize: 14,
                 fontWeight: 700,
@@ -522,9 +546,9 @@ function DetailModal({ report, onClose, otoritas = null, onReportUpdated }) {
                 style={{
                   padding: '9px 14px',
                   borderRadius: 8,
-                  border: '1px solid #7c3aed',
+                  border: '1px solid #f97316',
                   background: '#fff',
-                  color: '#7c3aed',
+                  color: '#f97316',
                   fontSize: 13,
                   fontWeight: 700,
                   cursor: 'pointer',
@@ -538,13 +562,13 @@ function DetailModal({ report, onClose, otoritas = null, onReportUpdated }) {
           {voteState === 'prompt' && (
             <div
               style={{
-                background: '#f5f3ff',
-                border: '1px solid #ddd6fe',
+                background: '#fff7ed',
+                border: '1px solid #fed7aa',
                 borderRadius: 8,
                 padding: '12px',
               }}
             >
-              <p style={{ margin: '0 0 10px', fontSize: 13, lineHeight: 1.5, color: '#4c1d95' }}>
+              <p style={{ margin: '0 0 10px', fontSize: 13, lineHeight: 1.5, color: '#9a3412' }}>
                 Fitur Dukungan tersedia untuk warga terverifikasi e.id. Dukungan warga
                 menjadi sinyal prioritas bagi otoritas.
               </p>
@@ -564,7 +588,7 @@ function DetailModal({ report, onClose, otoritas = null, onReportUpdated }) {
                       padding: '11px 14px',
                       borderRadius: 8,
                       border: 'none',
-                      background: '#7c3aed',
+                      background: '#f97316',
                       color: '#fff',
                       fontSize: 14,
                       fontWeight: 700,
@@ -584,7 +608,7 @@ function DetailModal({ report, onClose, otoritas = null, onReportUpdated }) {
                       borderRadius: 8,
                       border: '1px solid #cbd5e1',
                       background: '#fff',
-                      color: '#0f172a',
+                      color: '#1c1917',
                       fontSize: 13,
                       cursor: 'pointer',
                     }}
@@ -732,7 +756,7 @@ export default function ListView({
                     flexShrink: 0,
                   }}
                 />
-                <span style={{ fontSize: 13, fontWeight: 700, color: '#0f172a' }}>
+                <span style={{ fontSize: 13, fontWeight: 700, color: '#1c1917' }}>
                   Prioritas {tier.label}
                 </span>
                 <span style={{ fontSize: 12, color: '#64748b' }}>

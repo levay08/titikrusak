@@ -180,7 +180,7 @@ const labelStyle = {
   fontWeight: 600,
   fontSize: 14,
   marginBottom: 6,
-  color: '#0f172a',
+  color: '#1c1917',
 };
 
 const inputStyle = {
@@ -191,7 +191,7 @@ const inputStyle = {
   fontSize: 14,
   boxSizing: 'border-box',
   background: '#fff',
-  color: '#0f172a',
+  color: '#1c1917',
 };
 
 const errorStyle = { color: '#dc2626', fontSize: 12, marginTop: 4 };
@@ -208,6 +208,21 @@ export default function ReportForm({ onSubmitted, onClose }) {
   // Di mobile alur e.id (scan QR) tidak praktis — tampilkan info, bukan QR.
   const isMobile = useIsMobile();
   const [eidInfoOpen, setEidInfoOpen] = useState(false);
+
+  // Status verifikasi e.id yang TERSIMPAN (localStorage 'titikrusak_eid').
+  // Kalau sudah terverifikasi, lapor berikutnya TIDAK perlu verifikasi
+  // ulang — langsung pilih identitas (nama asli / anonim); opsi "tanpa
+  // verifikasi" menjadi nonaktif karena pengguna sudah terverifikasi.
+  const [initialVerified] = useState(() => {
+    try {
+      const raw = localStorage.getItem('titikrusak_eid');
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      return parsed && parsed.isVerified ? parsed : null;
+    } catch (_e) {
+      return null;
+    }
+  });
 
   // State lokasi: anchor = titik hasil geocoding (acuan radius), pin =
   // posisi pin saat ini, pinConfirmed = lokasi sudah ditentukan (hasil
@@ -365,13 +380,113 @@ export default function ReportForm({ onSubmitted, onClose }) {
   }
 
   // ---- Layar awal: pilihan verifikasi e.id (File 1 5.2 langkah 4a) ----
-  // Ajakan melapor dengan e.id (File 1 Bagian 5.2): verifikasi membuat
-  // laporan mudah diverifikasi otoritas dan membuka fitur Dukungan warga
-  // lain yang menaikkan prioritas penanganan.
   if (verification === null && !verificationOpen) {
+    // SUDAH terverifikasi e.id (tersimpan): tidak perlu verifikasi ulang.
+    // Pilihan: melapor dengan nama asli / anonim; "tanpa verifikasi" NONAKTIF.
+    if (initialVerified) {
+      return (
+        <div>
+          <h2 style={{ margin: '0 0 6px', fontSize: 18, color: '#1c1917' }}>Lapor Kerusakan</h2>
+          <div
+            style={{
+              background: '#f0fdf4',
+              border: '1px solid #bbf7d0',
+              borderRadius: 8,
+              padding: '10px 12px',
+              fontSize: 12.5,
+              color: '#15803d',
+              marginBottom: 14,
+            }}
+          >
+            ✓ Terverifikasi e.id — Role: <strong>Warga</strong> (Member Lv1)
+            <br />
+            sebagai <strong>{initialVerified.displayName}</strong>
+          </div>
+          <p style={{ margin: '0 0 12px', fontSize: 13, lineHeight: 1.5, color: '#334155' }}>
+            Anda sudah terverifikasi, tidak perlu verifikasi ulang. Pilih identitas
+            untuk laporan ini:
+          </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <button
+              type="button"
+              onClick={() =>
+                setVerification({
+                  displayName: initialVerified.displayName,
+                  isVerified: true,
+                })
+              }
+              style={{
+                padding: '12px 16px',
+                borderRadius: 8,
+                border: 'none',
+                background: '#f97316',
+                color: '#fff',
+                fontSize: 14,
+                fontWeight: 700,
+                cursor: 'pointer',
+              }}
+            >
+              Melapor sebagai {initialVerified.displayName}
+            </button>
+            <button
+              type="button"
+              onClick={() => setVerification({ displayName: 'Anonim', isVerified: true })}
+              style={{
+                padding: '12px 16px',
+                borderRadius: 8,
+                border: '1px solid #cbd5e1',
+                background: '#fff',
+                color: '#1c1917',
+                fontSize: 14,
+                fontWeight: 600,
+                cursor: 'pointer',
+              }}
+            >
+              Melapor anonim
+            </button>
+            <button
+              type="button"
+              disabled
+              style={{
+                padding: '12px 16px',
+                borderRadius: 8,
+                border: '1px solid #e2e8f0',
+                background: '#f1f5f9',
+                color: '#94a3b8',
+                fontSize: 14,
+                fontWeight: 600,
+                cursor: 'not-allowed',
+              }}
+            >
+              Lanjut tanpa verifikasi
+            </button>
+            <p style={{ margin: 0, fontSize: 12, lineHeight: 1.45, color: '#64748b' }}>
+              Opsi "tanpa verifikasi" nonaktif karena Anda sudah terverifikasi e.id.
+            </p>
+            <button
+              type="button"
+              onClick={onClose}
+              style={{
+                padding: '10px 16px',
+                borderRadius: 8,
+                border: 'none',
+                background: 'none',
+                color: '#64748b',
+                fontSize: 13,
+                cursor: 'pointer',
+              }}
+            >
+              Batal
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    // BELUM terverifikasi: ajakan verifikasi e.id dengan manfaatnya.
     return (
       <div>
-        <h2 style={{ margin: '0 0 6px', fontSize: 18, color: '#0f172a' }}>Lapor Kerusakan</h2>
+        <h2 style={{ margin: '0 0 6px', fontSize: 18, color: '#1c1917' }}>Lapor Kerusakan</h2>
         <p style={{ margin: '0 0 16px', fontSize: 13, lineHeight: 1.5, color: '#334155' }}>
           Laporkan kerusakan infrastruktur publik di sekitar Anda. Verifikasi identitas
           dengan e.id bersifat opsional, tetapi memberikan keuntungan bagi laporan Anda.
@@ -384,7 +499,7 @@ export default function ReportForm({ onSubmitted, onClose }) {
               padding: '12px 16px',
               borderRadius: 8,
               border: 'none',
-              background: '#7c3aed',
+              background: '#f97316',
               color: '#fff',
               fontSize: 14,
               fontWeight: 700,
@@ -397,13 +512,13 @@ export default function ReportForm({ onSubmitted, onClose }) {
               fitur dukungan interaktif warga yang menaikkan prioritas. */}
           <div
             style={{
-              background: '#f5f3ff',
-              border: '1px solid #ddd6fe',
+              background: '#fff7ed',
+              border: '1px solid #fed7aa',
               borderRadius: 8,
               padding: '10px 12px',
               fontSize: 12.5,
               lineHeight: 1.5,
-              color: '#4c1d95',
+              color: '#9a3412',
             }}
           >
             <strong>Dengan e.id, laporan Anda:</strong>
@@ -423,7 +538,7 @@ export default function ReportForm({ onSubmitted, onClose }) {
               borderRadius: 8,
               border: '1px solid #cbd5e1',
               background: '#fff',
-              color: '#0f172a',
+              color: '#1c1917',
               fontSize: 14,
               fontWeight: 600,
               cursor: 'pointer',
@@ -484,7 +599,7 @@ export default function ReportForm({ onSubmitted, onClose }) {
   if (submitState === 'success') {
     return (
       <div>
-        <h2 style={{ margin: '0 0 10px', fontSize: 18, color: '#0f172a' }}>Laporan Terkirim</h2>
+        <h2 style={{ margin: '0 0 10px', fontSize: 18, color: '#1c1917' }}>Laporan Terkirim</h2>
         <p style={{ margin: '0 0 16px', fontSize: 14, lineHeight: 1.5, color: '#334155' }}>
           Terima kasih! Laporan Anda sudah terkirim dan akan segera di-review serta
           ditindaklanjuti oleh otoritas setempat. Status awal laporan:{' '}
@@ -499,7 +614,7 @@ export default function ReportForm({ onSubmitted, onClose }) {
               borderRadius: 8,
               border: '1px solid #cbd5e1',
               background: '#fff',
-              color: '#0f172a',
+              color: '#1c1917',
               fontSize: 14,
               cursor: 'pointer',
               fontWeight: 600,
@@ -514,7 +629,7 @@ export default function ReportForm({ onSubmitted, onClose }) {
               padding: '10px 16px',
               borderRadius: 8,
               border: 'none',
-              background: '#7c3aed',
+              background: '#f97316',
               color: '#fff',
               fontSize: 14,
               cursor: 'pointer',
@@ -530,7 +645,7 @@ export default function ReportForm({ onSubmitted, onClose }) {
 
   return (
     <form onSubmit={handleSubmit} noValidate>
-      <h2 style={{ margin: '0 0 4px', fontSize: 18, color: '#0f172a' }}>Lapor Kerusakan</h2>
+      <h2 style={{ margin: '0 0 4px', fontSize: 18, color: '#1c1917' }}>Lapor Kerusakan</h2>
       <p style={{ margin: '0 0 16px', fontSize: 12, color: '#64748b' }}>
         Semua field bertanda * wajib diisi.
       </p>
@@ -572,7 +687,7 @@ export default function ReportForm({ onSubmitted, onClose }) {
             onClick={() => (isMobile ? setEidInfoOpen(true) : setVerificationOpen(true))}
             style={{
               border: 'none',
-              background: '#7c3aed',
+              background: '#f97316',
               color: '#fff',
               borderRadius: 6,
               padding: '5px 10px',
@@ -644,7 +759,7 @@ export default function ReportForm({ onSubmitted, onClose }) {
                   flexShrink: 0,
                 }}
               />
-              <span style={{ fontWeight: 600, color: '#0f172a' }}>{s.label}</span>
+              <span style={{ fontWeight: 600, color: '#1c1917' }}>{s.label}</span>
             </label>
           ))}
         </div>
@@ -684,7 +799,7 @@ export default function ReportForm({ onSubmitted, onClose }) {
                 gap: 8,
                 fontSize: 14,
                 cursor: 'pointer',
-                color: '#0f172a',
+                color: '#1c1917',
               }}
             >
               <input
@@ -748,7 +863,7 @@ export default function ReportForm({ onSubmitted, onClose }) {
               padding: '8px 14px',
               borderRadius: 8,
               border: 'none',
-              background: '#0f172a',
+              background: '#1c1917',
               color: '#fff',
               fontSize: 13,
               fontWeight: 600,
@@ -824,7 +939,7 @@ export default function ReportForm({ onSubmitted, onClose }) {
             padding: '12px 16px',
             borderRadius: 8,
             border: 'none',
-            background: '#7c3aed',
+            background: '#f97316',
             color: '#fff',
             fontSize: 15,
             fontWeight: 700,
@@ -841,7 +956,7 @@ export default function ReportForm({ onSubmitted, onClose }) {
             borderRadius: 8,
             border: '1px solid #cbd5e1',
             background: '#fff',
-            color: '#0f172a',
+            color: '#1c1917',
             fontSize: 14,
             cursor: 'pointer',
           }}

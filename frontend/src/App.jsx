@@ -54,7 +54,7 @@ function SponsorLogo({ name, src }) {
       }}
     >
       {failed ? (
-        <span style={{ fontWeight: 700, fontSize: 12.5, color: '#0f172a' }}>{name}</span>
+        <span style={{ fontWeight: 700, fontSize: 12.5, color: '#1c1917' }}>{name}</span>
       ) : (
         <img
           src={src}
@@ -157,8 +157,8 @@ function LoginButton({ onLogin, isMobile }) {
         aria-label="Login sebagai Otoritas"
         onClick={onLogin}
         style={{
-          background: hover ? '#7c3aed' : 'rgba(255, 255, 255, 0.12)',
-          border: hover ? '1px solid #7c3aed' : '1px solid rgba(255, 255, 255, 0.3)',
+          background: hover ? '#f97316' : 'rgba(255, 255, 255, 0.12)',
+          border: hover ? '1px solid #f97316' : '1px solid rgba(255, 255, 255, 0.3)',
           color: '#fff',
           borderRadius: 8,
           padding: isMobile ? '9px 14px' : '7px 12px',
@@ -181,7 +181,7 @@ function LoginButton({ onLogin, isMobile }) {
             bottom: 'calc(100% + 7px)',
             left: '50%',
             transform: 'translateX(-50%)',
-            background: '#0f172a',
+            background: '#1c1917',
             color: '#fff',
             fontSize: 12,
             padding: '6px 10px',
@@ -199,7 +199,7 @@ function LoginButton({ onLogin, isMobile }) {
               left: '50%',
               transform: 'translateX(-50%)',
               border: '5px solid transparent',
-              borderTopColor: '#0f172a',
+              borderTopColor: '#1c1917',
             }}
           />
         </div>
@@ -220,7 +220,7 @@ function ViewToggle({ view, onChange }) {
     background: '#fff',
     color: '#475569',
   };
-  const activeStyle = { background: '#7c3aed', color: '#fff', borderColor: '#7c3aed' };
+  const activeStyle = { background: '#f97316', color: '#fff', borderColor: '#f97316' };
   return (
     <div
       style={{
@@ -282,6 +282,8 @@ export default function App() {
   const isMobile = useIsMobile();
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  // Sidebar filter desktop bisa disembunyikan (poin: sidebar bisa di-hide).
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   // Satu-satunya fetch data hasil-filter: ulang saat filter berubah
   // (real-time) atau setelah laporan baru dikirim (refreshKey).
@@ -368,6 +370,17 @@ export default function App() {
     setEidFlowOpen(true);
   };
 
+  // Keluar dari verifikasi e.id (poin: opsi logout verifikasi).
+  const handleLogoutEid = () => {
+    try {
+      localStorage.removeItem('titikrusak_eid');
+    } catch (_e) {
+      // abaikan bila localStorage tidak tersedia
+    }
+    setEidVerified(false);
+  };
+  const storedEid = getStoredEidVerification();
+
   const openHeaderModal = (setter) => () => {
     closeAllModals();
     setter(true);
@@ -389,7 +402,7 @@ export default function App() {
       <header
         style={{
           padding: '10px 12px',
-          background: '#0f172a',
+          background: '#1c1917',
           color: '#fff',
           display: 'flex',
           alignItems: 'center',
@@ -533,7 +546,7 @@ export default function App() {
       {isMobile && otoritas && (
         <div
           style={{
-            background: '#0f172a',
+            background: '#1c1917',
             color: '#fff',
             padding: '0 12px 10px',
             display: 'flex',
@@ -579,15 +592,55 @@ export default function App() {
       )}
 
       <main style={{ flex: 1, display: 'flex', minHeight: 0 }}>
-        {/* Panel filter desktop: sidebar permanen */}
-        {!isMobile && (
+        {/* Panel filter desktop: sidebar permanen yang BISA disembunyikan */}
+        {!isMobile && !sidebarCollapsed && (
           <FilterPanel
             filters={filters}
             onChange={handleFilterChange}
             onReset={handleResetFilters}
+            onCollapse={() => setSidebarCollapsed(true)}
             eidVerified={eidVerified}
+            eidDisplayName={storedEid?.displayName || null}
             onRequestVerify={openEidFlow}
+            onLogoutEid={handleLogoutEid}
           />
+        )}
+        {/* Tab tipis untuk memunculkan kembali sidebar yang disembunyikan */}
+        {!isMobile && sidebarCollapsed && (
+          <button
+            type="button"
+            aria-label="Tampilkan panel filter"
+            title="Tampilkan panel filter"
+            onClick={() => setSidebarCollapsed(false)}
+            style={{
+              flexShrink: 0,
+              width: 38,
+              background: '#fff',
+              border: 'none',
+              borderRight: '1px solid #e2e8f0',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 4,
+              cursor: 'pointer',
+            }}
+          >
+            <span style={{ fontSize: 14, color: '#f97316', fontWeight: 800, lineHeight: 1 }}>
+              ⏵
+            </span>
+            <span
+              style={{
+                writingMode: 'vertical-rl',
+                fontSize: 9.5,
+                fontWeight: 700,
+                color: '#64748b',
+                letterSpacing: 1.5,
+              }}
+            >
+              FILTER
+            </span>
+          </button>
         )}
 
         <div style={{ position: 'relative', flex: 1, minWidth: 0 }}>
@@ -628,7 +681,7 @@ export default function App() {
                 left: isMobile ? 16 : 20,
                 bottom: isMobile ? 16 : 20,
                 zIndex: 1100,
-                background: '#7c3aed',
+                background: '#f97316',
                 color: '#fff',
                 border: 'none',
                 borderRadius: 999,
@@ -676,9 +729,14 @@ export default function App() {
                   onReset={handleResetFilters}
                   onClose={() => setFiltersOpen(false)}
                   eidVerified={eidVerified}
+                  eidDisplayName={storedEid?.displayName || null}
                   onRequestVerify={() => {
                     setFiltersOpen(false);
                     openEidFlow();
+                  }}
+                  onLogoutEid={() => {
+                    setFiltersOpen(false);
+                    handleLogoutEid();
                   }}
                 />
               </div>
@@ -723,7 +781,7 @@ export default function App() {
                     marginBottom: 10,
                   }}
                 >
-                  <span style={{ flex: 1, fontSize: 15, fontWeight: 700, color: '#0f172a' }}>
+                  <span style={{ flex: 1, fontSize: 15, fontWeight: 700, color: '#1c1917' }}>
                     Menu
                   </span>
                   <button
@@ -770,7 +828,7 @@ export default function App() {
                       padding: '13px 6px',
                       fontSize: 14,
                       fontWeight: 600,
-                      color: '#0f172a',
+                      color: '#1c1917',
                       cursor: 'pointer',
                     }}
                   >
@@ -811,7 +869,7 @@ export default function App() {
                           borderRadius: 8,
                           border: '1px solid #cbd5e1',
                           background: '#fff',
-                          color: '#0f172a',
+                          color: '#1c1917',
                           fontSize: 14,
                           fontWeight: 600,
                           cursor: 'pointer',
@@ -833,7 +891,7 @@ export default function App() {
                         padding: '11px 14px',
                         borderRadius: 8,
                         border: 'none',
-                        background: '#7c3aed',
+                        background: '#f97316',
                         color: '#fff',
                         fontSize: 14,
                         fontWeight: 700,
@@ -1019,7 +1077,7 @@ export default function App() {
           logo sponsor disejajarkan dalam chip putih berukuran sama. */}
       <footer
         style={{
-          background: '#0f172a',
+          background: '#1c1917',
           color: '#cbd5e1',
           borderTop: '4px solid #f97316', // aksen oranye tema maintenance
           padding: '14px 20px',

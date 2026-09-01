@@ -52,6 +52,8 @@ const PUBLIC_SELECT = PUBLIC_COLUMNS.join(', ');
 
 // vital_status disimpan sebagai string JSON array (File 1 Bagian 6.8.4),
 // dikembalikan API sebagai array agar frontend mudah merender badge/tag.
+// photo_urls juga disimpan sebagai string JSON array (laporan dari media),
+// dikembalikan sebagai array agar frontend bisa merender foto.
 function parseVitalStatus(row) {
   if (!row) return row;
   if (row.vital_status !== null && row.vital_status !== undefined) {
@@ -59,6 +61,13 @@ function parseVitalStatus(row) {
       row.vital_status = JSON.parse(row.vital_status);
     } catch (_e) {
       // Nilai lama yang bukan JSON valid: biarkan apa adanya.
+    }
+  }
+  if (typeof row.photo_urls === 'string' && row.photo_urls !== '') {
+    try {
+      row.photo_urls = JSON.parse(row.photo_urls);
+    } catch (_e) {
+      // Nilai lama berupa teks bebas (mis. satu URL): biarkan apa adanya.
     }
   }
   return row;

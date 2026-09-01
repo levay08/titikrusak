@@ -12,7 +12,7 @@ export const EID_DESKTOP_MESSAGE =
 export default function EidDesktopInfo({ title, actionLabel, onAction }) {
   return (
     <div>
-      <h2 style={{ margin: '0 0 6px', fontSize: 18, color: '#0f172a' }}>{title}</h2>
+      <h2 style={{ margin: '0 0 6px', fontSize: 18, color: '#1c1917' }}>{title}</h2>
       <p style={{ margin: '0 0 16px', fontSize: 13.5, lineHeight: 1.55, color: '#334155' }}>
         {EID_DESKTOP_MESSAGE}
       </p>
@@ -25,7 +25,7 @@ export default function EidDesktopInfo({ title, actionLabel, onAction }) {
           borderRadius: 8,
           border: '1px solid #cbd5e1',
           background: '#fff',
-          color: '#0f172a',
+          color: '#1c1917',
           fontSize: 14,
           fontWeight: 600,
           cursor: 'pointer',

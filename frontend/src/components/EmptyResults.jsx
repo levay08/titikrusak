@@ -15,9 +15,9 @@
 // Animasi pulse lembut untuk tombol ajakan Kondisi A (File 1 9.1).
 const PULSE_KEYFRAMES = `
 @keyframes trk-pulse {
-  0%   { box-shadow: 0 0 0 0 rgba(124, 58, 237, 0.45); }
-  70%  { box-shadow: 0 0 0 16px rgba(124, 58, 237, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(124, 58, 237, 0); }
+  0%   { box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.45); }
+  70%  { box-shadow: 0 0 0 16px rgba(249, 115, 22, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(249, 115, 22, 0); }
 }`;
 
 export default function EmptyResults({ hasAnyData, onResetFilters, onLapor }) {
@@ -40,7 +40,7 @@ export default function EmptyResults({ hasAnyData, onResetFilters, onLapor }) {
       {hasAnyData ? (
         /* Kondisi B: data ada, filter tidak cocok — normal, tanpa animasi */
         <>
-          <p style={{ margin: '0 0 12px', fontSize: 14, fontWeight: 600, color: '#0f172a' }}>
+          <p style={{ margin: '0 0 12px', fontSize: 14, fontWeight: 600, color: '#1c1917' }}>
             Tidak ada laporan yang sesuai dengan filter ini
           </p>
           {onResetFilters && (
@@ -51,7 +51,7 @@ export default function EmptyResults({ hasAnyData, onResetFilters, onLapor }) {
                 padding: '8px 16px',
                 borderRadius: 8,
                 border: 'none',
-                background: '#7c3aed',
+                background: '#f97316',
                 color: '#fff',
                 fontSize: 13,
                 fontWeight: 600,
@@ -66,7 +66,7 @@ export default function EmptyResults({ hasAnyData, onResetFilters, onLapor }) {
         /* Kondisi A: belum ada laporan sama sekali — ajakan + pulse */
         <>
           <style>{PULSE_KEYFRAMES}</style>
-          <p style={{ margin: '0 0 14px', fontSize: 14, lineHeight: 1.5, color: '#0f172a' }}>
+          <p style={{ margin: '0 0 14px', fontSize: 14, lineHeight: 1.5, color: '#1c1917' }}>
             <strong>Belum ada laporan infrastruktur rusak di sini.</strong>
             <br />
             Jadilah yang pertama melaporkan!
@@ -79,7 +79,7 @@ export default function EmptyResults({ hasAnyData, onResetFilters, onLapor }) {
                 padding: '12px 24px',
                 borderRadius: 999,
                 border: 'none',
-                background: '#7c3aed',
+                background: '#f97316',
                 color: '#fff',
                 fontSize: 14,
                 fontWeight: 700,

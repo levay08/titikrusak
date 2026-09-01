@@ -77,7 +77,7 @@ export function ModalShell({ title, onClose, children, maxWidth = 640 }) {
           <span
             style={{ width: 4, height: 22, borderRadius: 2, background: '#f97316', flexShrink: 0 }}
           />
-          <h2 style={{ margin: 0, flex: 1, fontSize: 17, color: '#0f172a' }}>{title}</h2>
+          <h2 style={{ margin: 0, flex: 1, fontSize: 17, color: '#1c1917' }}>{title}</h2>
           <button
             type="button"
             onClick={onClose}
@@ -126,16 +126,69 @@ function BarRow({ label, count, color, max }) {
         <div
           style={{
             width: `${count > 0 ? Math.max(pct, 4) : 0}%`,
-            background: color,
             height: 14,
             borderRadius: 5,
+            background: `linear-gradient(90deg, ${color}, ${color}99)`,
           }}
         />
       </div>
-      <span style={{ width: 40, textAlign: 'right', fontSize: 12, fontWeight: 700, color: '#0f172a' }}>
+      <span style={{ width: 40, textAlign: 'right', fontSize: 12, fontWeight: 700, color: '#1c1917' }}>
         {count}
       </span>
     </div>
+  );
+}
+
+// ---- Grafik donat (SVG murni, tanpa library chart) ----
+function DonutChart({ segments, size = 150, thickness = 20 }) {
+  const total = segments.reduce((s, x) => s + x.value, 0) || 1;
+  const r = (size - thickness) / 2;
+  const c = 2 * Math.PI * r;
+  let offset = 0;
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox={`0 0 ${size} ${size}`}
+      style={{ display: 'block', flexShrink: 0 }}
+      role="img"
+      aria-label={`Grafik donat: total ${total} laporan`}
+    >
+      <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="#f1f5f9" strokeWidth={thickness} />
+      {segments.map((s, i) => {
+        if (s.value <= 0) return null;
+        const len = (s.value / total) * c;
+        const el = (
+          <circle
+            key={i}
+            cx={size / 2}
+            cy={size / 2}
+            r={r}
+            fill="none"
+            stroke={s.color}
+            strokeWidth={thickness}
+            strokeDasharray={`${len} ${c - len}`}
+            strokeDashoffset={-offset}
+            transform={`rotate(-90 ${size / 2} ${size / 2})`}
+            style={{ transition: 'stroke-dasharray 0.4s ease' }}
+          />
+        );
+        offset += len;
+        return el;
+      })}
+      <text
+        x="50%"
+        y="47%"
+        textAnchor="middle"
+        dominantBaseline="central"
+        style={{ fontSize: 26, fontWeight: 800, fill: '#1c1917' }}
+      >
+        {total}
+      </text>
+      <text x="50%" y="61%" textAnchor="middle" style={{ fontSize: 10, fill: '#64748b' }}>
+        laporan
+      </text>
+    </svg>
   );
 }
 
@@ -158,7 +211,7 @@ export function AboutModal({ onClose }) {
       >
         <Logo size={54} />
         <div>
-          <div style={{ fontSize: 16, fontWeight: 800, color: '#0f172a' }}>titikrusak.id</div>
+          <div style={{ fontSize: 16, fontWeight: 800, color: '#1c1917' }}>titikrusak.id</div>
           <div style={{ fontSize: 12.5, color: '#9a3412', marginTop: 2 }}>
             Laporkan &amp; pantau infrastruktur publik yang rusak di Indonesia
           </div>
@@ -198,7 +251,7 @@ export function AboutModal({ onClose }) {
             }}
           >
             <div style={{ fontSize: 20, lineHeight: 1 }}>{f.icon}</div>
-            <div style={{ fontSize: 13, fontWeight: 700, color: '#0f172a', marginTop: 6 }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: '#1c1917', marginTop: 6 }}>
               {f.title}
             </div>
             <div style={{ fontSize: 11.5, color: '#64748b', marginTop: 2, lineHeight: 1.4 }}>
@@ -214,7 +267,7 @@ export function AboutModal({ onClose }) {
           style={{
             fontSize: 13,
             fontWeight: 700,
-            color: '#0f172a',
+            color: '#1c1917',
             marginBottom: 8,
             display: 'flex',
             alignItems: 'center',
@@ -282,7 +335,6 @@ export function StatistikModal({ reports = [], onClose }) {
     .sort((a, b) => b.count - a.count);
   const topProvinces = provinceRows.slice(0, 10);
 
-  const maxSeverity = Math.max(1, ...bySeverity.map((s) => s.count));
   const maxIsland = Math.max(1, ...islandCounts.map((i) => i.count));
   const maxProvince = Math.max(1, ...topProvinces.map((p) => p.count));
 
@@ -301,8 +353,8 @@ export function StatistikModal({ reports = [], onClose }) {
     <ModalShell title="Statistik Pelaporan" onClose={onClose} maxWidth={680}>
       {/* Kartu ringkasan */}
       <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
-        <div style={cardStyle('#0f172a')}>
-          <div style={{ fontSize: 20, fontWeight: 800, color: '#0f172a' }}>{reports.length}</div>
+        <div style={cardStyle('#1c1917')}>
+          <div style={{ fontSize: 20, fontWeight: 800, color: '#1c1917' }}>{reports.length}</div>
           <div style={{ fontSize: 11, color: '#64748b' }}>Total Laporan</div>
         </div>
         <div style={cardStyle('#22c55e')}>
@@ -319,19 +371,46 @@ export function StatistikModal({ reports = [], onClose }) {
         </div>
       </div>
 
-      {/* Grafik severity */}
+      {/* Grafik severity: donat + legenda */}
       <div style={{ marginBottom: 16 }}>
-        <div style={{ fontSize: 13, fontWeight: 700, color: '#0f172a', marginBottom: 8 }}>
+        <div
+          style={{
+            fontSize: 13,
+            fontWeight: 700,
+            color: '#1c1917',
+            marginBottom: 10,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+          }}
+        >
+          <span
+            style={{ width: 14, height: 3, borderRadius: 2, background: '#f97316', display: 'inline-block' }}
+          />
           Tingkat Kerusakan
         </div>
-        {bySeverity.map((s) => (
-          <BarRow key={s.value} label={s.label} count={s.count} color={s.color} max={maxSeverity} />
-        ))}
+        <div style={{ display: 'flex', gap: 18, alignItems: 'center', flexWrap: 'wrap' }}>
+          <DonutChart segments={bySeverity.map((s) => ({ value: s.count, color: s.color }))} />
+          <div style={{ flex: 1, minWidth: 200 }}>
+            {bySeverity.map((s) => (
+              <div
+                key={s.value}
+                style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}
+              >
+                <span
+                  style={{ width: 10, height: 10, borderRadius: '50%', background: s.color, flexShrink: 0 }}
+                />
+                <span style={{ flex: 1, fontSize: 12.5, color: '#334155' }}>{s.label}</span>
+                <span style={{ fontSize: 12.5, fontWeight: 800, color: '#1c1917' }}>{s.count}</span>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
 
       {/* Tabel + grafik per pulau */}
       <div style={{ marginBottom: 16 }}>
-        <div style={{ fontSize: 13, fontWeight: 700, color: '#0f172a', marginBottom: 8 }}>
+        <div style={{ fontSize: 13, fontWeight: 700, color: '#1c1917', marginBottom: 8 }}>
           Wilayah per Pulau
         </div>
         {islandCounts.map(({ region, count }) => (
@@ -339,7 +418,7 @@ export function StatistikModal({ reports = [], onClose }) {
             key={region.key}
             label={region.label}
             count={count}
-            color="#7c3aed"
+            color="#f97316"
             max={maxIsland}
           />
         ))}
@@ -347,7 +426,7 @@ export function StatistikModal({ reports = [], onClose }) {
 
       {/* Tabel + grafik per provinsi (10 besar) */}
       <div>
-        <div style={{ fontSize: 13, fontWeight: 700, color: '#0f172a', marginBottom: 8 }}>
+        <div style={{ fontSize: 13, fontWeight: 700, color: '#1c1917', marginBottom: 8 }}>
           Wilayah per Provinsi (10 besar)
         </div>
         {topProvinces.length === 0 ? (
@@ -398,7 +477,7 @@ export function PantauModal({ reports = [], onClose }) {
     ) : (
       rows.map((r) => (
         <div key={r.id} style={rowStyle}>
-          <div style={{ fontSize: 13.5, fontWeight: 600, color: '#0f172a' }}>{r.location_name}</div>
+          <div style={{ fontSize: 13.5, fontWeight: 600, color: '#1c1917' }}>{r.location_name}</div>
           <div style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>
             {INFRA_LABELS[r.infra_type] || r.infra_type} ·{' '}
             {SEVERITY_LABELS[r.severity] || r.severity} · Diperbarui {formatDateTime(r.updated_at)}
@@ -477,8 +556,8 @@ export function NotifikasiModal({ reports = [], onClose }) {
                   width: 34,
                   height: 34,
                   borderRadius: '50%',
-                  background: '#ede9fe',
-                  color: '#6d28d9',
+                  background: '#ffedd5',
+                  color: '#b45309',
                   fontSize: 14,
                   fontWeight: 800,
                   display: 'flex',
@@ -490,7 +569,7 @@ export function NotifikasiModal({ reports = [], onClose }) {
                 {name.charAt(0).toUpperCase()}
               </span>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 13, color: '#0f172a' }}>
+                <div style={{ fontSize: 13, color: '#1c1917' }}>
                   <strong>{name}</strong>{' '}
                   <span style={{ color: '#64748b', fontSize: 11.5 }}>
                     melaporkan {formatDateTime(r.created_at)}

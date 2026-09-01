@@ -9,6 +9,7 @@ body,
 
 body {
   font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  background: #fafaf9; /* stone-50 — hangat & nyaman di mata */
 }
 
 /* Mobile-first (File 1 Bagian 9.7): 100vh di browser HP lebih tinggi dari

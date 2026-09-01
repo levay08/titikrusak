@@ -51,6 +51,7 @@ async function openForm(user) {
 describe('ReportForm', () => {
   beforeEach(() => {
     vi.unstubAllGlobals();
+    localStorage.clear();
   });
 
   afterEach(() => {
@@ -80,6 +81,35 @@ describe('ReportForm', () => {
     expect(
       screen.getByText(/Tanpa verifikasi, laporan tetap terkirim dan diproses/i)
     ).toBeInTheDocument();
+  });
+
+  it('sudah terverifikasi e.id: tidak perlu verifikasi ulang — opsi nama/anonim, "tanpa verifikasi" nonaktif', async () => {
+    localStorage.setItem(
+      'titikrusak_eid',
+      JSON.stringify({ displayName: 'Warga Garut', isVerified: true })
+    );
+    const user = userEvent.setup();
+    const onSubmitted = vi.fn();
+    render(<ReportForm onSubmitted={onSubmitted} onClose={vi.fn()} />);
+
+    // Layar konfirmasi identitas, bukan layar verifikasi ulang.
+    expect(screen.getByText(/Terverifikasi e\.id — Role:/)).toBeInTheDocument();
+    expect(screen.getByText('Warga')).toBeInTheDocument();
+    expect(screen.getByText(/Member Lv1/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /melapor sebagai Warga Garut/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /melapor anonim/i })).toBeInTheDocument();
+
+    // "Lanjut tanpa verifikasi" NONAKTIF karena sudah terverifikasi.
+    const tanpaBtn = screen.getByRole('button', { name: /lanjut tanpa verifikasi/i });
+    expect(tanpaBtn).toBeDisabled();
+    expect(
+      screen.getByText(/opsi "tanpa verifikasi" nonaktif karena anda sudah terverifikasi e\.id\./i)
+    ).toBeInTheDocument();
+
+    // Pilih anonim -> form terbuka dengan badge terverifikasi anonim.
+    await user.click(screen.getByRole('button', { name: /melapor anonim/i }));
+    expect(screen.getByText(/melapor sebagai/i)).toBeInTheDocument();
+    expect(screen.getByText('Anonim')).toBeInTheDocument();
   });
 
   it('mobile: tombol verifikasi e.id menampilkan info scan QR/desktop, bukan alur QR', async () => {

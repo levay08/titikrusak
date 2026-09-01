@@ -241,6 +241,26 @@ describe('App: alur lapor kerusakan end-to-end', () => {
     expect(screen.queryByText('Login sebagai Otoritas')).not.toBeInTheDocument();
   });
 
+  it('sidebar filter desktop bisa disembunyikan dan dimunculkan lagi', async () => {
+    const fetchMock = vi.fn(() =>
+      Promise.resolve({ ok: true, status: 200, json: async () => [] })
+    );
+    vi.stubGlobal('fetch', fetchMock);
+
+    const user = userEvent.setup();
+    render(<App />);
+    await waitFor(() => expect(fetchMock).toHaveBeenCalled());
+
+    // Sidebar tampil -> sembunyikan.
+    expect(screen.getByRole('heading', { name: /filter laporan/i })).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: /sembunyikan panel filter/i }));
+    expect(screen.queryByRole('heading', { name: /filter laporan/i })).not.toBeInTheDocument();
+
+    // Tab tipis muncul -> klik untuk memunculkan kembali.
+    await user.click(screen.getByRole('button', { name: /tampilkan panel filter/i }));
+    expect(screen.getByRole('heading', { name: /filter laporan/i })).toBeInTheDocument();
+  });
+
   it('database kosong: hanya SATU tombol Lapor Kerusakan (poin Alur Inti 14)', async () => {
     const fetchMock = vi.fn((url) => {
       const u = String(url);

@@ -189,7 +189,7 @@ export default function VerificationFlow({
 
   return (
     <div>
-      <h2 style={{ margin: '0 0 4px', fontSize: 18, color: '#0f172a' }}>
+      <h2 style={{ margin: '0 0 4px', fontSize: 18, color: '#1c1917' }}>
         Verifikasi e.id — {roleLabel}
       </h2>
       <p style={{ margin: '0 0 14px', fontSize: 12, lineHeight: 1.5, color: '#64748b' }}>
@@ -212,13 +212,13 @@ export default function VerificationFlow({
           const active = i === currentStep && currentStep !== -1;
           return (
             <li key={label} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <span style={stepDot(done ? '#22c55e' : active ? '#7c3aed' : '#cbd5e1')}>
+              <span style={stepDot(done ? '#22c55e' : active ? '#f97316' : '#cbd5e1')}>
                 {done ? '✓' : i + 1}
               </span>
               <span
                 style={{
                   fontSize: 13,
-                  color: done || active ? '#0f172a' : '#94a3b8',
+                  color: done || active ? '#1c1917' : '#94a3b8',
                   fontWeight: active ? 700 : 400,
                 }}
               >
@@ -260,7 +260,7 @@ export default function VerificationFlow({
       {/* ---- Tahap approved: pilihan nama (File 1 3.5) ---- */}
       {phase === 'approved' && (
         <div>
-          <p style={{ margin: '0 0 12px', fontSize: 14, lineHeight: 1.5, color: '#0f172a' }}>
+          <p style={{ margin: '0 0 12px', fontSize: 14, lineHeight: 1.5, color: '#1c1917' }}>
             Verifikasi berhasil diterima.
             {holderName ? ` Nama yang terverifikasi: ${holderName}.` : ''}
           </p>
@@ -273,7 +273,7 @@ export default function VerificationFlow({
                   padding: '11px 14px',
                   borderRadius: 8,
                   border: 'none',
-                  background: '#7c3aed',
+                  background: '#f97316',
                   color: '#fff',
                   fontSize: 14,
                   fontWeight: 600,
@@ -290,7 +290,7 @@ export default function VerificationFlow({
                   borderRadius: 8,
                   border: '1px solid #cbd5e1',
                   background: '#fff',
-                  color: '#0f172a',
+                  color: '#1c1917',
                   fontSize: 14,
                   fontWeight: 600,
                   cursor: 'pointer',
@@ -303,7 +303,7 @@ export default function VerificationFlow({
             <div>
               <label
                 htmlFor="alias"
-                style={{ display: 'block', fontSize: 13, fontWeight: 600, marginBottom: 6, color: '#0f172a' }}
+                style={{ display: 'block', fontSize: 13, fontWeight: 600, marginBottom: 6, color: '#1c1917' }}
               >
                 Nama alias (kosongkan untuk "Anonim")
               </label>
@@ -331,7 +331,7 @@ export default function VerificationFlow({
                   padding: '11px 14px',
                   borderRadius: 8,
                   border: 'none',
-                  background: '#7c3aed',
+                  background: '#f97316',
                   color: '#fff',
                   fontSize: 14,
                   fontWeight: 600,
@@ -370,7 +370,7 @@ export default function VerificationFlow({
                 padding: '11px 14px',
                 borderRadius: 8,
                 border: 'none',
-                background: '#7c3aed',
+                background: '#f97316',
                 color: '#fff',
                 fontSize: 14,
                 fontWeight: 600,
@@ -387,7 +387,7 @@ export default function VerificationFlow({
                 borderRadius: 8,
                 border: '1px solid #cbd5e1',
                 background: '#fff',
-                color: '#0f172a',
+                color: '#1c1917',
                 fontSize: 14,
                 cursor: 'pointer',
               }}

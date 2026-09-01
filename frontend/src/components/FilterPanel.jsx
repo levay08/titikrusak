@@ -44,7 +44,7 @@ const inputStyle = {
   fontSize: 13,
   boxSizing: 'border-box',
   background: '#fff',
-  color: '#0f172a',
+  color: '#1c1917',
 };
 
 // Grup checkbox kecil dengan warna dot opsional (untuk severity).
@@ -62,7 +62,7 @@ function CheckboxGroup({ title, options, selected, onToggle }) {
             fontSize: 13,
             padding: '3px 0',
             cursor: 'pointer',
-            color: '#0f172a',
+            color: '#1c1917',
           }}
         >
           <input
@@ -94,8 +94,11 @@ export default function FilterPanel({
   onChange,
   onReset,
   onClose,
+  onCollapse, // sembunyikan sidebar (desktop)
   eidVerified = false, // status verifikasi e.id pengguna (poin Alur Inti 5)
+  eidDisplayName = null, // nama pengguna terverifikasi (untuk ditampilkan)
   onRequestVerify = () => {},
+  onLogoutEid = () => {},
 }) {
   // Toggle nilai multi-select (severity/authority/vital) -> onChange.
   const toggle = (key) => (value) => (e) => {
@@ -126,7 +129,7 @@ export default function FilterPanel({
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6 }}>
-        <h2 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: '#0f172a' }}>
+        <h2 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: '#1c1917' }}>
           Filter Laporan
         </h2>
         <div style={{ display: 'flex', gap: 6 }}>
@@ -138,7 +141,7 @@ export default function FilterPanel({
               borderRadius: 6,
               border: '1px solid #cbd5e1',
               background: '#fff',
-              color: '#0f172a',
+              color: '#1c1917',
               fontSize: 12,
               fontWeight: 600,
               cursor: 'pointer',
@@ -146,6 +149,26 @@ export default function FilterPanel({
           >
             Reset Filter
           </button>
+          {onCollapse && (
+            <button
+              type="button"
+              onClick={onCollapse}
+              aria-label="Sembunyikan panel filter"
+              title="Sembunyikan panel filter"
+              style={{
+                padding: '5px 9px',
+                borderRadius: 6,
+                border: '1px solid #cbd5e1',
+                background: '#fff',
+                color: '#475569',
+                fontSize: 12,
+                fontWeight: 600,
+                cursor: 'pointer',
+              }}
+            >
+              ⏴
+            </button>
+          )}
           {onClose && (
             <button
               type="button"
@@ -219,44 +242,80 @@ export default function FilterPanel({
         onToggle={toggle('vital_status')}
       />
 
-      {/* Status verifikasi e.id (poin Alur Inti 5): AKTIF — hijau saat
-          pengguna terverifikasi e.id, abu-abu + tombol verifikasi saat
-          belum. Bukan lagi dropdown nonaktif. */}
+      {/* Status verifikasi e.id (poin Alur Inti 5): AKTIF — menampilkan
+          ROLE yang terverifikasi (Warga — Member Lv1) + tombol keluar;
+          saat belum: abu-abu + tombol verifikasi. */}
       <div>
         <span style={sectionTitleStyle}>Status Verifikasi e.id</span>
         {eidVerified ? (
           <div
             style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
               background: '#f0fdf4',
               border: '1px solid #bbf7d0',
               borderRadius: 8,
-              padding: '8px 10px',
-              fontSize: 12.5,
-              color: '#15803d',
-              fontWeight: 700,
+              padding: '10px 12px',
             }}
           >
-            <span
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+              <span
+                style={{
+                  width: 20,
+                  height: 20,
+                  borderRadius: '50%',
+                  background: '#22c55e',
+                  color: '#fff',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: 11,
+                  fontWeight: 800,
+                  flexShrink: 0,
+                  marginTop: 1,
+                }}
+              >
+                ✓
+              </span>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 12.5, fontWeight: 700, color: '#15803d' }}>
+                  Terverifikasi e.id
+                </div>
+                <div style={{ fontSize: 11.5, color: '#475569', marginTop: 2 }}>
+                  Role: <strong>Warga</strong> (Member Lv1 — email, nama, alamat, no. telepon)
+                </div>
+                {eidDisplayName && (
+                  <div
+                    style={{
+                      fontSize: 11.5,
+                      color: '#15803d',
+                      marginTop: 2,
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    sebagai {eidDisplayName}
+                  </div>
+                )}
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={onLogoutEid}
               style={{
-                width: 18,
-                height: 18,
-                borderRadius: '50%',
-                background: '#22c55e',
-                color: '#fff',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: 11,
-                fontWeight: 800,
-                flexShrink: 0,
+                width: '100%',
+                marginTop: 10,
+                padding: '7px 10px',
+                borderRadius: 6,
+                border: '1px solid #cbd5e1',
+                background: '#fff',
+                color: '#475569',
+                fontSize: 12,
+                fontWeight: 600,
+                cursor: 'pointer',
               }}
             >
-              ✓
-            </span>
-            Terverifikasi e.id
+              Keluar / Logout e.id
+            </button>
           </div>
         ) : (
           <div
