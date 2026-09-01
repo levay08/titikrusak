@@ -379,6 +379,12 @@ export default function MapView({
   const [selected, setSelected] = useState(null);
   // Peta sudah diinisialisasi (untuk merender kontrol yang butuh instance).
   const [mapReady, setMapReady] = useState(false);
+  // Referensi data/aksi terkini untuk delegasi klik tombol "Lihat Detail"
+  // di container peta (anti stale-closure; dipasang sekali saat init).
+  const reportsRef = useRef(reports);
+  reportsRef.current = reports;
+  const onOpenDetailRef = useRef(onOpenDetail);
+  onOpenDetailRef.current = onOpenDetail;
   // Zoom aktif — legend disembunyikan saat zoom in (mengganggu pandangan
   // titik); tampil lagi di tampilan negara/region (<= LEGEND_MAX_ZOOM).
   const [zoomLevel, setZoomLevel] = useState(6);
@@ -466,7 +472,31 @@ export default function MapView({
     // bukan setView zoom tetap, agar tidak terpotong di layar sempit.
     map.fitBounds(HOME_BOUNDS, { padding: HOME_PADDING, maxZoom: HOME_MAX_ZOOM });
 
+    // Delegasi klik DOM di container peta untuk tombol "Lihat Detail" di
+    // popup. Dipasang SEKALI di init (bukan via event popupopen Leaflet
+    // yang tidak andal — event klik DOM selalu sampai ke container, apapun
+    // cara popup dibuka). Buka DetailModal penuh untuk laporan itu.
+    const onPopupDetailClick = (ev) => {
+      const target = ev.target;
+      const btn =
+        target && typeof target.closest === 'function'
+          ? target.closest('.tk-popup-detail-btn')
+          : null;
+      if (!btn) return;
+      map.closePopup();
+      const id = Number(btn.dataset.id);
+      const report = reportsRef.current.find((r) => r.id === id);
+      if (!report) return;
+      if (onOpenDetailRef.current) {
+        onOpenDetailRef.current(report);
+      } else {
+        setSelected(report);
+      }
+    };
+    el.addEventListener('click', onPopupDetailClick);
+
     return () => {
+      el.removeEventListener('click', onPopupDetailClick);
       map.remove();
       mapRef.current = null;
     };
@@ -598,25 +628,6 @@ export default function MapView({
         `<b>1 titik rusak</b>${prov ? ` — ${prov}` : ''}`,
         { direction: 'top', offset: [0, -8], opacity: 0.95, sticky: true }
       );
-
-      // Tombol "Lihat Detail" di popup -> DetailModal penuh (semua info +
-      // foto + tindakan otoritas). Listener dipasang tiap popup terbuka
-      // (popup dirender ulang setiap kali dibuka).
-      marker.on('popupopen', () => {
-        const btn = document.querySelector(`.tk-popup-detail-btn[data-id="${report.id}"]`);
-        if (btn && !btn.dataset.bound) {
-          btn.dataset.bound = '1';
-          btn.addEventListener('click', () => {
-            const map = mapRef.current;
-            if (map) map.closePopup();
-            if (onOpenDetail) {
-              onOpenDetail(report);
-            } else {
-              setSelected(report);
-            }
-          });
-        }
-      });
 
       // Semua marker masuk ke markerClusterGroup (File 1 Bagian 9.4):
       // saat zoom-out, marker berdekatan menyatu jadi cluster dengan

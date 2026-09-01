@@ -248,27 +248,23 @@ describe('MapView: tombol "Lihat Detail" di popup marker (modal pada titik)', ()
     expect(popupHtml).toContain(`data-id="${REPORT.id}"`);
   });
 
-  it('klik "Lihat Detail" di popup memanggil onOpenDetail dengan laporan lengkap', () => {
+  it('klik "Lihat Detail" di popup membuka DetailModal via delegasi klik di container peta', () => {
     const onOpenDetail = vi.fn();
-    render(<MapView reports={[REPORT]} onOpenDetail={onOpenDetail} />);
+    const { container: wrap } = render(
+      <MapView reports={[REPORT]} onOpenDetail={onOpenDetail} />
+    );
 
-    // Stub document.querySelector: tombol popup "nyata" di DOM.
-    const fakeBtn = { dataset: {}, addEventListener: vi.fn((evt, fn) => (fakeBtn._click = fn)) };
-    const qs = vi.spyOn(document, 'querySelector').mockReturnValue(fakeBtn);
+    // Simulasikan tombol popup yang benar-benar ada di DOM container peta.
+    const mapContainer = wrap.firstChild.firstChild; // div ref={containerRef}
+    const btn = document.createElement('button');
+    btn.className = 'tk-popup-detail-btn';
+    btn.dataset.id = String(REPORT.id);
+    mapContainer.appendChild(btn);
 
-    // Picu popupopen -> MapView memasang listener klik pada tombol.
-    const marker = L.circleMarker.mock.results[0].value;
-    const popupOpenHandler = marker.on.mock.calls.find(([evt]) => evt === 'popupopen')[1];
-    act(() => popupOpenHandler());
+    fireEvent.click(btn);
 
-    expect(fakeBtn.dataset.bound).toBe('1');
-    expect(fakeBtn.addEventListener).toHaveBeenCalledWith('click', expect.any(Function));
-
-    // Simulasikan klik tombol.
-    act(() => fakeBtn._click());
-
-    expect(qs).toHaveBeenCalledWith(`.tk-popup-detail-btn[data-id="${REPORT.id}"]`);
-    expect(L.map.mock.results[0].value.closePopup).toHaveBeenCalled();
+    const map = L.map.mock.results[0].value;
+    expect(map.closePopup).toHaveBeenCalled();
     expect(onOpenDetail).toHaveBeenCalledTimes(1);
     expect(onOpenDetail).toHaveBeenCalledWith(expect.objectContaining({ id: 7 }));
   });
