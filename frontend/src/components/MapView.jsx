@@ -220,6 +220,7 @@ function SeverityLegend() {
 function ZoomSlider({ map }) {
   const [zoom, setZoom] = useState(() => (map ? map.getZoom() : 6));
   const [dragging, setDragging] = useState(false);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     if (!map) return undefined;
@@ -242,8 +243,8 @@ function ZoomSlider({ map }) {
     background: '#f1f5f9',
     border: '1px solid #cbd5e1',
     borderRadius: 6,
-    width: 26,
-    height: 26,
+    width: isMobile ? 24 : 26,
+    height: isMobile ? 24 : 26,
     fontSize: 14,
     fontWeight: 700,
     lineHeight: 1,
@@ -259,21 +260,23 @@ function ZoomSlider({ map }) {
     <div
       style={{
         position: 'absolute',
-        bottom: 14,
+        // Mobile: naik ke ATAS area tombol "Lapor Kerusakan" (FAB) agar
+        // tidak bertumpuk; desktop: tepat di atas footer.
+        bottom: isMobile ? 78 : 14,
         left: '50%',
         transform: 'translateX(-50%)',
         zIndex: 1100,
         background: 'rgba(255, 255, 255, 0.95)',
         borderRadius: 12,
         boxShadow: '0 1px 6px rgba(0, 0, 0, 0.3)',
-        padding: '8px 12px',
+        padding: isMobile ? '6px 8px' : '8px 12px',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        gap: 6,
+        gap: isMobile ? 4 : 6,
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 5 : 8 }}>
         <button
           type="button"
           aria-label="Zoom keluar"
@@ -293,7 +296,12 @@ function ZoomSlider({ map }) {
           onPointerDown={() => setDragging(true)}
           onPointerUp={() => setDragging(false)}
           onPointerLeave={() => setDragging(false)}
-          style={{ width: 160, accentColor: '#eab308', cursor: 'pointer', margin: 0 }}
+          style={{
+            width: isMobile ? 110 : 160,
+            accentColor: '#eab308',
+            cursor: 'pointer',
+            margin: 0,
+          }}
         />
         <button
           type="button"
@@ -313,9 +321,9 @@ function ZoomSlider({ map }) {
           border: 'none',
           borderRadius: 999,
           color: '#fff',
-          fontSize: 11,
+          fontSize: isMobile ? 10 : 11,
           fontWeight: 700,
-          padding: '5px 12px',
+          padding: isMobile ? '4px 9px' : '5px 12px',
           cursor: 'pointer',
           display: 'flex',
           alignItems: 'center',
@@ -323,7 +331,7 @@ function ZoomSlider({ map }) {
         }}
         title="Kembali ke tampilan seluruh Indonesia"
       >
-        <span style={{ fontSize: 12, lineHeight: 1 }}>⛶</span> Fit Layar
+        <span style={{ fontSize: isMobile ? 11 : 12, lineHeight: 1 }}>⛶</span> Fit Layar
       </button>
       {dragging && (
         <span
@@ -625,8 +633,10 @@ export default function MapView({
       <div ref={containerRef} style={{ height: '100%', width: '100%' }} />
       <NavButtons canGoBack={navHistory.length > 0} onBack={goBack} onHome={goHome} isMobile={isMobile} />
       {/* Legend hanya di tampilan negara/region — saat zoom in ke titik
-          disembunyikan agar tidak mengganggu view */}
-      {zoomLevel <= LEGEND_MAX_ZOOM && <SeverityLegend />}
+          disembunyikan agar tidak mengganggu view; DI MOBILE TIDAK
+          DITAMPILKAN sama sekali (menghindari tumpukan dengan tombol
+          Lapor & slider zoom; informasinya ada di menu Dokumentasi). */}
+      {!isMobile && zoomLevel <= LEGEND_MAX_ZOOM && <SeverityLegend />}
       {mapReady && <ZoomSlider map={mapRef.current} />}
 
       {/* Kondisi hasil kosong (File 1 Bagian 9.1/9.2) — sama dengan
