@@ -6,7 +6,7 @@
 // bergantung asset file; dipakai di header, footer, dan favicon
 // (public/favicon.svg memakai desain yang sama).
 
-export default function Logo({ size = 30, title = 'Logo titikrusak.id' }) {
+export default function Logo({ size = 30, title = 'Logo titikrusak.id', animated = false }) {
   return (
     <svg
       width={size}
@@ -14,7 +14,7 @@ export default function Logo({ size = 30, title = 'Logo titikrusak.id' }) {
       viewBox="0 0 64 64"
       role="img"
       aria-label={title}
-      className="tk-logo"
+      className={animated ? 'tk-logo tk-logo-animated' : 'tk-logo'}
       style={{ display: 'block', flexShrink: 0 }}
     >
       {/* Badge putih dengan bingkai kuning */}

@@ -206,6 +206,14 @@ body {
 .tk-logo:hover {
   transform: scale(1.06);
 }
+/* Logo header: denyut lembut (pulse) — animasi simple & tidak menyilaukan. */
+.tk-logo-animated {
+  animation: tk-logo-pulse 2.4s ease-in-out infinite;
+}
+@keyframes tk-logo-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.07); }
+}
 
 /* Fokus keyboard yang jelas & konsisten (aksen kuning) — modern & aksesibel */
 button:focus-visible,

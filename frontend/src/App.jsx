@@ -553,7 +553,7 @@ export default function App() {
               color: '#fff',
             }}
           >
-            <Logo size={30} />
+            <Logo size={30} animated />
             <h1 style={{ margin: 0, fontSize: 18, fontWeight: 700, whiteSpace: 'nowrap' }}>
               titikrusak.id
             </h1>
