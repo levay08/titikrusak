@@ -12,7 +12,21 @@ const { reportLimiter } = require('../middleware/rateLimiter.js');
 const router = express.Router();
 
 // Katalog enum dari File 1 Bagian 6.8 (rujukan tunggal nilai tetap).
-const INFRA_TYPES = ['jembatan', 'jalan', 'sekolah', 'prasarana_publik', 'utilitas', 'lainnya'];
+const INFRA_TYPES = [
+  'jembatan',
+  'jalan',
+  'sekolah',
+  'gedung',
+  'rumah_sakit',
+  'kantor_pemerintah',
+  'jaringan_listrik',
+  'jaringan_air',
+  'tanggul',
+  'irigasi',
+  'prasarana_publik',
+  'utilitas',
+  'lainnya',
+];
 const SEVERITIES = ['ringan', 'sedang', 'berat', 'ambruk'];
 const BRIDGE_AUTHORITIES = ['nasional', 'provinsi', 'kabupaten_kota', 'desa_swadaya', 'tidak_diketahui'];
 const VITAL_STATUSES = ['akses_sekolah', 'akses_kesehatan', 'akses_antar_kampung', 'akses_sungai', 'akses_ekonomi', 'aset_utilitas', 'lainnya'];

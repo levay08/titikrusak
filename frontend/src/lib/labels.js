@@ -28,10 +28,19 @@ export const SEVERITY_DEFINITIONS = {
 };
 
 // ---- Jenis infrastruktur (File 1 Bagian 6.8.1) ----
+// Diperluas dengan jenis granular hasil riset laporan media (jembatan
+// ambruk, sekolah rusak, jaringan listrik/air putus, tanggul, dll).
 export const INFRA_TYPES = [
   { value: 'jembatan', label: 'Jembatan' },
   { value: 'jalan', label: 'Jalan' },
   { value: 'sekolah', label: 'Sekolah' },
+  { value: 'gedung', label: 'Gedung' },
+  { value: 'rumah_sakit', label: 'Rumah Sakit' },
+  { value: 'kantor_pemerintah', label: 'Kantor Pemerintah' },
+  { value: 'jaringan_listrik', label: 'Jaringan Listrik' },
+  { value: 'jaringan_air', label: 'Jaringan Air' },
+  { value: 'tanggul', label: 'Tanggul' },
+  { value: 'irigasi', label: 'Irigasi' },
   { value: 'prasarana_publik', label: 'Prasarana Publik' },
   { value: 'utilitas', label: 'Utilitas' },
   { value: 'lainnya', label: 'Lainnya' },

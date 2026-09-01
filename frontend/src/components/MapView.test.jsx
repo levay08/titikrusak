@@ -202,3 +202,54 @@ describe('MapView: navigasi bertahap (poin Alur Inti 17)', () => {
     expect(map.closePopup).toHaveBeenCalled();
   });
 });
+
+describe('MapView: tombol "Lihat Detail" di popup marker (modal pada titik)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  const REPORT = {
+    id: 7,
+    lat: -7.2075,
+    lng: 107.8881,
+    severity: 'ambruk',
+    status: 'dilaporkan',
+    location_name: 'Jembatan Cibeureum, Garut',
+    description: 'Jembatan putus total.',
+    infra_type: 'jembatan',
+  };
+
+  it('popup marker memuat tombol "Lihat Detail" yang menunjuk id laporan', () => {
+    render(<MapView reports={[REPORT]} />);
+
+    const marker = L.circleMarker.mock.results[0].value;
+    const popupHtml = marker.bindPopup.mock.calls[0][0];
+    expect(popupHtml).toContain('Lihat Detail');
+    expect(popupHtml).toContain(`data-id="${REPORT.id}"`);
+  });
+
+  it('klik "Lihat Detail" di popup memanggil onOpenDetail dengan laporan lengkap', () => {
+    const onOpenDetail = vi.fn();
+    render(<MapView reports={[REPORT]} onOpenDetail={onOpenDetail} />);
+
+    // Stub document.querySelector: tombol popup "nyata" di DOM.
+    const fakeBtn = { dataset: {}, addEventListener: vi.fn((evt, fn) => (fakeBtn._click = fn)) };
+    const qs = vi.spyOn(document, 'querySelector').mockReturnValue(fakeBtn);
+
+    // Picu popupopen -> MapView memasang listener klik pada tombol.
+    const marker = L.circleMarker.mock.results[0].value;
+    const popupOpenHandler = marker.on.mock.calls.find(([evt]) => evt === 'popupopen')[1];
+    act(() => popupOpenHandler());
+
+    expect(fakeBtn.dataset.bound).toBe('1');
+    expect(fakeBtn.addEventListener).toHaveBeenCalledWith('click', expect.any(Function));
+
+    // Simulasikan klik tombol.
+    act(() => fakeBtn._click());
+
+    expect(qs).toHaveBeenCalledWith(`.tk-popup-detail-btn[data-id="${REPORT.id}"]`);
+    expect(L.map.mock.results[0].value.closePopup).toHaveBeenCalled();
+    expect(onOpenDetail).toHaveBeenCalledTimes(1);
+    expect(onOpenDetail).toHaveBeenCalledWith(expect.objectContaining({ id: 7 }));
+  });
+});

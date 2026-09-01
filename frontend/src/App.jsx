@@ -26,23 +26,35 @@ import {
   NotifikasiModal,
 } from './components/HeaderModals.jsx';
 import useIsMobile from './lib/useIsMobile.js';
+import SearchModal from './components/SearchModal.jsx';
+import AdminView from './components/AdminView.jsx';
+import DetailModal from './components/DetailModal.jsx';
 
 // Logo sponsor di footer (poin Alur Inti: "supported by"):
-// PANDI, e.id, dan IDCloudHost. Bila gambar gagal dimuat (mis. CDN
-// tidak terjangkau), fallback ke teks nama sponsor.
+// PANDI, e.id, dan IDCloudHost. Setiap logo punya URL: hover menampilkan
+// bubble berisi URL, klik membuka situs sponsor di tab baru. Bila gambar
+// gagal dimuat (mis. CDN tidak terjangkau), fallback ke teks nama sponsor.
 const SPONSORS = [
-  { name: 'PANDI', src: 'https://pandi.id/public/images/2022/9/ppnd-new-1663309705.png' },
-  { name: 'e.id', src: 'https://e.id/eid-logo.png' },
-  { name: 'IDCloudHost', src: 'https://cdn.theorg.com/00338df6-fc27-4b80-8835-e54ad48378ad_medium.jpg' },
+  { name: 'PANDI', src: 'https://pandi.id/public/images/2022/9/ppnd-new-1663309705.png', url: 'https://pandi.id' },
+  { name: 'e.id', src: 'https://e.id/eid-logo.png', url: 'https://e.id' },
+  { name: 'IDCloudHost', src: 'https://cdn.theorg.com/00338df6-fc27-4b80-8835-e54ad48378ad_medium.jpg', url: 'https://idcloudhost.com' },
 ];
 
-// Satu chip logo sponsor: tinggi seragam agar sejajar & rapi.
-function SponsorLogo({ name, src }) {
+// Satu chip logo sponsor: tinggi seragam agar sejajar & rapi. Seluruh chip
+// adalah link ke situs sponsor; hover memunculkan bubble berisi URL.
+function SponsorLogo({ name, src, url }) {
   const [failed, setFailed] = useState(false);
+  const [hover, setHover] = useState(false);
   return (
-    <span
-      title={name}
+    <a
+      href={url}
+      target="_blank"
+      rel="noreferrer"
+      aria-label={`Kunjungi ${name} (${url})`}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
       style={{
+        position: 'relative',
         display: 'inline-flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -51,8 +63,40 @@ function SponsorLogo({ name, src }) {
         height: 36,
         padding: '0 12px',
         minWidth: 64,
+        textDecoration: 'none',
       }}
     >
+      {hover && (
+        <div
+          style={{
+            position: 'absolute',
+            bottom: 'calc(100% + 8px)',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            background: '#1c1917',
+            color: '#fff',
+            fontSize: 11.5,
+            padding: '6px 10px',
+            borderRadius: 6,
+            whiteSpace: 'nowrap',
+            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.35)',
+            zIndex: 30,
+            pointerEvents: 'none',
+          }}
+        >
+          {name} — {url}
+          <span
+            style={{
+              position: 'absolute',
+              top: '100%',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              border: '5px solid transparent',
+              borderTopColor: '#1c1917',
+            }}
+          />
+        </div>
+      )}
       {failed ? (
         <span style={{ fontWeight: 700, fontSize: 12.5, color: '#1c1917' }}>{name}</span>
       ) : (
@@ -63,7 +107,7 @@ function SponsorLogo({ name, src }) {
           style={{ height: 24, maxWidth: 130, objectFit: 'contain' }}
         />
       )}
-    </span>
+    </a>
   );
 }
 
@@ -257,7 +301,7 @@ export default function App() {
   const [formOpen, setFormOpen] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
   const [filters, setFilters] = useState(EMPTY_FILTERS);
-  const [view, setView] = useState('map'); // 'map' | 'list'
+  const [activeView, setActiveView] = useState('map'); // 'map' | 'list' | 'admin'
   const [reports, setReports] = useState([]);
   const [dataError, setDataError] = useState(null);
   // Total laporan di database (fetch tanpa filter) untuk membedakan
@@ -284,6 +328,13 @@ export default function App() {
   const [menuOpen, setMenuOpen] = useState(false);
   // Sidebar filter desktop bisa disembunyikan (poin: sidebar bisa di-hide).
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  // Pencarian header (poin: tagline -> search bar): modal hasil pencarian
+  // + kata kunci awal dari input header.
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  // Detail laporan dibuka dari tingkat App: hasil pencarian atau tombol
+  // "Lihat Detail" di popup peta — satu modal detail di level App.
+  const [detailReport, setDetailReport] = useState(null);
 
   // Satu-satunya fetch data hasil-filter: ulang saat filter berubah
   // (real-time) atau setelah laporan baru dikirim (refreshKey).
@@ -363,6 +414,29 @@ export default function App() {
     setPantauOpen(false);
     setNotifOpen(false);
     setEidFlowOpen(false);
+    setSearchOpen(false);
+    setDetailReport(null);
+  };
+
+  // Buka modal pencarian header (dari search bar desktop atau tombol 🔍
+  // mobile). Kata kunci dari input header dibawa sebagai query awal.
+  const openSearch = (initialQuery = '') => {
+    closeAllModals();
+    setSearchQuery(initialQuery);
+    setSearchOpen(true);
+  };
+
+  // Buka halaman Administrator (menu tampil sebelum login; isi digate).
+  const openAdmin = () => {
+    closeAllModals();
+    setActiveView('admin');
+  };
+
+  // Buka detail laporan dari popup peta — lewat App agar hanya satu modal
+  // aktif (MapView menyerahkan ke sini via prop onOpenDetail).
+  const openReportDetail = (report) => {
+    closeAllModals();
+    setDetailReport(report);
   };
 
   const openEidFlow = () => {
@@ -416,10 +490,52 @@ export default function App() {
             titikrusak.id
           </h1>
         </div>
+        {/* Search bar header (poin: tagline dihapus -> search bar): cari
+            kata kunci apa pun; Enter membuka modal hasil pencarian. */}
         {!isMobile && (
-          <span style={{ fontSize: 13, opacity: 0.8, flex: 1 }}>
-            Laporkan dan pantau infrastruktur publik yang rusak
-          </span>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              const input = e.currentTarget.elements.searchq;
+              openSearch(input.value);
+              input.value = '';
+            }}
+            style={{ flex: 1, display: 'flex', maxWidth: 340, minWidth: 170, marginLeft: 4 }}
+          >
+            <input
+              name="searchq"
+              type="search"
+              placeholder="Cari titik rusak… (mis. Depok)"
+              aria-label="Cari titik rusak"
+              style={{
+                flex: 1,
+                minWidth: 0,
+                padding: '8px 12px',
+                borderRadius: '8px 0 0 8px',
+                border: 'none',
+                fontSize: 13,
+                outline: 'none',
+                color: '#1c1917',
+                background: '#fff',
+              }}
+            />
+            <button
+              type="submit"
+              aria-label="Cari"
+              title="Cari titik rusak"
+              style={{
+                background: '#facc15',
+                color: '#1c1917',
+                border: 'none',
+                borderRadius: '0 8px 8px 0',
+                padding: '0 12px',
+                fontSize: 14,
+                cursor: 'pointer',
+              }}
+            >
+              🔍
+            </button>
+          </form>
         )}
 
         {/* Menu header (poin Alur Inti 9) — desktop: langsung di header;
@@ -447,11 +563,33 @@ export default function App() {
             >
               🔔
             </button>
+            {/* Halaman Admin: menu tampil SEBELUM login (isi digate otoritas) */}
+            <HeaderNavItem label="Admin" onClick={openAdmin} />
           </nav>
         )}
 
         <div style={{ marginLeft: isMobile ? 'auto' : 0, display: 'flex', gap: 8, alignItems: 'center' }}>
-          {/* Mobile: tombol Filter + Menu (login ada di dalam drawer Menu) */}
+          {/* Mobile: tombol Cari + Filter + Menu (login ada di dalam drawer Menu) */}
+          {isMobile && (
+            <button
+              type="button"
+              aria-label="Cari titik rusak"
+              title="Cari titik rusak"
+              onClick={() => openSearch('')}
+              style={{
+                background: 'rgba(255, 255, 255, 0.12)',
+                border: '1px solid rgba(255, 255, 255, 0.3)',
+                color: '#fff',
+                borderRadius: 8,
+                padding: '9px 12px',
+                fontSize: 14,
+                lineHeight: 1,
+                cursor: 'pointer',
+              }}
+            >
+              🔍
+            </button>
+          )}
           {isMobile && (
             <button
               type="button"
@@ -644,16 +782,31 @@ export default function App() {
         )}
 
         <div style={{ position: 'relative', flex: 1, minWidth: 0 }}>
-          {/* Toggle mode tampilan (File 1 Bagian 9.2) */}
-          <ViewToggle view={view} onChange={setView} />
+          {/* Toggle mode tampilan (File 1 Bagian 9.2) — disembunyikan di
+              halaman Admin (tampilan khusus otoritas) */}
+          {activeView !== 'admin' && <ViewToggle view={activeView} onChange={setActiveView} />}
 
-          {view === 'map' ? (
+          {activeView === 'admin' ? (
+            <AdminView
+              reports={allReports}
+              otoritas={otoritas}
+              onRequestLogin={() => {
+                closeAllModals();
+                setOtoritasOpen(true);
+              }}
+              onReportUpdated={handleSubmitted}
+              onBack={() => setActiveView('map')}
+            />
+          ) : activeView === 'map' ? (
             <MapView
               reports={reports}
               error={dataError}
               onResetFilters={handleResetFilters}
               hasAnyData={totalCount === null ? null : totalCount > 0}
               onOpenReportForm={openReportForm}
+              onOpenDetail={openReportDetail}
+              otoritas={otoritas}
+              onReportUpdated={handleSubmitted}
             />
           ) : (
             <ListView
@@ -808,6 +961,7 @@ export default function App() {
                   { icon: '📊', label: 'Statistik', open: openHeaderModal(setStatsOpen) },
                   { icon: '🚧', label: 'Pantau', open: openHeaderModal(setPantauOpen) },
                   { icon: '🔔', label: 'Notifikasi', open: openHeaderModal(setNotifOpen) },
+                  { icon: '🛠️', label: 'Admin', open: openAdmin },
                 ].map((item) => (
                   <button
                     key={item.label}
@@ -1057,6 +1211,30 @@ export default function App() {
             </div>
           )}
 
+          {/* Modal pencarian header (poin: tagline -> search bar) */}
+          {searchOpen && (
+            <SearchModal
+              reports={allReports}
+              initialQuery={searchQuery}
+              onClose={() => setSearchOpen(false)}
+              onOpenReport={(r) => {
+                setSearchOpen(false);
+                setDetailReport(r);
+              }}
+            />
+          )}
+
+          {/* Detail laporan level App: hasil pencarian atau tombol
+              "Lihat Detail" di popup peta (satu modal detail, poin 18) */}
+          {detailReport && (
+            <DetailModal
+              report={detailReport}
+              onClose={() => setDetailReport(null)}
+              otoritas={otoritas}
+              onReportUpdated={handleSubmitted}
+            />
+          )}
+
           {/* Modal menu header (poin Alur Inti 9) — semuanya modal, bukan
               halaman baru. Data statistik/pantau/notif dari allReports
               (seluruh laporan TANPA filter). */}
@@ -1117,7 +1295,7 @@ export default function App() {
           >
             <span style={{ fontSize: 11.5, opacity: 0.75 }}>Didukung oleh:</span>
             {SPONSORS.map((s) => (
-              <SponsorLogo key={s.name} name={s.name} src={s.src} />
+              <SponsorLogo key={s.name} name={s.name} src={s.src} url={s.url} />
             ))}
           </div>
         </div>

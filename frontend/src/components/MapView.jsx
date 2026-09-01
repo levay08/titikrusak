@@ -26,6 +26,7 @@ import {
 } from '../lib/labels.js';
 import useIsMobile from '../lib/useIsMobile.js';
 import EmptyResults from './EmptyResults.jsx';
+import DetailModal from './DetailModal.jsx';
 
 // Batas pandang peta (File 1 Bagian 9.1): seluruh Indonesia plus sedikit
 // toleransi di tepi agar peta tidak bisa digeser jauh keluar wilayah.
@@ -215,11 +216,20 @@ export default function MapView({
   onResetFilters,
   hasAnyData = null, // null = total belum diketahui (jangan render empty state)
   onOpenReportForm,
+  // Detail laporan (poin: "modal pada titik bisa dilihat detail"): saat
+  // prop onOpenDetail diberikan (dari App), MapView menyerahkan pembukaan
+  // modal ke App agar hanya SATU modal terbuka; tanpa prop, MapView
+  // membuka DetailModal internal (fallback mandiri).
+  onOpenDetail = null,
+  otoritas = null, // sesi otoritas aktif (untuk tindakan status di detail)
+  onReportUpdated = () => {},
 }) {
   const containerRef = useRef(null);
   const mapRef = useRef(null);
   const clusterGroupRef = useRef(null);
   const isMobile = useIsMobile();
+  // Laporan yang sedang dibuka detailnya (fallback internal MapView).
+  const [selected, setSelected] = useState(null);
   // Riwayat navigasi zoom (File 1 Bagian 9.1): array {center, zoom} yang
   // didorong setiap kali pengguna zoom in ke cluster/marker; tombol
   // "Kembali" mem-pop satu langkah.
@@ -395,8 +405,32 @@ export default function MapView({
         Kerusakan: ${escapeHtml(SEVERITY_LABELS[report.severity] || report.severity)}<br/>
         Status: ${escapeHtml(STATUS_LABELS[report.status] || report.status)}
         ${report.description ? `<br/>${escapeHtml(report.description)}` : ''}
+        <br/>
+        <button type="button" class="tk-popup-detail-btn" data-id="${report.id}"
+          style="margin-top:8px;padding:7px 14px;border-radius:8px;border:none;
+                 background:#facc15;color:#1c1917;font-size:13px;font-weight:700;
+                 cursor:pointer;width:100%">Lihat Detail</button>
       `;
-      marker.bindPopup(popupHtml);
+      marker.bindPopup(popupHtml, { maxWidth: 260 });
+
+      // Tombol "Lihat Detail" di popup -> DetailModal penuh (semua info +
+      // foto + tindakan otoritas). Listener dipasang tiap popup terbuka
+      // (popup dirender ulang setiap kali dibuka).
+      marker.on('popupopen', () => {
+        const btn = document.querySelector(`.tk-popup-detail-btn[data-id="${report.id}"]`);
+        if (btn && !btn.dataset.bound) {
+          btn.dataset.bound = '1';
+          btn.addEventListener('click', () => {
+            const map = mapRef.current;
+            if (map) map.closePopup();
+            if (onOpenDetail) {
+              onOpenDetail(report);
+            } else {
+              setSelected(report);
+            }
+          });
+        }
+      });
 
       // Semua marker masuk ke markerClusterGroup (File 1 Bagian 9.4):
       // saat zoom-out, marker berdekatan menyatu jadi cluster dengan
@@ -441,6 +475,17 @@ export default function MapView({
         >
           Gagal memuat laporan: {error}
         </div>
+      )}
+
+      {/* Detail laporan penuh (fallback internal MapView; saat App memberi
+          onOpenDetail, modal dibuka dari App agar hanya satu modal aktif) */}
+      {selected && (
+        <DetailModal
+          report={selected}
+          onClose={() => setSelected(null)}
+          otoritas={otoritas}
+          onReportUpdated={onReportUpdated}
+        />
       )}
     </div>
   );
