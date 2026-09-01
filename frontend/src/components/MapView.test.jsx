@@ -253,3 +253,55 @@ describe('MapView: tombol "Lihat Detail" di popup marker (modal pada titik)', ()
     expect(onOpenDetail).toHaveBeenCalledWith(expect.objectContaining({ id: 7 }));
   });
 });
+
+describe('MapView: hover tooltip jumlah titik + provinsi', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  const REPORT = {
+    id: 9,
+    lat: -7.2075,
+    lng: 107.8881, // Jawa Barat
+    severity: 'berat',
+    status: 'dilaporkan',
+    location_name: 'Jembatan Cibeureum',
+    infra_type: 'jembatan',
+  };
+
+  it('marker diberi tooltip "1 titik rusak — {provinsi}"', () => {
+    render(<MapView reports={[REPORT]} />);
+
+    const marker = L.circleMarker.mock.results[0].value;
+    expect(marker.bindTooltip).toHaveBeenCalledWith(
+      expect.stringContaining('1 titik rusak'),
+      expect.objectContaining({ direction: 'top' })
+    );
+    expect(marker.bindTooltip.mock.calls[0][0]).toContain('Jawa Barat');
+  });
+
+  it('hover cluster membuka tooltip jumlah titik + provinsi dan menutup saat keluar', () => {
+    render(<MapView reports={[REPORT]} />);
+
+    const clusterGroup = L.markerClusterGroup.mock.results[0].value;
+    const over = clusterGroup.on.mock.calls.find(([evt]) => evt === 'clustermouseover')[1];
+    const out = clusterGroup.on.mock.calls.find(([evt]) => evt === 'clustermouseout')[1];
+    expect(over).toBeTypeOf('function');
+    expect(out).toBeTypeOf('function');
+
+    act(() =>
+      over({ layer: { getChildCount: () => 5, getLatLng: () => ({ lat: -7.2, lng: 107.8 }) } })
+    );
+
+    const map = L.map.mock.results[0].value;
+    expect(map.openTooltip).toHaveBeenCalledWith(
+      expect.stringContaining('5 titik rusak'),
+      { lat: -7.2, lng: 107.8 },
+      expect.objectContaining({ direction: 'top' })
+    );
+    expect(map.openTooltip.mock.calls[0][0]).toContain('Jawa Barat');
+
+    act(() => out());
+    expect(map.closeTooltip).toHaveBeenCalled();
+  });
+});

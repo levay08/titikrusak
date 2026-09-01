@@ -25,6 +25,7 @@ import {
   STATUS_LABELS,
 } from '../lib/labels.js';
 import useIsMobile from '../lib/useIsMobile.js';
+import { detectProvince } from '../lib/regions.js';
 import EmptyResults from './EmptyResults.jsx';
 import DetailModal from './DetailModal.jsx';
 
@@ -339,6 +340,23 @@ export default function MapView({
       if (map) pushNav(map.getCenter(), map.getZoom());
     });
 
+    // Hover cluster -> tooltip: jumlah titik rusak + provinsi di area itu.
+    clusterGroup.on('clustermouseover', (e) => {
+      const map = mapRef.current;
+      if (!map || !e.layer || typeof e.layer.getChildCount !== 'function') return;
+      const count = e.layer.getChildCount();
+      const ll = e.layer.getLatLng();
+      const prov = detectProvince(ll.lat, ll.lng);
+      map.openTooltip(
+        `<b>${count} titik rusak</b>${prov ? ` — ${prov}` : ''}`,
+        ll,
+        { direction: 'top', offset: [0, -10], opacity: 0.95 }
+      );
+    });
+    clusterGroup.on('clustermouseout', () => {
+      mapRef.current?.closeTooltip();
+    });
+
     // Status yang berarti laporan sudah di-approve/verified oleh otoritas
     // (File 1 Bagian 6.2): marker menampilkan centang DI DALAM lingkaran,
     // sementara warna titik TETAP mengikuti tingkat kerusakan (6.8.2).
@@ -412,6 +430,14 @@ export default function MapView({
                  cursor:pointer;width:100%">Lihat Detail</button>
       `;
       marker.bindPopup(popupHtml, { maxWidth: 260 });
+
+      // Hover marker -> tooltip: jumlah titik + provinsi (poin: tiap titik
+      // punya hover bubble berisi berapa titik rusak di provinsi mana).
+      const prov = detectProvince(report.lat, report.lng);
+      marker.bindTooltip(
+        `<b>1 titik rusak</b>${prov ? ` — ${prov}` : ''}`,
+        { direction: 'top', offset: [0, -8], opacity: 0.95 }
+      );
 
       // Tombol "Lihat Detail" di popup -> DetailModal penuh (semua info +
       // foto + tindakan otoritas). Listener dipasang tiap popup terbuka

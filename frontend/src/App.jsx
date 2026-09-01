@@ -29,6 +29,7 @@ import useIsMobile from './lib/useIsMobile.js';
 import SearchModal from './components/SearchModal.jsx';
 import AdminView from './components/AdminView.jsx';
 import DetailModal from './components/DetailModal.jsx';
+import { DocModal, TermsModal } from './components/FooterModals.jsx';
 
 // Logo sponsor di footer (poin Alur Inti: "supported by"):
 // PANDI, e.id, dan IDCloudHost. Setiap logo punya URL: hover menampilkan
@@ -80,7 +81,9 @@ function SponsorLogo({ name, src, url }) {
             borderRadius: 6,
             whiteSpace: 'nowrap',
             boxShadow: '0 2px 8px rgba(0, 0, 0, 0.35)',
-            zIndex: 30,
+            // zIndex tinggi: bubble memanjang ke area peta yang pane-nya
+            // ber-z-index hingga 700+ — tanpa ini bubble "terhalang line".
+            zIndex: 2000,
             pointerEvents: 'none',
           }}
         >
@@ -222,7 +225,10 @@ function LoginButton({ onLogin, isMobile }) {
         <div
           style={{
             position: 'absolute',
-            bottom: 'calc(100% + 7px)',
+            // Bubble tampil DI BAWAH tombol: di atas tombol (posisi lama)
+            // terpotong pita bendera & tepi atas viewport sehingga tidak
+            // terlihat. zIndex tinggi agar menang atas pane Leaflet (700+).
+            top: 'calc(100% + 7px)',
             left: '50%',
             transform: 'translateX(-50%)',
             background: '#1c1917',
@@ -232,23 +238,69 @@ function LoginButton({ onLogin, isMobile }) {
             borderRadius: 6,
             whiteSpace: 'nowrap',
             boxShadow: '0 2px 8px rgba(0, 0, 0, 0.35)',
-            zIndex: 20,
+            zIndex: 2000,
           }}
         >
           Login sebagai Otoritas
           <span
             style={{
               position: 'absolute',
-              top: '100%',
+              bottom: '100%',
               left: '50%',
               transform: 'translateX(-50%)',
               border: '5px solid transparent',
-              borderTopColor: '#1c1917',
+              borderBottomColor: '#1c1917',
             }}
           />
         </div>
       )}
     </span>
+  );
+}
+
+// Item menu footer (Dokumentasi / Status / Syarat & Ketentuan / Kontak):
+// link teks dengan hover halus; variant `disabled` untuk menu yang belum
+// aktif (Status & Kontak — "Segera hadir", tidak bisa diklik).
+function FooterLink({ label, onClick, disabled = false }) {
+  const [hover, setHover] = useState(false);
+  if (disabled) {
+    return (
+      <span
+        aria-disabled="true"
+        title="Segera hadir"
+        style={{
+          color: '#64748b',
+          fontSize: 12,
+          fontWeight: 600,
+          padding: '4px 8px',
+          cursor: 'not-allowed',
+          opacity: 0.55,
+        }}
+      >
+        {label}
+      </span>
+    );
+  }
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+      style={{
+        background: 'none',
+        border: 'none',
+        color: hover ? '#fff' : '#cbd5e1',
+        fontSize: 12,
+        fontWeight: 600,
+        cursor: 'pointer',
+        padding: '4px 8px',
+        borderRadius: 6,
+        textDecoration: hover ? 'underline' : 'none',
+      }}
+    >
+      {label}
+    </button>
   );
 }
 
@@ -335,6 +387,10 @@ export default function App() {
   // Detail laporan dibuka dari tingkat App: hasil pencarian atau tombol
   // "Lihat Detail" di popup peta — satu modal detail di level App.
   const [detailReport, setDetailReport] = useState(null);
+  // Modal menu footer (Dokumentasi + Syarat & Ketentuan; Status & Kontak
+  // masih disable).
+  const [docOpen, setDocOpen] = useState(false);
+  const [termsOpen, setTermsOpen] = useState(false);
 
   // Satu-satunya fetch data hasil-filter: ulang saat filter berubah
   // (real-time) atau setelah laporan baru dikirim (refreshKey).
@@ -416,6 +472,8 @@ export default function App() {
     setEidFlowOpen(false);
     setSearchOpen(false);
     setDetailReport(null);
+    setDocOpen(false);
+    setTermsOpen(false);
   };
 
   // Buka modal pencarian header (dari search bar desktop atau tombol 🔍
@@ -505,7 +563,7 @@ export default function App() {
             <input
               name="searchq"
               type="search"
-              placeholder="Cari titik rusak… (mis. Depok)"
+              placeholder="Cari dengan kata kunci"
               aria-label="Cari titik rusak"
               style={{
                 flex: 1,
@@ -1238,6 +1296,8 @@ export default function App() {
           {/* Modal menu header (poin Alur Inti 9) — semuanya modal, bukan
               halaman baru. Data statistik/pantau/notif dari allReports
               (seluruh laporan TANPA filter). */}
+          {docOpen && <DocModal onClose={() => setDocOpen(false)} />}
+          {termsOpen && <TermsModal onClose={() => setTermsOpen(false)} />}
           {aboutOpen && <AboutModal onClose={() => setAboutOpen(false)} />}
           {statsOpen && (
             <StatistikModal reports={allReports} onClose={() => setStatsOpen(false)} />
@@ -1263,6 +1323,36 @@ export default function App() {
           flexShrink: 0,
         }}
       >
+        {/* Menu footer: Dokumentasi & Syarat & Ketentuan (modal); Status &
+            Kontak masih disable. */}
+        <div
+          style={{
+            width: '100%',
+            display: 'flex',
+            flexWrap: 'wrap',
+            alignItems: 'center',
+            gap: 2,
+            marginBottom: 12,
+          }}
+        >
+          <FooterLink
+            label="Dokumentasi"
+            onClick={() => {
+              closeAllModals();
+              setDocOpen(true);
+            }}
+          />
+          <FooterLink label="Status" disabled />
+          <FooterLink
+            label="Syarat & Ketentuan"
+            onClick={() => {
+              closeAllModals();
+              setTermsOpen(true);
+            }}
+          />
+          <FooterLink label="Kontak" disabled />
+        </div>
+
         <div
           style={{
             width: '100%',

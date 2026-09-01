@@ -43,6 +43,8 @@ vi.mock('leaflet', () => {
         getZoom: vi.fn(() => 5),
         getCenter: vi.fn(() => ({ lat: -2.5, lng: 118 })),
         closePopup: vi.fn(),
+        openTooltip: vi.fn(),
+        closeTooltip: vi.fn(),
       })),
       tileLayer: vi.fn(() => ({ addTo: vi.fn() })),
       // Kontrol zoom dipasang ulang di pojok kanan-atas (MapView);
@@ -62,11 +64,17 @@ vi.mock('leaflet', () => {
           getLatLng: vi.fn(() => ({ lat: -2.5, lng: 118 })),
           setLatLng: vi.fn(),
           bindPopup: vi.fn(),
+          bindTooltip: vi.fn(),
           openPopup: vi.fn(),
         };
       }),
       divIcon: vi.fn(() => ({})),
-      circleMarker: vi.fn(() => ({ bindPopup: vi.fn(), on: vi.fn(), openPopup: vi.fn() })),
+      circleMarker: vi.fn(() => ({
+        bindPopup: vi.fn(),
+        bindTooltip: vi.fn(),
+        on: vi.fn(),
+        openPopup: vi.fn(),
+      })),
       markerClusterGroup: vi.fn(() => ({
         addLayer: vi.fn(),
         addTo: vi.fn(),

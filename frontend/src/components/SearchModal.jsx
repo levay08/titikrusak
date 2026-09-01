@@ -107,7 +107,7 @@ export default function SearchModal({ reports = [], initialQuery = '', onClose, 
           type="search"
           value={q}
           onChange={(e) => setQ(e.target.value)}
-          placeholder="Cari lokasi, jenis kerusakan, media… (mis. Depok)"
+          placeholder="Cari dengan kata kunci…"
           style={{
             width: '100%',
             boxSizing: 'border-box',
@@ -123,7 +123,7 @@ export default function SearchModal({ reports = [], initialQuery = '', onClose, 
         <div style={{ marginTop: 14 }}>
           {!keyword && (
             <div style={{ fontSize: 13, color: '#64748b', padding: '10px 2px' }}>
-              Ketik kata kunci — misalnya nama kota (Depok), jenis kerusakan (jembatan),
+              Ketik kata kunci — misalnya nama kota, jenis kerusakan (jembatan),
               atau nama media — lalu pilih titik dari daftar hasil.
             </div>
           )}

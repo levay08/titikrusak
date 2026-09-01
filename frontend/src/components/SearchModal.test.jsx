@@ -38,7 +38,7 @@ describe('SearchModal: hasil pencarian kata kunci', () => {
     const user = userEvent.setup();
     render(<SearchModal reports={REPORTS} onClose={vi.fn()} onOpenReport={vi.fn()} />);
 
-    await user.type(screen.getByPlaceholderText(/Cari lokasi/i), 'Depok');
+    await user.type(screen.getByPlaceholderText(/kata kunci/i), 'Depok');
 
     expect(screen.getByText(/Jembatan Penghubung Depok–Bogor/)).toBeInTheDocument();
     expect(screen.queryByText(/Jalan Raya Cianjur/)).not.toBeInTheDocument();
@@ -49,7 +49,7 @@ describe('SearchModal: hasil pencarian kata kunci', () => {
     const user = userEvent.setup();
     render(<SearchModal reports={REPORTS} onClose={vi.fn()} onOpenReport={vi.fn()} />);
 
-    await user.type(screen.getByPlaceholderText(/Cari lokasi/i), 'zxyz-tidak-ada');
+    await user.type(screen.getByPlaceholderText(/kata kunci/i), 'zxyz-tidak-ada');
 
     expect(screen.getByText(/Tidak ada hasil untuk/)).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Jembatan Penghubung Depok/ })).not.toBeInTheDocument();
@@ -60,7 +60,7 @@ describe('SearchModal: hasil pencarian kata kunci', () => {
     const onOpenReport = vi.fn();
     render(<SearchModal reports={REPORTS} onClose={vi.fn()} onOpenReport={onOpenReport} />);
 
-    await user.type(screen.getByPlaceholderText(/Cari lokasi/i), 'Depok');
+    await user.type(screen.getByPlaceholderText(/kata kunci/i), 'Depok');
     await user.click(screen.getByText(/Jembatan Penghubung Depok–Bogor/));
 
     expect(onOpenReport).toHaveBeenCalledTimes(1);
@@ -72,7 +72,7 @@ describe('SearchModal: hasil pencarian kata kunci', () => {
       <SearchModal reports={REPORTS} initialQuery="Cianjur" onClose={vi.fn()} onOpenReport={vi.fn()} />
     );
 
-    expect(screen.getByPlaceholderText(/Cari lokasi/i)).toHaveValue('Cianjur');
+    expect(screen.getByPlaceholderText(/kata kunci/i)).toHaveValue('Cianjur');
     expect(screen.getByText(/Jalan Raya Cianjur/)).toBeInTheDocument();
   });
 });
