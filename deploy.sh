@@ -63,8 +63,14 @@ else
   sleep 2
 fi
 
-# ---- Verifikasi singkat ----
+# ---- Verifikasi singkat (tunggu backend boot sampai 10 detik) ----
 echo "==> selesai. Verifikasi:"
-curl -s -o /dev/null -w "    api :3000 -> %{http_code}\n" http://localhost:3000/api/reports || echo "    api :3000 -> gagal"
+CODE="000"
+for _ in $(seq 1 10); do
+  CODE="$(curl -s -o /dev/null -w '%{http_code}' http://localhost:3000/api/reports || echo 000)"
+  [ "$CODE" = "200" ] && break
+  sleep 1
+done
+echo "    api :3000 -> $CODE"
 curl -s -o /dev/null -w "    api via nginx -> %{http_code}\n" https://titikrusak.id/api/reports 2>/dev/null || true
 echo "    (cek https://titikrusak.id di browser)"
