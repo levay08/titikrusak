@@ -31,7 +31,7 @@ import {
 } from '../lib/labels.js';
 import VerificationFlow from './VerificationFlow.jsx';
 import EidDesktopInfo from './EidDesktopInfo.jsx';
-import Breadcrumb from './Breadcrumb.jsx';
+import Breadcrumb, { homeCrumb } from './Breadcrumb.jsx';
 import useIsMobile from '../lib/useIsMobile.js';
 
 // ---- Konfigurasi geocoding & peta lokasi (File 1 Bagian 5.2) ----
@@ -452,7 +452,7 @@ export default function ReportForm({ onSubmitted, onClose }) {
     if (initialVerified) {
       return (
         <div>
-          <Breadcrumb current="Lapor Kerusakan" />
+          <Breadcrumb items={[homeCrumb(), { label: 'Lapor Kerusakan' }]} />
           <h2 style={{ margin: '0 0 6px', fontSize: 18, color: '#1c1917' }}>Lapor Kerusakan</h2>
           <div
             style={{
@@ -712,7 +712,7 @@ export default function ReportForm({ onSubmitted, onClose }) {
 
   return (
     <form onSubmit={handleSubmit} noValidate>
-      <Breadcrumb current="Lapor Kerusakan" />
+      <Breadcrumb items={[homeCrumb(), { label: 'Lapor Kerusakan' }]} />
       <h2 style={{ margin: '0 0 4px', fontSize: 18, color: '#1c1917' }}>Lapor Kerusakan</h2>
       <p style={{ margin: '0 0 16px', fontSize: 12, color: '#64748b' }}>
         Semua field bertanda * wajib diisi.

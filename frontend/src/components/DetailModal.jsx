@@ -11,6 +11,7 @@
 // Admin — satu komponen detail untuk semua titik masuk.
 
 import { useState, useEffect } from 'react';
+import Breadcrumb, { homeCrumb } from './Breadcrumb.jsx';
 import {
   SEVERITY_LABELS,
   INFRA_LABELS,
@@ -216,8 +217,11 @@ function WeatherBadge({ value }) {
   );
 }
 
-export default function DetailModal({ report, onClose, otoritas = null, onReportUpdated }) {
+export default function DetailModal({ report, onClose, otoritas = null, onReportUpdated, origin = null, onOriginClick = null }) {
   const isMobile = useIsMobile();
+  // Label asal navigasi untuk breadcrumb detail (File 1 Bagian 4.2):
+  // 'list' -> Daftar Laporan, 'map' -> Peta, null -> tanpa breadcrumb.
+  const originLabel = origin === 'list' ? 'Daftar Laporan' : origin === 'map' ? 'Peta' : null;
   const [statusAction, setStatusAction] = useState('idle'); // idle | busy
   const [statusError, setStatusError] = useState('');
   const [voteState, setVoteState] = useState('idle'); // idle | prompt | verifying | busy | done
@@ -387,6 +391,18 @@ export default function DetailModal({ report, onClose, otoritas = null, onReport
         }}
         onClick={(e) => e.stopPropagation()}
       >
+        {originLabel && (
+          <Breadcrumb
+            items={[
+              homeCrumb(),
+              onOriginClick
+                ? { label: originLabel, onClick: onOriginClick }
+                : { label: originLabel },
+              { label: report.location_name },
+            ]}
+          />
+        )}
+
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: 12 }}>
           <div style={{ flex: 1 }}>
             <h2 style={{ margin: '0 0 4px', fontSize: 17, color: '#1c1917' }}>

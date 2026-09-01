@@ -768,6 +768,8 @@ export default function MapView({
           onClose={() => setSelected(null)}
           otoritas={otoritas}
           onReportUpdated={onReportUpdated}
+          origin="map"
+          onOriginClick={() => setSelected(null)}
         />
       )}
     </div>

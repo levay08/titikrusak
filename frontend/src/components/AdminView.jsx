@@ -21,6 +21,7 @@ import {
 import { PRIORITY_TIERS, priorityTier, priorityScore } from '../lib/priority.js';
 import { ReportRow } from './ListView.jsx';
 import DetailModal from './DetailModal.jsx';
+import Breadcrumb from './Breadcrumb.jsx';
 import useIsMobile from '../lib/useIsMobile.js';
 
 const STATUS_TABS = [
@@ -162,6 +163,7 @@ export default function AdminView({
       }}
     >
       <div style={{ maxWidth: 900, margin: '0 auto' }}>
+        <Breadcrumb items={[{ label: 'Admin' }, { label: 'Dashboard' }]} />
         <div
           style={{
             display: 'flex',

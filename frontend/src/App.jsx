@@ -11,7 +11,7 @@
 // Fetch kedua tanpa filter menghitung total laporan di database untuk
 // membedakan kondisi hasil kosong (DB kosong vs filter tak cocok).
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import MapView from './components/MapView.jsx';
 import ListView from './components/ListView.jsx';
 import ReportForm from './components/ReportForm.jsx';
@@ -534,6 +534,16 @@ export default function App() {
     // sudah berada di mode Peta (mis. sudah zoom ke titik tertentu).
     setHomeResetKey((k) => k + 1);
   };
+
+  // Dengarkan event 'tk:go-home' dari Breadcrumb (klik "Beranda") — kembali
+  // ke peta utama. Ref agar listener tidak menangkap goHomeView yang basi.
+  const goHomeViewRef = useRef(goHomeView);
+  goHomeViewRef.current = goHomeView;
+  useEffect(() => {
+    const handler = () => goHomeViewRef.current();
+    window.addEventListener('tk:go-home', handler);
+    return () => window.removeEventListener('tk:go-home', handler);
+  }, []);
 
   const openEidFlow = () => {
     closeAllModals();
@@ -1367,6 +1377,11 @@ export default function App() {
               onClose={() => setDetailReport(null)}
               otoritas={otoritas}
               onReportUpdated={handleSubmitted}
+              origin={activeView === 'list' ? 'list' : 'map'}
+              onOriginClick={() => {
+                setDetailReport(null);
+                setActiveView(activeView === 'list' ? 'list' : 'map');
+              }}
             />
           )}
 
