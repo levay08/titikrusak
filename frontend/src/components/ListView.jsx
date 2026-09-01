@@ -517,8 +517,8 @@ function DetailModal({ report, onClose, otoritas = null, onReportUpdated }) {
                 padding: '11px 14px',
                 borderRadius: 8,
                 border: 'none',
-                background: '#f97316',
-                color: '#fff',
+                background: '#facc15',
+                color: '#1c1917',
                 fontSize: 14,
                 fontWeight: 700,
                 cursor: statusAction === 'busy' ? 'wait' : 'pointer',
@@ -546,9 +546,9 @@ function DetailModal({ report, onClose, otoritas = null, onReportUpdated }) {
                 style={{
                   padding: '9px 14px',
                   borderRadius: 8,
-                  border: '1px solid #f97316',
+                  border: '1px solid #eab308',
                   background: '#fff',
-                  color: '#f97316',
+                  color: '#eab308',
                   fontSize: 13,
                   fontWeight: 700,
                   cursor: 'pointer',
@@ -562,13 +562,13 @@ function DetailModal({ report, onClose, otoritas = null, onReportUpdated }) {
           {voteState === 'prompt' && (
             <div
               style={{
-                background: '#fff7ed',
-                border: '1px solid #fed7aa',
+                background: '#fefce8',
+                border: '1px solid #fef08a',
                 borderRadius: 8,
                 padding: '12px',
               }}
             >
-              <p style={{ margin: '0 0 10px', fontSize: 13, lineHeight: 1.5, color: '#9a3412' }}>
+              <p style={{ margin: '0 0 10px', fontSize: 13, lineHeight: 1.5, color: '#854d0e' }}>
                 Fitur Dukungan tersedia untuk warga terverifikasi e.id. Dukungan warga
                 menjadi sinyal prioritas bagi otoritas.
               </p>
@@ -588,8 +588,8 @@ function DetailModal({ report, onClose, otoritas = null, onReportUpdated }) {
                       padding: '11px 14px',
                       borderRadius: 8,
                       border: 'none',
-                      background: '#f97316',
-                      color: '#fff',
+                      background: '#facc15',
+                      color: '#1c1917',
                       fontSize: 14,
                       fontWeight: 700,
                       cursor: 'pointer',

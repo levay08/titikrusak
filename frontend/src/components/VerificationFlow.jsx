@@ -212,7 +212,7 @@ export default function VerificationFlow({
           const active = i === currentStep && currentStep !== -1;
           return (
             <li key={label} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <span style={stepDot(done ? '#22c55e' : active ? '#f97316' : '#cbd5e1')}>
+              <span style={stepDot(done ? '#22c55e' : active ? '#eab308' : '#cbd5e1')}>
                 {done ? '✓' : i + 1}
               </span>
               <span
@@ -273,8 +273,8 @@ export default function VerificationFlow({
                   padding: '11px 14px',
                   borderRadius: 8,
                   border: 'none',
-                  background: '#f97316',
-                  color: '#fff',
+                  background: '#facc15',
+                  color: '#1c1917',
                   fontSize: 14,
                   fontWeight: 600,
                   cursor: 'pointer',
@@ -331,8 +331,8 @@ export default function VerificationFlow({
                   padding: '11px 14px',
                   borderRadius: 8,
                   border: 'none',
-                  background: '#f97316',
-                  color: '#fff',
+                  background: '#facc15',
+                  color: '#1c1917',
                   fontSize: 14,
                   fontWeight: 600,
                   cursor: 'pointer',
@@ -370,8 +370,8 @@ export default function VerificationFlow({
                 padding: '11px 14px',
                 borderRadius: 8,
                 border: 'none',
-                background: '#f97316',
-                color: '#fff',
+                background: '#facc15',
+                color: '#1c1917',
                 fontSize: 14,
                 fontWeight: 600,
                 cursor: 'pointer',

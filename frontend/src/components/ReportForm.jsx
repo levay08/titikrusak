@@ -50,7 +50,7 @@ const GEOCODE_URL = 'https://nominatim.openstreetmap.org/search';
 // persis lokasi. Warna oranye (tema maintenance/perbaikan).
 const PIN_ICON = L.divIcon({
   className: '',
-  html: `<svg width="34" height="44" viewBox="0 0 34 44" xmlns="http://www.w3.org/2000/svg" style="filter:drop-shadow(0 2px 4px rgba(0,0,0,.35))"><path d="M17 2 C 9.7 2 3.8 8 3.8 15.4 C 3.8 25.6 17 42 17 42 C 17 42 30.2 25.6 30.2 15.4 C 30.2 8 24.3 2 17 2 Z" fill="#f97316" stroke="#ffffff" stroke-width="2.5"/><circle cx="17" cy="16" r="6.2" fill="#ffffff"/><circle cx="17" cy="16" r="3.2" fill="#f97316"/></svg>`,
+  html: `<svg width="34" height="44" viewBox="0 0 34 44" xmlns="http://www.w3.org/2000/svg" style="filter:drop-shadow(0 2px 4px rgba(0,0,0,.35))"><path d="M17 2 C 9.7 2 3.8 8 3.8 15.4 C 3.8 25.6 17 42 17 42 C 17 42 30.2 25.6 30.2 15.4 C 30.2 8 24.3 2 17 2 Z" fill="#eab308" stroke="#ffffff" stroke-width="2.5"/><circle cx="17" cy="16" r="6.2" fill="#ffffff"/><circle cx="17" cy="16" r="3.2" fill="#eab308"/></svg>`,
   iconSize: [34, 44],
   iconAnchor: [17, 42], // ujung pin menunjuk koordinat
 });
@@ -419,8 +419,8 @@ export default function ReportForm({ onSubmitted, onClose }) {
                 padding: '12px 16px',
                 borderRadius: 8,
                 border: 'none',
-                background: '#f97316',
-                color: '#fff',
+                background: '#facc15',
+                color: '#1c1917',
                 fontSize: 14,
                 fontWeight: 700,
                 cursor: 'pointer',
@@ -499,8 +499,8 @@ export default function ReportForm({ onSubmitted, onClose }) {
               padding: '12px 16px',
               borderRadius: 8,
               border: 'none',
-              background: '#f97316',
-              color: '#fff',
+              background: '#facc15',
+              color: '#1c1917',
               fontSize: 14,
               fontWeight: 700,
               cursor: 'pointer',
@@ -512,13 +512,13 @@ export default function ReportForm({ onSubmitted, onClose }) {
               fitur dukungan interaktif warga yang menaikkan prioritas. */}
           <div
             style={{
-              background: '#fff7ed',
-              border: '1px solid #fed7aa',
+              background: '#fefce8',
+              border: '1px solid #fef08a',
               borderRadius: 8,
               padding: '10px 12px',
               fontSize: 12.5,
               lineHeight: 1.5,
-              color: '#9a3412',
+              color: '#854d0e',
             }}
           >
             <strong>Dengan e.id, laporan Anda:</strong>
@@ -629,8 +629,8 @@ export default function ReportForm({ onSubmitted, onClose }) {
               padding: '10px 16px',
               borderRadius: 8,
               border: 'none',
-              background: '#f97316',
-              color: '#fff',
+              background: '#facc15',
+              color: '#1c1917',
               fontSize: 14,
               cursor: 'pointer',
               fontWeight: 600,
@@ -687,8 +687,8 @@ export default function ReportForm({ onSubmitted, onClose }) {
             onClick={() => (isMobile ? setEidInfoOpen(true) : setVerificationOpen(true))}
             style={{
               border: 'none',
-              background: '#f97316',
-              color: '#fff',
+              background: '#facc15',
+              color: '#1c1917',
               borderRadius: 6,
               padding: '5px 10px',
               fontSize: 12,
@@ -939,8 +939,8 @@ export default function ReportForm({ onSubmitted, onClose }) {
             padding: '12px 16px',
             borderRadius: 8,
             border: 'none',
-            background: '#f97316',
-            color: '#fff',
+            background: '#facc15',
+            color: '#1c1917',
             fontSize: 15,
             fontWeight: 700,
             cursor: submitState === 'submitting' ? 'wait' : 'pointer',

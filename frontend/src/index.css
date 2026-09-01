@@ -32,12 +32,12 @@ body {
 }
 
 /* ============================================================
-   Tema maintenance (poin 6/8) — aksen kuning-oranye tipis (bukan merah),
+   Tema maintenance (poin 6/8) — aksen kuning-hitam tipis (bukan merah),
    seperti tanda "sedang ada pekerjaan", tidak berlebihan
    ============================================================ */
 .tk-flag-ribbon {
   height: 4px;
-  background: repeating-linear-gradient(90deg, #f97316 0 14px, #fde68a 14px 28px);
+  background: repeating-linear-gradient(90deg, #facc15 0 14px, #1c1917 14px 28px);
   flex-shrink: 0;
 }
 
@@ -113,11 +113,11 @@ body {
   transform: scale(1.06);
 }
 
-/* Fokus keyboard yang jelas & konsisten (aksen oranye) — modern & aksesibel */
+/* Fokus keyboard yang jelas & konsisten (aksen kuning) — modern & aksesibel */
 button:focus-visible,
 input:focus-visible,
 select:focus-visible,
 textarea:focus-visible {
-  outline: 2px solid #f97316;
+  outline: 2px solid #eab308;
   outline-offset: 1px;
 }

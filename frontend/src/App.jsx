@@ -157,9 +157,9 @@ function LoginButton({ onLogin, isMobile }) {
         aria-label="Login sebagai Otoritas"
         onClick={onLogin}
         style={{
-          background: hover ? '#f97316' : 'rgba(255, 255, 255, 0.12)',
-          border: hover ? '1px solid #f97316' : '1px solid rgba(255, 255, 255, 0.3)',
-          color: '#fff',
+          background: hover ? '#facc15' : 'rgba(255, 255, 255, 0.12)',
+          border: hover ? '1px solid #facc15' : '1px solid rgba(255, 255, 255, 0.3)',
+          color: hover ? '#1c1917' : '#fff',
           borderRadius: 8,
           padding: isMobile ? '9px 14px' : '7px 12px',
           fontSize: 13,
@@ -220,7 +220,7 @@ function ViewToggle({ view, onChange }) {
     background: '#fff',
     color: '#475569',
   };
-  const activeStyle = { background: '#f97316', color: '#fff', borderColor: '#f97316' };
+  const activeStyle = { background: '#facc15', color: '#1c1917', borderColor: '#facc15' };
   return (
     <div
       style={{
@@ -626,7 +626,7 @@ export default function App() {
               cursor: 'pointer',
             }}
           >
-            <span style={{ fontSize: 14, color: '#f97316', fontWeight: 800, lineHeight: 1 }}>
+            <span style={{ fontSize: 14, color: '#eab308', fontWeight: 800, lineHeight: 1 }}>
               ⏵
             </span>
             <span
@@ -681,8 +681,8 @@ export default function App() {
                 left: isMobile ? 16 : 20,
                 bottom: isMobile ? 16 : 20,
                 zIndex: 1100,
-                background: '#f97316',
-                color: '#fff',
+                background: '#facc15',
+                color: '#1c1917',
                 border: 'none',
                 borderRadius: 999,
                 padding: isMobile ? '13px 20px' : '12px 22px',
@@ -891,8 +891,8 @@ export default function App() {
                         padding: '11px 14px',
                         borderRadius: 8,
                         border: 'none',
-                        background: '#f97316',
-                        color: '#fff',
+                        background: '#facc15',
+                        color: '#1c1917',
                         fontSize: 14,
                         fontWeight: 700,
                         cursor: 'pointer',
@@ -1079,7 +1079,7 @@ export default function App() {
         style={{
           background: '#1c1917',
           color: '#cbd5e1',
-          borderTop: '4px solid #f97316', // aksen oranye tema maintenance
+          borderTop: '4px solid #facc15', // aksen kuning tema maintenance
           padding: '14px 20px',
           fontSize: 12.5,
           flexShrink: 0,

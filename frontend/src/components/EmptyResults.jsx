@@ -15,9 +15,9 @@
 // Animasi pulse lembut untuk tombol ajakan Kondisi A (File 1 9.1).
 const PULSE_KEYFRAMES = `
 @keyframes trk-pulse {
-  0%   { box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.45); }
-  70%  { box-shadow: 0 0 0 16px rgba(249, 115, 22, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(249, 115, 22, 0); }
+  0%   { box-shadow: 0 0 0 0 rgba(234, 179, 8, 0.45); }
+  70%  { box-shadow: 0 0 0 16px rgba(234, 179, 8, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(234, 179, 8, 0); }
 }`;
 
 export default function EmptyResults({ hasAnyData, onResetFilters, onLapor }) {
@@ -51,8 +51,8 @@ export default function EmptyResults({ hasAnyData, onResetFilters, onLapor }) {
                 padding: '8px 16px',
                 borderRadius: 8,
                 border: 'none',
-                background: '#f97316',
-                color: '#fff',
+                background: '#facc15',
+                color: '#1c1917',
                 fontSize: 13,
                 fontWeight: 600,
                 cursor: 'pointer',
@@ -79,8 +79,8 @@ export default function EmptyResults({ hasAnyData, onResetFilters, onLapor }) {
                 padding: '12px 24px',
                 borderRadius: 999,
                 border: 'none',
-                background: '#f97316',
-                color: '#fff',
+                background: '#facc15',
+                color: '#1c1917',
                 fontSize: 14,
                 fontWeight: 700,
                 cursor: 'pointer',

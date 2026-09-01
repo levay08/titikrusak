@@ -75,7 +75,7 @@ export function ModalShell({ title, onClose, children, maxWidth = 640 }) {
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
           {/* Aksen oranye khas modal (poin 9) */}
           <span
-            style={{ width: 4, height: 22, borderRadius: 2, background: '#f97316', flexShrink: 0 }}
+            style={{ width: 4, height: 22, borderRadius: 2, background: '#eab308', flexShrink: 0 }}
           />
           <h2 style={{ margin: 0, flex: 1, fontSize: 17, color: '#1c1917' }}>{title}</h2>
           <button
@@ -203,8 +203,8 @@ export function AboutModal({ onClose }) {
           gap: 14,
           alignItems: 'center',
           marginBottom: 14,
-          background: 'linear-gradient(135deg, #fff7ed, #ffedd5)',
-          border: '1px solid #fed7aa',
+          background: 'linear-gradient(135deg, #fefce8, #fef9c3)',
+          border: '1px solid #fef08a',
           borderRadius: 12,
           padding: '14px 16px',
         }}
@@ -212,7 +212,7 @@ export function AboutModal({ onClose }) {
         <Logo size={54} />
         <div>
           <div style={{ fontSize: 16, fontWeight: 800, color: '#1c1917' }}>titikrusak.id</div>
-          <div style={{ fontSize: 12.5, color: '#9a3412', marginTop: 2 }}>
+          <div style={{ fontSize: 12.5, color: '#854d0e', marginTop: 2 }}>
             Laporkan &amp; pantau infrastruktur publik yang rusak di Indonesia
           </div>
         </div>
@@ -275,7 +275,7 @@ export function AboutModal({ onClose }) {
           }}
         >
           <span
-            style={{ width: 14, height: 3, borderRadius: 2, background: '#f97316', display: 'inline-block' }}
+            style={{ width: 14, height: 3, borderRadius: 2, background: '#eab308', display: 'inline-block' }}
           />
           Cara pakai
         </div>
@@ -385,7 +385,7 @@ export function StatistikModal({ reports = [], onClose }) {
           }}
         >
           <span
-            style={{ width: 14, height: 3, borderRadius: 2, background: '#f97316', display: 'inline-block' }}
+            style={{ width: 14, height: 3, borderRadius: 2, background: '#eab308', display: 'inline-block' }}
           />
           Tingkat Kerusakan
         </div>
@@ -418,7 +418,7 @@ export function StatistikModal({ reports = [], onClose }) {
             key={region.key}
             label={region.label}
             count={count}
-            color="#f97316"
+            color="#eab308"
             max={maxIsland}
           />
         ))}
@@ -556,8 +556,8 @@ export function NotifikasiModal({ reports = [], onClose }) {
                   width: 34,
                   height: 34,
                   borderRadius: '50%',
-                  background: '#ffedd5',
-                  color: '#b45309',
+                  background: '#fef9c3',
+                  color: '#854d0e',
                   fontSize: 14,
                   fontWeight: 800,
                   display: 'flex',
