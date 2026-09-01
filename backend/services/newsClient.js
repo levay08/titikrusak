@@ -24,7 +24,23 @@ const NEWS_TTL_MS = 30 * 60 * 1000; // 30 menit
 const MAX_ITEMS = 30; // pool cukup untuk rotasi beberapa batch x5
 const FETCH_TIMEOUT_MS = 8000;
 
+// Kata kunci negara/region luar — judul yang memuat ini dibuang agar feed
+// tetap berita Indonesia saja (bukan internasional/Asia). Case-insensitive.
+const FOREIGN_KEYWORDS = [
+  'amerika', 'united states', 'iran', 'irak', 'israel', 'palestina', 'rusia',
+  'ukraina', 'tiongkok', 'china', 'jepang', 'korea', 'india', 'pakistan',
+  'thailand', 'malaysia', 'singapura', 'vietnam', 'filipina', 'myanmar',
+  'asean', 'eropa', 'afrika', 'australia', 'timor leste', 'bangladesh',
+  'sri lanka', 'turki', 'mesir', 'arab saudi',
+];
+
 let cache = { items: [], fetchedAt: 0 };
+
+// Judul memuat nama negara/region luar -> buang (bukan berita Indonesia).
+function isForeign(title) {
+  const t = String(title || '').toLowerCase();
+  return FOREIGN_KEYWORDS.some((k) => t.includes(k));
+}
 
 // Judul Google News berbentuk "Judul - Sumber"; ambil judulnya saja.
 function cleanTitle(raw) {
@@ -82,6 +98,7 @@ async function getNews({ force = false } = {}) {
   const seen = new Set();
   const deduped = [];
   for (const n of all) {
+    if (isForeign(n.title)) continue; // hanya berita Indonesia
     const key = n.title.toLowerCase();
     if (seen.has(key)) continue;
     seen.add(key);
