@@ -313,7 +313,7 @@ function ZoomSlider({ map }) {
         left: '50%',
         transform: 'translateX(-50%)',
         zIndex: 1100,
-        background: 'rgba(255, 255, 255, 0.95)',
+        background: 'rgba(255, 255, 255, 0.8)', // 80% opacity — transparan tapi tetap terbaca
         borderRadius: 12,
         boxShadow: '0 1px 6px rgba(0, 0, 0, 0.3)',
         padding: isMobile ? '6px 8px' : '8px 12px',
@@ -589,12 +589,12 @@ export default function MapView({
     // -> zoom in halus (animated) ke area cluster tersebut.
     const clusterGroup = L.markerClusterGroup({
       zoomToBoundsOnClick: true,
-      // Warna cluster dibuat NETRAL (gelap) — sengaja BUKAN warna severity di
-      // legend (hijau/kuning/oranye/merah) agar titik cluster tidak tertukar
-      // dengan marker tingkat kerusakan.
+      // Warna cluster BIRU TUA — sengaja BUKAN warna severity di legend
+      // (hijau/kuning/oranye/merah) agar titik cluster tidak tertukar dengan
+      // marker tingkat kerusakan.
       iconCreateFunction: (cluster) =>
         L.divIcon({
-          html: `<div style="box-sizing:border-box;width:40px;height:40px;border-radius:50%;background:#334155;color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;border:3px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.45);line-height:1">${cluster.getChildCount()}</div>`,
+          html: `<div style="box-sizing:border-box;width:40px;height:40px;border-radius:50%;background:#1e3a8a;color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;border:3px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.45);line-height:1">${cluster.getChildCount()}</div>`,
           className: '',
           iconSize: [40, 40],
           iconAnchor: [20, 20],

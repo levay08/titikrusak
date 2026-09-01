@@ -321,14 +321,14 @@ describe('MapView: hover tooltip jumlah titik + provinsi', () => {
     expect(map.closeTooltip).toHaveBeenCalled();
   });
 
-  it('cluster memakai warna netral, bukan warna severity di legend', () => {
+  it('cluster memakai warna biru tua, bukan warna severity di legend', () => {
     render(<MapView reports={[REPORT]} />);
 
     const opts = L.markerClusterGroup.mock.calls[0][0];
     expect(opts.iconCreateFunction).toBeTypeOf('function');
 
     const icon = opts.iconCreateFunction({ getChildCount: () => 12 });
-    expect(icon.html).toContain('#334155');
+    expect(icon.html).toContain('#1e3a8a');
     expect(icon.html).toContain('>12<');
     // Tidak memakai warna severity (legend Tingkat Kerusakan).
     expect(icon.html).not.toContain('#22c55e');
