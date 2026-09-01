@@ -587,7 +587,19 @@ export default function MapView({
     // Marker cluster group dari plugin resmi (File 1 Bagian 9.4).
     // zoomToBoundsOnClick (default true, dibuat eksplisit): klik cluster
     // -> zoom in halus (animated) ke area cluster tersebut.
-    const clusterGroup = L.markerClusterGroup({ zoomToBoundsOnClick: true });
+    const clusterGroup = L.markerClusterGroup({
+      zoomToBoundsOnClick: true,
+      // Warna cluster dibuat NETRAL (gelap) — sengaja BUKAN warna severity di
+      // legend (hijau/kuning/oranye/merah) agar titik cluster tidak tertukar
+      // dengan marker tingkat kerusakan.
+      iconCreateFunction: (cluster) =>
+        L.divIcon({
+          html: `<div style="box-sizing:border-box;width:40px;height:40px;border-radius:50%;background:#334155;color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;border:3px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.45);line-height:1">${cluster.getChildCount()}</div>`,
+          className: '',
+          iconSize: [40, 40],
+          iconAnchor: [20, 20],
+        }),
+    });
     clusterGroupRef.current = clusterGroup;
 
     // Klik cluster: catat posisi peta SEBELUM zoom ke riwayat navigasi,

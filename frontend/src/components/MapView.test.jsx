@@ -320,6 +320,22 @@ describe('MapView: hover tooltip jumlah titik + provinsi', () => {
     act(() => out());
     expect(map.closeTooltip).toHaveBeenCalled();
   });
+
+  it('cluster memakai warna netral, bukan warna severity di legend', () => {
+    render(<MapView reports={[REPORT]} />);
+
+    const opts = L.markerClusterGroup.mock.calls[0][0];
+    expect(opts.iconCreateFunction).toBeTypeOf('function');
+
+    const icon = opts.iconCreateFunction({ getChildCount: () => 12 });
+    expect(icon.html).toContain('#334155');
+    expect(icon.html).toContain('>12<');
+    // Tidak memakai warna severity (legend Tingkat Kerusakan).
+    expect(icon.html).not.toContain('#22c55e');
+    expect(icon.html).not.toContain('#eab308');
+    expect(icon.html).not.toContain('#f97316');
+    expect(icon.html).not.toContain('#ef4444');
+  });
 });
 
 describe('MapView: slider zoom (tengah-bawah, geser untuk zoom in/out)', () => {

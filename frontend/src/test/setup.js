@@ -81,7 +81,7 @@ vi.mock('leaflet', () => {
           openPopup: vi.fn(),
         };
       }),
-      divIcon: vi.fn(() => ({})),
+      divIcon: vi.fn((opts) => opts ?? {}),
       circleMarker: vi.fn(() => ({
         bindPopup: vi.fn(),
         bindTooltip: vi.fn(),
