@@ -153,25 +153,70 @@ describe('PantauModal (poin 9: laporan perbaikan & selesai)', () => {
   });
 });
 
-describe('NotifikasiModal (poin 9: aktivitas laporan)', () => {
-  it('menampilkan aktivitas: dibuat oleh, lokasi, apa yang rusak, status kerusakan', () => {
-    render(<NotifikasiModal reports={REPORTS} onClose={vi.fn()} />);
+describe('NotifikasiModal (feed aktivitas gabungan — transparansi)', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
 
-    // Terbaru dulu (created_at desc).
-    const feed = screen.getAllByText(/melaporkan/i);
-    expect(feed).toHaveLength(4);
+  it('menampilkan laporan, perubahan status, dan dukungan dari /api/activity', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() =>
+        Promise.resolve({
+          ok: true,
+          json: async () => ({
+            activities: [
+              {
+                type: 'report_created',
+                report_id: 3,
+                location_name: 'Jembatan Cibeureum',
+                actor: 'Warga Garut',
+                severity: 'ambruk',
+                infra_type: 'jembatan',
+                at: '2026-09-01 10:00:00',
+              },
+              {
+                type: 'status_changed',
+                report_id: 3,
+                location_name: 'Jembatan Cibeureum',
+                actor: 'Dinas PU',
+                new_status: 'terverifikasi',
+                at: '2026-09-01 11:00:00',
+              },
+              {
+                type: 'voted',
+                report_id: 3,
+                location_name: 'Jembatan Cibeureum',
+                actor: 'Anonim',
+                at: '2026-09-01 12:00:00',
+              },
+            ],
+          }),
+        })
+      )
+    );
 
-    // Identitas pelapor + lokasi + jenis + severity + status.
+    render(<NotifikasiModal onClose={vi.fn()} />);
+
+    // Ketiga jenis aktivitas tampil.
+    expect(await screen.findByText(/melaporkan/i)).toBeInTheDocument();
+    expect(screen.getByText(/mengubah status menjadi/i)).toBeInTheDocument();
+    expect(screen.getByText(/mendukung laporan/i)).toBeInTheDocument();
+
+    // Aktor + lokasi.
     expect(screen.getByText('Warga Garut')).toBeInTheDocument();
-    expect(screen.getByText('Budi Medan')).toBeInTheDocument();
-    expect(screen.getByText('Jembatan Cibeureum')).toBeInTheDocument();
-    expect(screen.getByText('Pasar Kreneng Denpasar')).toBeInTheDocument();
+    expect(screen.getByText('Dinas PU')).toBeInTheDocument();
+    expect(screen.getByText('Anonim')).toBeInTheDocument();
+    expect(screen.getAllByText('Jembatan Cibeureum').length).toBeGreaterThanOrEqual(1);
 
-    // "apa yang rusak" (jenis infrastruktur) + status kerusakan.
-    expect(screen.getAllByText('Jembatan')).toHaveLength(2); // 2 laporan jembatan
-    expect(screen.getByText('Sekolah')).toBeInTheDocument();
+    // Chip status perubahan + chip severity laporan.
+    expect(screen.getByText('Terverifikasi')).toBeInTheDocument();
     expect(screen.getByText('Ambruk')).toBeInTheDocument();
-    expect(screen.getByText('Selesai Diperbaiki')).toBeInTheDocument();
-    expect(screen.getByText('Dalam Perbaikan')).toBeInTheDocument();
+  });
+
+  it('gagal memuat -> pesan error, tidak throw', async () => {
+    vi.stubGlobal('fetch', vi.fn(() => Promise.resolve({ ok: false, status: 500 })));
+    render(<NotifikasiModal onClose={vi.fn()} />);
+    expect(await screen.findByText(/gagal memuat aktivitas/i)).toBeInTheDocument();
   });
 });

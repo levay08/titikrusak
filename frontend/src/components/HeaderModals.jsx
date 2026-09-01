@@ -6,6 +6,7 @@
 // yang rusak, status kerusakan). Data berasal dari props reports (satu
 // sumber data yang sama dengan peta/daftar — di sini versi TANPA filter).
 
+import { useState, useEffect } from 'react';
 import {
   SEVERITIES,
   SEVERITY_COLORS,
@@ -524,26 +525,69 @@ export function PantauModal({ reports = [], onClose }) {
   );
 }
 
-// ---- Notifikasi (poin 9: aktivitas laporan — dibuat oleh, lokasi, apa yang rusak) ----
-export function NotifikasiModal({ reports = [], onClose }) {
-  const feed = [...reports]
-    .sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)))
-    .slice(0, 20);
+// ---- Notifikasi (poin 9 + transparansi): feed aktivitas gabungan — laporan
+// baru (warga), perubahan status (otoritas), dan dukungan (warga) — dari
+// GET /api/activity, terurut terbaru. ----
+export function NotifikasiModal({ onClose }) {
+  const [activities, setActivities] = useState(null); // null = memuat
+  const [loadError, setLoadError] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch('/api/activity?limit=100');
+        if (!res.ok) throw new Error(String(res.status));
+        const body = await res.json();
+        if (!cancelled) setActivities(Array.isArray(body.activities) ? body.activities : []);
+      } catch (_e) {
+        if (!cancelled) setLoadError(true);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const TYPE_META = {
+    report_created: { bg: '#fef9c3', fg: '#854d0e' },
+    status_changed: { bg: '#eff6ff', fg: '#2563eb' },
+    voted: { bg: '#f0fdf4', fg: '#16a34a' },
+  };
+
+  const feed = activities || [];
+
+  const actorName = (a) => {
+    if (a.actor) return String(a.actor);
+    if (a.type === 'report_created') return 'Warga';
+    if (a.type === 'voted') return 'Anonim';
+    return 'Otoritas';
+  };
+
+  const actionText = (a) => {
+    if (a.type === 'report_created') return 'melaporkan';
+    if (a.type === 'status_changed') {
+      return `mengubah status menjadi ${STATUS_LABELS[a.new_status] || a.new_status}`;
+    }
+    return 'mendukung laporan';
+  };
 
   return (
     <ModalShell title="Notifikasi Aktivitas" onClose={onClose} maxWidth={600}>
-      {feed.length === 0 ? (
-        <p style={{ margin: 0, fontSize: 13, color: '#64748b' }}>
-          Belum ada aktivitas laporan.
-        </p>
+      {activities === null && !loadError ? (
+        <p style={{ margin: 0, fontSize: 13, color: '#64748b' }}>Memuat aktivitas…</p>
+      ) : loadError ? (
+        <p style={{ margin: 0, fontSize: 13, color: '#b91c1c' }}>Gagal memuat aktivitas.</p>
+      ) : feed.length === 0 ? (
+        <p style={{ margin: 0, fontSize: 13, color: '#64748b' }}>Belum ada aktivitas.</p>
       ) : (
-        feed.map((r) => {
-          const name = r.reporter_display_name || 'Warga anonim';
-          const statusColor = STATUS_COLORS[r.status] || '#64748b';
-          const severityColor = SEVERITY_COLORS[r.severity] || '#64748b';
+        feed.map((a, i) => {
+          const meta = TYPE_META[a.type] || TYPE_META.report_created;
+          const name = actorName(a);
+          const severityColor = SEVERITY_COLORS[a.severity] || '#64748b';
           return (
             <div
-              key={r.id}
+              key={`${a.type}-${a.report_id}-${a.at}-${i}`}
               style={{
                 display: 'flex',
                 gap: 10,
@@ -556,8 +600,8 @@ export function NotifikasiModal({ reports = [], onClose }) {
                   width: 34,
                   height: 34,
                   borderRadius: '50%',
-                  background: '#fef9c3',
-                  color: '#854d0e',
+                  background: meta.bg,
+                  color: meta.fg,
                   fontSize: 14,
                   fontWeight: 800,
                   display: 'flex',
@@ -572,7 +616,7 @@ export function NotifikasiModal({ reports = [], onClose }) {
                 <div style={{ fontSize: 13, color: '#1c1917' }}>
                   <strong>{name}</strong>{' '}
                   <span style={{ color: '#64748b', fontSize: 11.5 }}>
-                    melaporkan {formatDateTime(r.created_at)}
+                    {actionText(a)} · {formatDateTime(a.at)}
                   </span>
                 </div>
                 <div
@@ -586,45 +630,51 @@ export function NotifikasiModal({ reports = [], onClose }) {
                     whiteSpace: 'nowrap',
                   }}
                 >
-                  {r.location_name}
+                  {a.location_name}
                 </div>
                 <div style={{ display: 'flex', gap: 5, marginTop: 4, flexWrap: 'wrap' }}>
-                  <span
-                    style={{
-                      padding: '2px 8px',
-                      borderRadius: 999,
-                      fontSize: 11,
-                      fontWeight: 600,
-                      background: `${severityColor}1a`,
-                      color: severityColor,
-                    }}
-                  >
-                    {SEVERITY_LABELS[r.severity] || r.severity}
-                  </span>
-                  <span
-                    style={{
-                      padding: '2px 8px',
-                      borderRadius: 999,
-                      fontSize: 11,
-                      fontWeight: 600,
-                      background: '#f1f5f9',
-                      color: '#334155',
-                    }}
-                  >
-                    {INFRA_LABELS[r.infra_type] || r.infra_type}
-                  </span>
-                  <span
-                    style={{
-                      padding: '2px 8px',
-                      borderRadius: 999,
-                      fontSize: 11,
-                      fontWeight: 600,
-                      background: `${statusColor}1a`,
-                      color: statusColor,
-                    }}
-                  >
-                    {STATUS_LABELS[r.status] || r.status}
-                  </span>
+                  {a.type === 'report_created' && (
+                    <>
+                      <span
+                        style={{
+                          padding: '2px 8px',
+                          borderRadius: 999,
+                          fontSize: 11,
+                          fontWeight: 600,
+                          background: `${severityColor}1a`,
+                          color: severityColor,
+                        }}
+                      >
+                        {SEVERITY_LABELS[a.severity] || a.severity}
+                      </span>
+                      <span
+                        style={{
+                          padding: '2px 8px',
+                          borderRadius: 999,
+                          fontSize: 11,
+                          fontWeight: 600,
+                          background: '#f1f5f9',
+                          color: '#334155',
+                        }}
+                      >
+                        {INFRA_LABELS[a.infra_type] || a.infra_type}
+                      </span>
+                    </>
+                  )}
+                  {a.type === 'status_changed' && (
+                    <span
+                      style={{
+                        padding: '2px 8px',
+                        borderRadius: 999,
+                        fontSize: 11,
+                        fontWeight: 600,
+                        background: `${(STATUS_COLORS[a.new_status] || '#64748b')}1a`,
+                        color: STATUS_COLORS[a.new_status] || '#64748b',
+                      }}
+                    >
+                      {STATUS_LABELS[a.new_status] || a.new_status}
+                    </span>
+                  )}
                 </div>
               </div>
             </div>

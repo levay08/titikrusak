@@ -1398,7 +1398,7 @@ export default function App() {
             <PantauModal reports={allReports} onClose={() => setPantauOpen(false)} />
           )}
           {notifOpen && (
-            <NotifikasiModal reports={allReports} onClose={() => setNotifOpen(false)} />
+            <NotifikasiModal onClose={() => setNotifOpen(false)} />
           )}
         </div>
       </main>
