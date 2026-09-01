@@ -44,6 +44,8 @@ vi.mock('leaflet', () => {
         getMinZoom: vi.fn(() => 3),
         getMaxZoom: vi.fn(() => 18),
         setZoom: vi.fn(),
+        zoomIn: vi.fn(),
+        zoomOut: vi.fn(),
         getCenter: vi.fn(() => ({ lat: -2.5, lng: 118 })),
         closePopup: vi.fn(),
         openTooltip: vi.fn(),

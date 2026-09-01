@@ -26,14 +26,15 @@ export default function Logo({ size = 30, title = 'Logo titikrusak.id' }) {
       />
       {/* Lingkaran dalam putih = koordinat titik */}
       <circle cx="32" cy="27" r="9" fill="#ffffff" />
-      {/* Crosshair koordinat (garis bidik N/E/S/W) */}
-      <line x1="32" y1="14" x2="32" y2="20" stroke="#eab308" strokeWidth="3" strokeLinecap="round" />
-      <line x1="32" y1="34" x2="32" y2="40" stroke="#eab308" strokeWidth="3" strokeLinecap="round" />
-      <line x1="23" y1="27" x2="29" y2="27" stroke="#eab308" strokeWidth="3" strokeLinecap="round" />
-      <line x1="35" y1="27" x2="41" y2="27" stroke="#eab308" strokeWidth="3" strokeLinecap="round" />
+      {/* Crosshair koordinat (garis bidik N/E/S/W) — KUNING GELAP agar
+          kontras di atas pin kuning; frame tetap kuning #eab308 */}
+      <line x1="32" y1="14" x2="32" y2="20" stroke="#a16207" strokeWidth="3" strokeLinecap="round" />
+      <line x1="32" y1="34" x2="32" y2="40" stroke="#a16207" strokeWidth="3" strokeLinecap="round" />
+      <line x1="23" y1="27" x2="29" y2="27" stroke="#a16207" strokeWidth="3" strokeLinecap="round" />
+      <line x1="35" y1="27" x2="41" y2="27" stroke="#a16207" strokeWidth="3" strokeLinecap="round" />
       {/* Garis tengah TERPUTUS = kerusakan/putus */}
-      <line x1="27.5" y1="27" x2="30.5" y2="27" stroke="#eab308" strokeWidth="3.5" strokeLinecap="round" />
-      <line x1="33.5" y1="27" x2="36.5" y2="27" stroke="#eab308" strokeWidth="3.5" strokeLinecap="round" />
+      <line x1="27.5" y1="27" x2="30.5" y2="27" stroke="#a16207" strokeWidth="3.5" strokeLinecap="round" />
+      <line x1="33.5" y1="27" x2="36.5" y2="27" stroke="#a16207" strokeWidth="3.5" strokeLinecap="round" />
     </svg>
   );
 }

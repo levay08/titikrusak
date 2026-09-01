@@ -215,7 +215,8 @@ function SeverityLegend() {
 // Slider zoom peta: diposisikan di TENGAH-BAWAH area peta (di atas area
 // footer), bisa digeser untuk zoom in/out. Posisi default = zoom tampilan
 // awal (fit-screen); saat digeser muncul bubble persentase (0% = zoom min,
-// 100% = zoom max).
+// 100% = zoom max). Dilengkapi tombol − / + (zoom step) dan "⛶ Fit Layar"
+// (kembali ke tampilan seluruh Indonesia).
 function ZoomSlider({ map }) {
   const [zoom, setZoom] = useState(() => (map ? map.getZoom() : 6));
   const [dragging, setDragging] = useState(false);
@@ -237,6 +238,23 @@ function ZoomSlider({ map }) {
   const max = typeof map.getMaxZoom === 'function' ? map.getMaxZoom() : 18;
   const pct = Math.round(((zoom - min) / (max - min)) * 100);
 
+  const btnStyle = {
+    background: '#f1f5f9',
+    border: '1px solid #cbd5e1',
+    borderRadius: 6,
+    width: 26,
+    height: 26,
+    fontSize: 14,
+    fontWeight: 700,
+    lineHeight: 1,
+    cursor: 'pointer',
+    color: '#1c1917',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 0,
+  };
+
   return (
     <div
       style={{
@@ -246,28 +264,67 @@ function ZoomSlider({ map }) {
         transform: 'translateX(-50%)',
         zIndex: 1100,
         background: 'rgba(255, 255, 255, 0.95)',
-        borderRadius: 999,
+        borderRadius: 12,
         boxShadow: '0 1px 6px rgba(0, 0, 0, 0.3)',
-        padding: '6px 14px',
+        padding: '8px 12px',
         display: 'flex',
+        flexDirection: 'column',
         alignItems: 'center',
-        gap: 8,
+        gap: 6,
       }}
     >
-      <span style={{ fontSize: 13, color: '#475569', lineHeight: 1 }}>−</span>
-      <input
-        type="range"
-        aria-label="Zoom peta"
-        min={min}
-        max={max}
-        value={zoom}
-        onChange={(e) => map.setZoom(Number(e.target.value))}
-        onPointerDown={() => setDragging(true)}
-        onPointerUp={() => setDragging(false)}
-        onPointerLeave={() => setDragging(false)}
-        style={{ width: 180, accentColor: '#eab308', cursor: 'pointer', margin: 0 }}
-      />
-      <span style={{ fontSize: 13, color: '#475569', lineHeight: 1 }}>+</span>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <button
+          type="button"
+          aria-label="Zoom keluar"
+          title="Zoom keluar"
+          onClick={() => map.zoomOut()}
+          style={btnStyle}
+        >
+          −
+        </button>
+        <input
+          type="range"
+          aria-label="Zoom peta"
+          min={min}
+          max={max}
+          value={zoom}
+          onChange={(e) => map.setZoom(Number(e.target.value))}
+          onPointerDown={() => setDragging(true)}
+          onPointerUp={() => setDragging(false)}
+          onPointerLeave={() => setDragging(false)}
+          style={{ width: 160, accentColor: '#eab308', cursor: 'pointer', margin: 0 }}
+        />
+        <button
+          type="button"
+          aria-label="Zoom masuk"
+          title="Zoom masuk"
+          onClick={() => map.zoomIn()}
+          style={btnStyle}
+        >
+          +
+        </button>
+      </div>
+      <button
+        type="button"
+        onClick={() => map.fitBounds(HOME_BOUNDS, { padding: HOME_PADDING, maxZoom: HOME_MAX_ZOOM })}
+        style={{
+          background: '#1c1917',
+          border: 'none',
+          borderRadius: 999,
+          color: '#fff',
+          fontSize: 11,
+          fontWeight: 700,
+          padding: '5px 12px',
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 5,
+        }}
+        title="Kembali ke tampilan seluruh Indonesia"
+      >
+        <span style={{ fontSize: 12, lineHeight: 1 }}>⛶</span> Fit Layar
+      </button>
       {dragging && (
         <span
           style={{
@@ -314,6 +371,10 @@ export default function MapView({
   const [selected, setSelected] = useState(null);
   // Peta sudah diinisialisasi (untuk merender kontrol yang butuh instance).
   const [mapReady, setMapReady] = useState(false);
+  // Zoom aktif — legend disembunyikan saat zoom in (mengganggu pandangan
+  // titik); tampil lagi di tampilan negara/region (<= LEGEND_MAX_ZOOM).
+  const [zoomLevel, setZoomLevel] = useState(6);
+  const LEGEND_MAX_ZOOM = 7;
   // Riwayat navigasi zoom (File 1 Bagian 9.1): array {center, zoom} yang
   // didorong setiap kali pengguna zoom in ke cluster/marker; tombol
   // "Kembali" mem-pop satu langkah.
@@ -376,6 +437,11 @@ export default function MapView({
     });
     mapRef.current = map;
     setMapReady(true);
+
+    // Sinkronkan zoom aktif untuk kontrol berbasis zoom (legend dll).
+    const syncZoom = () => setZoomLevel(map.getZoom());
+    map.on('zoomend', syncZoom);
+    map.on('zoom', syncZoom);
 
     // Kontrol zoom in/out standar — dipindah ke kanan-atas agar tidak pernah
     // bertabrakan dengan NavButtons (kiri-atas) maupun toggle Peta/Daftar
@@ -558,7 +624,9 @@ export default function MapView({
     <div style={{ position: 'relative', height: '100%', width: '100%' }}>
       <div ref={containerRef} style={{ height: '100%', width: '100%' }} />
       <NavButtons canGoBack={navHistory.length > 0} onBack={goBack} onHome={goHome} isMobile={isMobile} />
-      <SeverityLegend />
+      {/* Legend hanya di tampilan negara/region — saat zoom in ke titik
+          disembunyikan agar tidak mengganggu view */}
+      {zoomLevel <= LEGEND_MAX_ZOOM && <SeverityLegend />}
       {mapReady && <ZoomSlider map={mapRef.current} />}
 
       {/* Kondisi hasil kosong (File 1 Bagian 9.1/9.2) — sama dengan

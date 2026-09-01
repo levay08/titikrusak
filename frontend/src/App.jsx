@@ -46,6 +46,7 @@ const SPONSORS = [
 function SponsorLogo({ name, src, url }) {
   const [failed, setFailed] = useState(false);
   const [hover, setHover] = useState(false);
+  const isMobile = useIsMobile();
   return (
     <a
       href={url}
@@ -61,9 +62,10 @@ function SponsorLogo({ name, src, url }) {
         justifyContent: 'center',
         background: '#fff',
         borderRadius: 8,
-        height: 40,
-        padding: '0 12px',
-        minWidth: 64,
+        // Mobile: chip lebih ramping agar baris sponsor tidak berantakan.
+        height: isMobile ? 32 : 40,
+        padding: isMobile ? '0 10px' : '0 12px',
+        minWidth: isMobile ? 52 : 64,
         textDecoration: 'none',
       }}
     >
@@ -108,7 +110,11 @@ function SponsorLogo({ name, src, url }) {
           src={src}
           alt={`Logo ${name}`}
           onError={() => setFailed(true)}
-          style={{ height: 28, maxWidth: 150, objectFit: 'contain' }}
+          style={{
+            height: isMobile ? 22 : 28,
+            maxWidth: isMobile ? 110 : 150,
+            objectFit: 'contain',
+          }}
         />
       )}
     </a>
@@ -1391,11 +1397,14 @@ export default function App() {
             display: 'flex',
             flexWrap: 'wrap',
             alignItems: 'center',
-            gap: 14,
-            justifyContent: 'space-between',
+            gap: isMobile ? 10 : 14,
+            // Mobile: ditumpuk vertikal (judul di atas, sponsor di bawah)
+            // agar tidak berantakan di layar sempit.
+            justifyContent: isMobile ? 'flex-start' : 'space-between',
+            flexDirection: isMobile ? 'column' : 'row',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, width: isMobile ? '100%' : 'auto' }}>
             <Logo size={26} />
             <div>
               <div style={{ fontWeight: 700, color: '#fff', fontSize: 13 }}>
@@ -1410,9 +1419,10 @@ export default function App() {
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: 10,
+              gap: isMobile ? 8 : 10,
               flexWrap: 'wrap',
-              justifyContent: 'flex-end', // logo sponsor rata kanan (poin 7)
+              justifyContent: isMobile ? 'flex-start' : 'flex-end', // logo sponsor rata kanan (poin 7)
+              width: isMobile ? '100%' : 'auto',
             }}
           >
             <span style={{ fontSize: 11.5, opacity: 0.75 }}>Didukung oleh:</span>
