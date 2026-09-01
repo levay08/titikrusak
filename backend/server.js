@@ -8,6 +8,7 @@ const express = require('express');
 const env = require('./config/env.js');
 const reportsRouter = require('./routes/reports.js');
 const verifyRouter = require('./routes/verify.js');
+const enrichmentRouter = require('./routes/enrichment.js');
 
 const app = express();
 
@@ -20,6 +21,10 @@ app.use('/api/reports', reportsRouter);
 
 // Route verifikasi e.id (File 2 Bagian 7.1 langkah keempat-kelima-keenam).
 app.use('/api/verify', verifyRouter);
+
+// Route enrichment BMKG (File 1 7.4 / File 2 7.2): gempa & cuaca untuk
+// laporan lama yang belum punya data enrichment.
+app.use('/api/enrichment', enrichmentRouter);
 
 // 404 JSON untuk endpoint yang tidak dikenal.
 app.use((req, res) => {

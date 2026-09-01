@@ -8,6 +8,7 @@
 const express = require('express');
 const db = require('../db/db.js');
 const { reportLimiter } = require('../middleware/rateLimiter.js');
+const { bmkg } = require('../services/bmkgClient.js');
 
 const router = express.Router();
 
@@ -68,6 +69,9 @@ const PUBLIC_SELECT = PUBLIC_COLUMNS.join(', ');
 // dikembalikan API sebagai array agar frontend mudah merender badge/tag.
 // photo_urls juga disimpan sebagai string JSON array (laporan dari media),
 // dikembalikan sebagai array agar frontend bisa merender foto.
+// related_earthquake / related_weather disimpan sebagai string JSON objek
+// hasil enrichment BMKG (File 1 5.8 / File 2 7.2) — dikembalikan sebagai
+// objek agar frontend bisa merender badge kontekstual.
 function parseVitalStatus(row) {
   if (!row) return row;
   if (row.vital_status !== null && row.vital_status !== undefined) {
@@ -81,7 +85,16 @@ function parseVitalStatus(row) {
     try {
       row.photo_urls = JSON.parse(row.photo_urls);
     } catch (_e) {
-      // Nilai lama berupa teks bebas (mis. satu URL): biarkan apa adanya.
+      // Nilai lama yang bukan JSON valid: biarkan apa adanya.
+    }
+  }
+  for (const key of ['related_earthquake', 'related_weather']) {
+    if (typeof row[key] === 'string' && row[key] !== '') {
+      try {
+        row[key] = JSON.parse(row[key]);
+      } catch (_e) {
+        // Bukan JSON valid: biarkan string mentah (frontend menangani).
+      }
     }
   }
   return row;
@@ -224,7 +237,13 @@ router.get('/', (req, res) => {
 // Menyimpan laporan baru. Rate limiting (File 1 Bagian 11.3): pada tahap
 // ini seluruh POST dianggap tanpa verifikasi e.id, sehingga limiter
 // diterapkan tanpa kondisi (File 2 Bagian 6.3). Belum ada verifikasi e.id.
-router.post('/', reportLimiter, (req, res) => {
+//
+// Enrichment BMKG (File 2 Bagian 7.2 / File 1 Bagian 5.8): setelah
+// tersimpan, dicari gempa terkait (radius 100 km, 30 hari terakhir) dan
+// prakiraan cuaca lokasi (adm4 terdekat) secara BEST-EFFORT — hasilnya
+// disimpan ke related_earthquake / related_weather bila ada; kegagalan
+// enrichment TIDAK pernah menggagalkan penyimpanan laporan.
+router.post('/', reportLimiter, async (req, res) => {
   const body = req.body || {};
 
   // ---- Validasi field wajib (File 1 Bagian 5.2 langkah kelima/keenam) ----
@@ -324,6 +343,33 @@ router.post('/', reportLimiter, (req, res) => {
     reporter_display_name,
     reporter_is_verified
   );
+
+  // ---- Enrichment BMKG best-effort (File 2 7.2 / File 1 5.8) ----
+  // Tidak boleh melempar: seluruh pemanggilan dibungkus try/catch, dan
+  // bmkgClient sendiri mengembalikan null pada kegagalan apa pun.
+  let related_earthquake = null;
+  let related_weather = null;
+  try {
+    const reportDate = new Date().toISOString();
+    const [eq, wx] = await Promise.all([
+      bmkg.enrichEarthquake({ lat, lng, date: reportDate }),
+      bmkg.enrichWeather({ lat, lng }),
+    ]);
+    related_earthquake = eq;
+    related_weather = wx;
+    if (eq || wx) {
+      db.prepare(
+        `UPDATE reports SET related_earthquake = ?, related_weather = ?,
+         updated_at = CURRENT_TIMESTAMP WHERE id = ?`
+      ).run(
+        eq ? JSON.stringify(eq) : null,
+        wx ? JSON.stringify(wx) : null,
+        info.lastInsertRowid
+      );
+    }
+  } catch (_e) {
+    // enrichment gagal -> biarkan field null, laporan tetap tersimpan.
+  }
 
   const created = db
     .prepare(`SELECT ${PUBLIC_SELECT} FROM reports WHERE id = ?`)

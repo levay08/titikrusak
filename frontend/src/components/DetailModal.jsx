@@ -10,7 +10,7 @@
 // Detail" di popup marker), modal hasil pencarian header, dan halaman
 // Admin — satu komponen detail untuk semua titik masuk.
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   SEVERITY_LABELS,
   INFRA_LABELS,
@@ -92,6 +92,88 @@ function formatValue(key, value) {
   return String(value);
 }
 
+// ---- Enrichment BMKG (File 1 Bagian 5.8 / File 2 Bagian 7.2) ----
+// related_earthquake / related_weather disimpan sebagai string JSON di DB
+// (backend mengembalikannya sebagai objek). Badge kontekstual di bawah
+// WAJIB mencantumkan atribusi "Sumber: BMKG" (File 1 Bagian 10.4/11.4).
+
+function parseEnrich(value) {
+  if (!value) return null;
+  if (typeof value === 'object') return value;
+  try {
+    return JSON.parse(value);
+  } catch (_e) {
+    return null;
+  }
+}
+
+const BMKG_SOURCE = (
+  <span
+    style={{
+      display: 'block',
+      marginTop: 5,
+      fontSize: 10.5,
+      color: '#64748b',
+    }}
+  >
+    Sumber:{' '}
+    <a
+      href="https://www.bmkg.go.id"
+      target="_blank"
+      rel="noopener noreferrer"
+      style={{ color: '#64748b', textDecoration: 'underline' }}
+    >
+      BMKG
+    </a>
+  </span>
+);
+
+// Badge gempa terdekat: M{magnitude} · {lokasi} · {tanggal} (≈{jarak} km).
+function EarthquakeBadge({ value }) {
+  const d = parseEnrich(value);
+  if (!d) return '—';
+  return (
+    <span
+      style={{
+        display: 'inline-block',
+        background: '#fef3c7',
+        border: '1px solid #fcd34d',
+        color: '#78350f',
+        borderRadius: 8,
+        padding: '6px 10px',
+        fontSize: 12,
+        lineHeight: 1.45,
+      }}
+    >
+      Gempa terdekat: M{d.magnitude} — {d.location} ({d.date}, ±{d.distance_km} km)
+      {BMKG_SOURCE}
+    </span>
+  );
+}
+
+// Badge cuaca: {kondisi} · {rentang suhu} — berlaku {tanggal}.
+function WeatherBadge({ value }) {
+  const d = parseEnrich(value);
+  if (!d) return '—';
+  return (
+    <span
+      style={{
+        display: 'inline-block',
+        background: '#eff6ff',
+        border: '1px solid #bfdbfe',
+        color: '#1e3a8a',
+        borderRadius: 8,
+        padding: '6px 10px',
+        fontSize: 12,
+        lineHeight: 1.45,
+      }}
+    >
+      Cuaca: {d.condition} · {d.temp_range} — berlaku {d.valid_date}
+      {BMKG_SOURCE}
+    </span>
+  );
+}
+
 export default function DetailModal({ report, onClose, otoritas = null, onReportUpdated }) {
   const isMobile = useIsMobile();
   const [statusAction, setStatusAction] = useState('idle'); // idle | busy
@@ -103,6 +185,39 @@ export default function DetailModal({ report, onClose, otoritas = null, onReport
   // Foto yang sedang dibuka dalam frame (lightbox dalam situs — tidak
   // membuka tab baru / tidak menutup layar; bisa ditutup).
   const [photoView, setPhotoView] = useState(null);
+
+  // Enrichment BMKG yang dimuat ulang untuk laporan lama yang belum punya
+  // data (File 2 Bagian 7.2): dipanggil saat detail dibuka, best-effort.
+  // Endpoint: GET /api/enrichment/disaster & /weather (File 1 Bagian 7.4).
+  const [liveEnrich, setLiveEnrich] = useState({ earthquake: null, weather: null });
+
+  useEffect(() => {
+    const hasLatLng = Number.isFinite(Number(report.lat)) && Number.isFinite(Number(report.lng));
+    if (!hasLatLng) return undefined;
+    let cancelled = false;
+    const fetchEnrichment = async (kind) => {
+      try {
+        const res = await fetch(
+          `/api/enrichment/${kind}?lat=${encodeURIComponent(report.lat)}&lng=${encodeURIComponent(report.lng)}`
+        );
+        if (!res.ok) return;
+        const body = await res.json();
+        if (!cancelled && body && body.data) {
+          setLiveEnrich((prev) => ({
+            ...prev,
+            [kind === 'disaster' ? 'earthquake' : 'weather']: body.data,
+          }));
+        }
+      } catch (_e) {
+        // best-effort: gagal/tidak ada data -> dibiarkan tanpa badge.
+      }
+    };
+    if (!report.related_earthquake) fetchEnrichment('disaster');
+    if (!report.related_weather) fetchEnrichment('weather');
+    return () => {
+      cancelled = true;
+    };
+  }, [report.id, report.lat, report.lng, report.related_earthquake, report.related_weather]);
 
   // Status berikutnya dalam alur (null bila sudah di status akhir).
   const flowIndex = STATUS_FLOW.indexOf(report.status);
@@ -350,6 +465,10 @@ export default function DetailModal({ report, onClose, otoritas = null, onReport
                       </button>
                     ))}
                   </span>
+                ) : key === 'related_earthquake' ? (
+                  <EarthquakeBadge value={report[key] ?? liveEnrich.earthquake} />
+                ) : key === 'related_weather' ? (
+                  <WeatherBadge value={report[key] ?? liveEnrich.weather} />
                 ) : (
                   formatValue(key, report[key])
                 )}

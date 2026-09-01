@@ -284,7 +284,7 @@ describe('ListView: mode otoritas — pengelompokan prioritas (poin Alur Inti 7)
     await user.click(screen.getByText('Jalan Berlubang Dalam'));
     await user.click(screen.getByRole('button', { name: /tandai terverifikasi \(approve\)/i }));
 
-    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(fetchMock).toHaveBeenCalled());
     expect(fetchMock).toHaveBeenCalledWith(
       '/api/reports/11/status',
       expect.objectContaining({
@@ -349,7 +349,7 @@ describe('ListView: fitur Dukungan warga (poin Alur Inti 6) — butuh e.id', () 
     await user.click(screen.getByText('Jalan Berlubang Dalam'));
     await user.click(screen.getByRole('button', { name: /^dukung laporan$/i }));
 
-    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(fetchMock).toHaveBeenCalled());
     expect(fetchMock).toHaveBeenCalledWith(
       '/api/reports/11/vote',
       expect.objectContaining({
