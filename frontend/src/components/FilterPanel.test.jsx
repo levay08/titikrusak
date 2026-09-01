@@ -41,10 +41,10 @@ describe('FilterPanel: status e.id sejalan dengan sesi otoritas', () => {
     expect(onLogoutOtoritas).toHaveBeenCalledTimes(1);
   });
 
-  it('tombol "Verifikasi e.id" (belum terverifikasi) berwarna biru muda #60a5fa', () => {
+  it('tombol "Verifikasi e.id Warga" (belum terverifikasi) berwarna biru muda #60a5fa', () => {
     render(<FilterPanel filters={EMPTY} onChange={vi.fn()} onReset={vi.fn()} />);
 
-    const btn = screen.getByRole('button', { name: 'Verifikasi e.id' });
+    const btn = screen.getByRole('button', { name: 'Verifikasi e.id Warga' });
     expect(btn.style.background).toBe('rgb(96, 165, 250)'); // #60a5fa
     expect(btn.style.color).toBe('rgb(255, 255, 255)');
   });

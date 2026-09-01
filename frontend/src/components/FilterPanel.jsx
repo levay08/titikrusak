@@ -486,7 +486,7 @@ export default function FilterPanel({
                 cursor: 'pointer',
               }}
             >
-              Verifikasi e.id
+              Verifikasi e.id Warga
             </button>
             <button
               type="button"

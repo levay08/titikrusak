@@ -280,7 +280,7 @@ describe('App: alur lapor kerusakan end-to-end', () => {
     expect(screen.getAllByRole('button', { name: /lapor kerusakan/i })).toHaveLength(1);
   });
 
-  it('sidebar: klik "Verifikasi e.id" membuka modal verifikasi warga Member level 1 (tanpa KTP)', async () => {
+  it('sidebar: klik "Verifikasi e.id Warga" membuka modal verifikasi warga Member level 1 (tanpa KTP)', async () => {
     const verifyStart = vi.fn().mockResolvedValue({
       ok: true,
       status: 201,
@@ -309,7 +309,7 @@ describe('App: alur lapor kerusakan end-to-end', () => {
     render(<App />);
     await waitFor(() => expect(fetchMock).toHaveBeenCalled());
 
-    await user.click(screen.getByRole('button', { name: /verifikasi e\.id/i }));
+    await user.click(screen.getByRole('button', { name: /verifikasi e\.id warga/i }));
 
     // Modal verifikasi WARGA terbuka + skema Member level 1 (email/nama/
     // alamat/no. telp, tanpa KTP).
