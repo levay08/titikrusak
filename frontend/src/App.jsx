@@ -172,7 +172,7 @@ function buildQuery(filters) {
 }
 
 // Item menu header (desktop): tombol teks ringkas dengan hover halus.
-function HeaderNavItem({ label, onClick, icon }) {
+function HeaderNavItem({ label, onClick, icon, framed = false }) {
   const [hover, setHover] = useState(false);
   return (
     <button
@@ -181,14 +181,20 @@ function HeaderNavItem({ label, onClick, icon }) {
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
       style={{
-        background: hover ? 'rgba(255, 255, 255, 0.15)' : 'none',
-        border: 'none',
+        background: framed
+          ? hover
+            ? 'rgba(255, 255, 255, 0.25)'
+            : 'rgba(255, 255, 255, 0.12)'
+          : hover
+            ? 'rgba(255, 255, 255, 0.15)'
+            : 'none',
+        border: framed ? '1px solid rgba(255, 255, 255, 0.5)' : 'none',
         color: 'rgba(255, 255, 255, 0.88)',
         fontSize: 13,
         fontWeight: 600,
         cursor: 'pointer',
-        padding: '7px 9px',
-        borderRadius: 6,
+        padding: framed ? '7px 12px' : '7px 9px',
+        borderRadius: 8,
         whiteSpace: 'nowrap',
         display: 'flex',
         alignItems: 'center',
@@ -627,7 +633,7 @@ export default function App() {
             </button>
             {/* Login Otoritas (gabungan menu login + Admin): buka halaman
                 Administrator; isinya digate otoritas bila belum masuk. */}
-            <HeaderNavItem icon="🔒" label="Login Otoritas" onClick={openAdmin} />
+            <HeaderNavItem icon="🔒" label="Login Otoritas" onClick={openAdmin} framed />
           </nav>
         )}
 
