@@ -219,7 +219,7 @@ describe('App: alur lapor kerusakan end-to-end', () => {
     expect(screen.queryByText('Statistik Pelaporan')).not.toBeInTheDocument();
   });
 
-  it('desktop: tombol Login ringkas (gembok + teks) dengan bubble hover "Login sebagai Otoritas"', async () => {
+  it('desktop: menu "Login Otoritas" (gembok) membuka halaman Admin (gate)', async () => {
     const fetchMock = vi.fn(() =>
       Promise.resolve({ ok: true, status: 200, json: async () => [] })
     );
@@ -229,20 +229,14 @@ describe('App: alur lapor kerusakan end-to-end', () => {
     render(<App />);
     await waitFor(() => expect(fetchMock).toHaveBeenCalled());
 
-    // Tombol login otoritas: header (desktop) — elemen pertama; sidebar
-    // kini juga punya tombol "Login sebagai Otoritas" (switch role).
-    const loginBtn = screen.getAllByRole('button', { name: /login sebagai otoritas/i })[0];
-    expect(loginBtn).toHaveTextContent('🔒 Login');
-    // Belum ada teks panjang "Masuk sebagai Otoritas Lokal".
-    expect(screen.queryByText('Masuk sebagai Otoritas Lokal')).not.toBeInTheDocument();
+    // Menu gabungan login + Admin di header: ikon gembok + teks "Login Otoritas".
+    const loginMenu = screen.getAllByRole('button', { name: /login otoritas/i })[0];
+    expect(loginMenu).toHaveTextContent('🔒');
+    expect(loginMenu).toHaveTextContent('Login Otoritas');
 
-    // Hover -> bubble muncul (kini ada 2 elemen berteks sama: bubble
-    // hover header + tombol switch-role di sidebar); keluar hover ->
-    // bubble hilang (tersisa 1: tombol sidebar).
-    await user.hover(loginBtn);
-    expect(screen.getAllByText('Login sebagai Otoritas')).toHaveLength(2);
-    await user.unhover(loginBtn);
-    expect(screen.getAllByText('Login sebagai Otoritas')).toHaveLength(1);
+    // Klik -> buka halaman Admin (gate, belum masuk sebagai otoritas).
+    await user.click(loginMenu);
+    expect(await screen.findByText('Panel Administrator')).toBeInTheDocument();
   });
 
   it('sidebar filter desktop bisa disembunyikan dan dimunculkan lagi', async () => {

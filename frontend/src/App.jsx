@@ -172,7 +172,7 @@ function buildQuery(filters) {
 }
 
 // Item menu header (desktop): tombol teks ringkas dengan hover halus.
-function HeaderNavItem({ label, onClick }) {
+function HeaderNavItem({ label, onClick, icon }) {
   const [hover, setHover] = useState(false);
   return (
     <button
@@ -190,77 +190,14 @@ function HeaderNavItem({ label, onClick }) {
         padding: '7px 9px',
         borderRadius: 6,
         whiteSpace: 'nowrap',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 5,
       }}
     >
+      {icon && <span style={{ fontSize: 14, lineHeight: 1 }}>{icon}</span>}
       {label}
     </button>
-  );
-}
-
-// Tombol Login ringkas (poin Alur Inti 4): teks "Login" + ikon gembok;
-// saat hover berubah warna dan muncul bubble "Login sebagai Otoritas".
-function LoginButton({ onLogin, isMobile }) {
-  const [hover, setHover] = useState(false);
-  return (
-    <span
-      style={{ position: 'relative', display: 'inline-block' }}
-      onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => setHover(false)}
-    >
-      <button
-        type="button"
-        aria-label="Login sebagai Otoritas"
-        onClick={onLogin}
-        style={{
-          background: hover ? '#facc15' : 'rgba(255, 255, 255, 0.12)',
-          border: hover ? '1px solid #facc15' : '1px solid rgba(255, 255, 255, 0.3)',
-          color: hover ? '#1c1917' : '#fff',
-          borderRadius: 8,
-          padding: isMobile ? '9px 14px' : '7px 12px',
-          fontSize: 13,
-          fontWeight: 600,
-          cursor: 'pointer',
-          display: 'flex',
-          alignItems: 'center',
-          gap: 6,
-          whiteSpace: 'nowrap',
-          transition: 'background 0.15s, border-color 0.15s',
-        }}
-      >
-        🔒 Login
-      </button>
-      {hover && (
-        <div
-          style={{
-            position: 'absolute',
-            // Bubble tampil DI BAWAH tombol, RATA KANAN (right:0) agar tidak
-            // terpotong tepi kanan layar (posisi tengah sebelumnya memotong
-            // teks "Otoritas"). zIndex tinggi menang atas pane Leaflet (700+).
-            top: 'calc(100% + 7px)',
-            right: 0,
-            background: '#1c1917',
-            color: '#fff',
-            fontSize: 12,
-            padding: '6px 10px',
-            borderRadius: 6,
-            whiteSpace: 'nowrap',
-            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.35)',
-            zIndex: 2000,
-          }}
-        >
-          Login sebagai Otoritas
-          <span
-            style={{
-              position: 'absolute',
-              bottom: '100%',
-              right: 10,
-              border: '5px solid transparent',
-              borderBottomColor: '#1c1917',
-            }}
-          />
-        </div>
-      )}
-    </span>
   );
 }
 
@@ -688,8 +625,9 @@ export default function App() {
             >
               🔔
             </button>
-            {/* Halaman Admin: menu tampil SEBELUM login (isi digate otoritas) */}
-            <HeaderNavItem label="Admin" onClick={openAdmin} />
+            {/* Login Otoritas (gabungan menu login + Admin): buka halaman
+                Administrator; isinya digate otoritas bila belum masuk. */}
+            <HeaderNavItem icon="🔒" label="Login Otoritas" onClick={openAdmin} />
           </nav>
         )}
 
@@ -791,15 +729,7 @@ export default function App() {
                 Keluar
               </button>
             </div>
-          ) : (
-            <LoginButton
-              onLogin={() => {
-                closeAllModals();
-                setOtoritasOpen(true);
-              }}
-              isMobile={isMobile}
-            />
-          )}
+          ) : null}
         </div>
       </header>
 
@@ -1103,7 +1033,7 @@ export default function App() {
                   { icon: '📊', label: 'Statistik', open: openHeaderModal(setStatsOpen) },
                   { icon: '🚧', label: 'Pantau', open: openHeaderModal(setPantauOpen) },
                   { icon: '🔔', label: 'Notifikasi', open: openHeaderModal(setNotifOpen) },
-                  { icon: '🛠️', label: 'Admin', open: openAdmin },
+                  { icon: '🔒', label: 'Login Otoritas', open: openAdmin },
                 ].map((item) => (
                   <button
                     key={item.label}
