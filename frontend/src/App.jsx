@@ -628,6 +628,7 @@ export default function App() {
                 cursor: 'pointer',
                 padding: '7px 9px',
                 borderRadius: 6,
+                marginRight: 12,
               }}
             >
               🚧
