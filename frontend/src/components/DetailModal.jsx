@@ -388,9 +388,20 @@ export default function DetailModal({ report, onClose, otoritas = null, onReport
           </div>
         )}
 
-        {/* ---- Dukungan warga (File 1 Bagian 6.3): butuh e.id ---- */}
+        {/* ---- Dukungan warga (File 1 Bagian 6.3): butuh e.id ----
+            Otoritas TIDAK bisa mendukung laporan — hanya warga yang
+            memberikan dukungan; saat sesi otoritas aktif tampil jumlahnya
+            saja tanpa tombol. */}
         <div style={{ marginTop: 14, borderTop: '1px solid #e2e8f0', paddingTop: 14 }}>
-          {voteState === 'idle' && (
+          {otoritas ? (
+            <div style={{ fontSize: 13, color: '#334155' }}>
+              🤝 Dukungan warga: <strong>{voteCount}</strong>
+              <span style={{ display: 'block', fontSize: 11.5, color: '#64748b', marginTop: 2 }}>
+                Dukungan diberikan oleh warga terverifikasi e.id — otoritas tidak
+                memberikan dukungan.
+              </span>
+            </div>
+          ) : voteState === 'idle' ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <span style={{ flex: 1, fontSize: 13, color: '#334155' }}>
                 🤝 Dukungan warga: <strong>{voteCount}</strong>
@@ -412,9 +423,9 @@ export default function DetailModal({ report, onClose, otoritas = null, onReport
                 {eidVerified ? 'Dukung laporan' : 'Dukung laporan (e.id)'}
               </button>
             </div>
-          )}
+          ) : null}
 
-          {voteState === 'prompt' && (
+          {!otoritas && voteState === 'prompt' && (
             <div
               style={{
                 background: '#fefce8',

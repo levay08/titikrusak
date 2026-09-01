@@ -250,9 +250,9 @@ export default function FilterPanel({
         {eidVerified ? (
           <div
             style={{
-              // Warna biru brand e.id (logo e.id dominan biru #4f7fd4).
-              background: '#eef3fc',
-              border: '1px solid #c3d4f2',
+              // Warna biru MUDA brand e.id (permintaan user: biru muda).
+              background: '#eff6ff',
+              border: '1px solid #bfdbfe',
               borderRadius: 8,
               padding: '10px 12px',
             }}
@@ -263,7 +263,7 @@ export default function FilterPanel({
                   width: 20,
                   height: 20,
                   borderRadius: '50%',
-                  background: '#4f7fd4',
+                  background: '#60a5fa',
                   color: '#fff',
                   display: 'flex',
                   alignItems: 'center',
@@ -277,7 +277,7 @@ export default function FilterPanel({
                 ✓
               </span>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 12.5, fontWeight: 700, color: '#35569b' }}>
+                <div style={{ fontSize: 12.5, fontWeight: 700, color: '#2563eb' }}>
                   Terverifikasi e.id
                 </div>
                 <div style={{ fontSize: 11.5, color: '#475569', marginTop: 2 }}>
@@ -287,7 +287,7 @@ export default function FilterPanel({
                   <div
                     style={{
                       fontSize: 11.5,
-                      color: '#35569b',
+                      color: '#2563eb',
                       marginTop: 2,
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',

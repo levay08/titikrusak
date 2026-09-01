@@ -175,16 +175,32 @@ router.get('/result/:session_id', async (req, res) => {
         error: 'Respons e.id tidak memuat holder_did (pastikan sesi sudah approved)',
       });
     }
-    const subject =
+    let subject =
       data.presentation && data.presentation.credentialSubject
         ? data.presentation.credentialSubject
         : {};
+    // Beberapa versi envelope menaruh credentialSubject di dalam
+    // verifiableCredential[0] — cek juga struktur itu.
+    if (!subject || typeof subject !== 'object' || Object.keys(subject).length === 0) {
+      const vc = data.presentation && data.presentation.verifiableCredential;
+      const cs = Array.isArray(vc) && vc[0] ? vc[0].credentialSubject : null;
+      if (cs && typeof cs === 'object') subject = cs;
+    }
     // Nama holder sesuai skema (File 1/File 2, koreksi alur): OTORITAS memakai
     // skema KYC e-KTP (identitas KTP: fullname), WARGA memakai Member level 1
-    // (email, nama, alamat, nomor telepon — tanpa KTP).
+    // (email, nama, alamat, nomor telepon — tanpa KTP). Field nama dicari dari
+    // beberapa varian nama kolom yang umum di skema KYC e.id.
     let holderName = null;
     if (row.schema_type === 'otoritas') {
-      holderName = subject.fullname || subject.name || null;
+      holderName =
+        subject.fullname ||
+        subject.full_name ||
+        subject.name ||
+        subject.nama ||
+        subject.given_name ||
+        subject.givenName ||
+        (subject.names && subject.names[0]) ||
+        null;
     } else {
       holderName = subject.email || subject.phone_number || subject.name || null;
     }

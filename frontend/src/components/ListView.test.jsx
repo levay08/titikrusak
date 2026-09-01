@@ -92,9 +92,9 @@ describe('ListView', () => {
 
     expect(screen.getByText('Jembatan Gantung Cibeureum, Garut')).toBeInTheDocument();
     expect(screen.getByText('SDN 2 Tarogong')).toBeInTheDocument();
-    // Sub-info jenis + severity di baris.
-    expect(screen.getByText(/Jembatan · Berat/)).toBeInTheDocument();
-    expect(screen.getByText(/Sekolah · Ringan/)).toBeInTheDocument();
+    // Sub-info: Kategori + Kerusakan (label jelas, bukan sekadar dua kata).
+    expect(screen.getByText(/Kategori Jembatan - Kerusakan Berat/)).toBeInTheDocument();
+    expect(screen.getByText(/Kategori Sekolah - Kerusakan Ringan/)).toBeInTheDocument();
     // Badge status laporan.
     expect(screen.getAllByText('Dilaporkan')).toHaveLength(2);
     // Jumlah laporan.
@@ -249,14 +249,17 @@ describe('ListView: mode otoritas — pengelompokan prioritas (poin Alur Inti 7)
     const rHeader = screen.getByText('Prioritas Rendah').closest('div');
     expect(within(rHeader).getByText('1 laporan')).toBeInTheDocument();
 
-    // Chip bahan prioritas: laporan terverifikasi e.id + lengkap vs tanpa e.id.
+    // Chip bahan prioritas: laporan terverifikasi e.id vs tanpa e.id.
+    // Chip kelengkapan (Lengkap/Cukup/Minim) sengaja TIDAK ditampilkan lagi
+    // (kurang jelas artinya bagi otoritas — nilai tetap dipakai di skor
+    // prioritas, hanya tidak dirender).
     const stRow = screen.getByText('Jembatan Ambruk Cilawu').closest('button');
     expect(within(stRow).getByText('✓ e.id')).toBeInTheDocument();
-    expect(within(stRow).getByText('Lengkap')).toBeInTheDocument();
+    expect(within(stRow).queryByText(/Lengkap|Cukup|Minim/)).not.toBeInTheDocument();
 
     const tRow = screen.getByText('Jalan Berlubang Dalam').closest('button');
     expect(within(tRow).getByText('Tanpa e.id')).toBeInTheDocument();
-    expect(within(tRow).getByText('Minim')).toBeInTheDocument();
+    expect(within(tRow).queryByText(/Lengkap|Cukup|Minim/)).not.toBeInTheDocument();
   });
 
   it('otoritas dapat approve (tandai terverifikasi): PATCH status + refresh daftar/peta', async () => {

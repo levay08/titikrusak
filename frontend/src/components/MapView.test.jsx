@@ -201,6 +201,26 @@ describe('MapView: navigasi bertahap (poin Alur Inti 17)', () => {
     // Popup laporan ikut ditutup — tidak perlu close manual dulu.
     expect(map.closePopup).toHaveBeenCalled();
   });
+
+  it('tombol Awal: fitBounds seluruh Indonesia (Sumatera–Papua utuh) + bersihkan riwayat', async () => {
+    const user = (await import('@testing-library/user-event')).default;
+    render(<MapView reports={[REPORT]} />);
+
+    const marker = L.circleMarker.mock.results[0].value;
+    const clickHandler = marker.on.mock.calls.find(([evt]) => evt === 'click')[1];
+    await act(async () => clickHandler()); // dorong riwayat
+
+    await user.click(screen.getByRole('button', { name: /awal/i }));
+
+    const map = L.map.mock.results[0].value;
+    // Tampilan awal = fitBounds (bukan setView) agar Indonesia utuh.
+    expect(map.fitBounds).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ maxZoom: 6 })
+    );
+    // Riwayat navigasi dibersihkan -> tombol Kembali hilang.
+    expect(screen.queryByRole('button', { name: /kembali/i })).not.toBeInTheDocument();
+  });
 });
 
 describe('MapView: tombol "Lihat Detail" di popup marker (modal pada titik)', () => {

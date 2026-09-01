@@ -198,7 +198,7 @@ export default function SearchModal({ reports = [], initialQuery = '', onClose, 
                         {r.location_name}
                       </span>
                       <span style={{ display: 'block', fontSize: 11.5, color: '#64748b', marginTop: 2 }}>
-                        {INFRA_LABELS[r.infra_type] || r.infra_type} ·{' '}
+                        Kategori {INFRA_LABELS[r.infra_type] || r.infra_type} - Kerusakan{' '}
                         {SEVERITY_LABELS[r.severity] || r.severity}
                         {r.source_media_name ? ` · ${r.source_media_name}` : ''}
                       </span>

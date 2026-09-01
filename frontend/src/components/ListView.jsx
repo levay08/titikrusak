@@ -22,7 +22,6 @@ import {
   PRIORITY_TIERS,
   priorityTier,
   priorityScore,
-  completenessLevel,
 } from '../lib/priority.js';
 import useIsMobile from '../lib/useIsMobile.js';
 import EmptyResults from './EmptyResults.jsx';
@@ -36,7 +35,6 @@ export function ReportRow({ report, onClick, otoritasMode = false }) {
   const sev = SEVERITIES.find((s) => s.value === report.severity);
   const severityColor = sev?.color || '#64748b';
   const statusColor = STATUS_COLORS[report.status] || '#64748b';
-  const completeness = completenessLevel(report);
 
   return (
     <button
@@ -86,12 +84,12 @@ export function ReportRow({ report, onClick, otoritasMode = false }) {
           {report.location_name}
         </span>
         <span style={{ display: 'block', fontSize: 12, color: '#64748b', marginTop: 2 }}>
-          {INFRA_LABELS[report.infra_type] || report.infra_type} ·{' '}
+          Kategori {INFRA_LABELS[report.infra_type] || report.infra_type} - Kerusakan{' '}
           {SEVERITY_LABELS[report.severity] || report.severity}
         </span>
       </span>
 
-      {/* Chip mode otoritas: validasi e.id + kelengkapan laporan */}
+      {/* Chip mode otoritas: validasi e.id pelapor */}
       {otoritasMode && (
         <span style={{ display: 'flex', gap: 5, flexShrink: 0 }}>
           {report.reporter_is_verified ? (
@@ -125,20 +123,6 @@ export function ReportRow({ report, onClick, otoritasMode = false }) {
               Tanpa e.id
             </span>
           )}
-          <span
-            title="Kelengkapan laporan"
-            style={{
-              padding: '3px 8px',
-              borderRadius: 999,
-              fontSize: 11,
-              fontWeight: 700,
-              background: `${completeness.color}1a`,
-              color: completeness.color,
-              whiteSpace: 'nowrap',
-            }}
-          >
-            {completeness.label}
-          </span>
         </span>
       )}
 

@@ -71,9 +71,10 @@ function SponsorLogo({ name, src, url }) {
         <div
           style={{
             position: 'absolute',
+            // Rata kanan (right:0): chip sponsor berada di pojok kanan footer
+            // — bubble tengah sebelumnya bisa terpotong tepi layar.
             bottom: 'calc(100% + 8px)',
-            left: '50%',
-            transform: 'translateX(-50%)',
+            right: 0,
             background: '#1c1917',
             color: '#fff',
             fontSize: 11.5,
@@ -225,12 +226,11 @@ function LoginButton({ onLogin, isMobile }) {
         <div
           style={{
             position: 'absolute',
-            // Bubble tampil DI BAWAH tombol: di atas tombol (posisi lama)
-            // terpotong pita bendera & tepi atas viewport sehingga tidak
-            // terlihat. zIndex tinggi agar menang atas pane Leaflet (700+).
+            // Bubble tampil DI BAWAH tombol, RATA KANAN (right:0) agar tidak
+            // terpotong tepi kanan layar (posisi tengah sebelumnya memotong
+            // teks "Otoritas"). zIndex tinggi menang atas pane Leaflet (700+).
             top: 'calc(100% + 7px)',
-            left: '50%',
-            transform: 'translateX(-50%)',
+            right: 0,
             background: '#1c1917',
             color: '#fff',
             fontSize: 12,
@@ -246,8 +246,7 @@ function LoginButton({ onLogin, isMobile }) {
             style={{
               position: 'absolute',
               bottom: '100%',
-              left: '50%',
-              transform: 'translateX(-50%)',
+              right: 10,
               border: '5px solid transparent',
               borderBottomColor: '#1c1917',
             }}
@@ -497,6 +496,13 @@ export default function App() {
     setDetailReport(report);
   };
 
+  // Klik logo/judul titikrusak.id di header: kembali ke halaman utama
+  // (peta) dan tutup semua modal.
+  const goHomeView = () => {
+    closeAllModals();
+    setActiveView('map');
+  };
+
   const openEidFlow = () => {
     closeAllModals();
     setEidFlowOpen(true);
@@ -543,10 +549,29 @@ export default function App() {
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
-          <Logo size={30} />
-          <h1 style={{ margin: 0, fontSize: 18, fontWeight: 700, whiteSpace: 'nowrap' }}>
-            titikrusak.id
-          </h1>
+          {/* Logo + judul = tombol kembali ke halaman utama/peta */}
+          <button
+            type="button"
+            onClick={goHomeView}
+            aria-label="titikrusak.id — kembali ke peta utama"
+            title="Kembali ke peta utama"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              minWidth: 0,
+              background: 'none',
+              border: 'none',
+              padding: 0,
+              cursor: 'pointer',
+              color: '#fff',
+            }}
+          >
+            <Logo size={30} />
+            <h1 style={{ margin: 0, fontSize: 18, fontWeight: 700, whiteSpace: 'nowrap' }}>
+              titikrusak.id
+            </h1>
+          </button>
         </div>
         {/* Search bar header (poin: tagline dihapus -> search bar): cari
             kata kunci apa pun; Enter membuka modal hasil pencarian. */}

@@ -34,11 +34,12 @@ import DetailModal from './DetailModal.jsx';
 const VIEW_LIMITS = L.latLngBounds([-12, 94], [7, 142]);
 
 // Tampilan awal (File 1 Bagian 5.1) — dipakai kembali oleh tombol
-// "Kembali ke Tampilan Awal". Zoom 6: Indonesia terisi penuh, sedikit
-// lebih dekat daripada fitBounds dengan padding besar (poin: fokus
-// wilayah Indonesia).
-const HOME_CENTER = [-2.5, 118];
-const HOME_ZOOM = 6;
+// "Kembali ke Tampilan Awal". fitBounds agar SELURUH Indonesia terlihat
+// utuh (Sumatera & Papua tidak terpotong) di semua ukuran layar;
+// maxZoom 6 mencegah zoom terlalu dekat di layar besar.
+const HOME_BOUNDS = L.latLngBounds([-11.5, 95.5], [6.5, 140.8]);
+const HOME_PADDING = [14, 14];
+const HOME_MAX_ZOOM = 6;
 
 // Rentang vertikal Mercator (dalam "derajat ekuator") antara dua lintang.
 function mercatorYSpan(south, north) {
@@ -258,7 +259,7 @@ export default function MapView({
   const goHome = () => {
     navHistoryRef.current = [];
     setNavHistory([]);
-    mapRef.current?.setView(HOME_CENTER, HOME_ZOOM, { animate: true });
+    mapRef.current?.fitBounds(HOME_BOUNDS, { padding: HOME_PADDING, maxZoom: HOME_MAX_ZOOM });
   };
 
   // Inisialisasi peta sekali.
@@ -304,9 +305,9 @@ export default function MapView({
         '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
     }).addTo(map);
 
-    // Tampilan awal: Indonesia terisi penuh — zoom 6 (lebih dekat daripada
-    // fitBounds ber-padding besar), fokus wilayah Indonesia.
-    map.setView(HOME_CENTER, HOME_ZOOM);
+    // Tampilan awal: seluruh Indonesia utuh (Sumatera–Papua) — fitBounds,
+    // bukan setView zoom tetap, agar tidak terpotong di layar sempit.
+    map.fitBounds(HOME_BOUNDS, { padding: HOME_PADDING, maxZoom: HOME_MAX_ZOOM });
 
     return () => {
       map.remove();
@@ -433,10 +434,12 @@ export default function MapView({
 
       // Hover marker -> tooltip: jumlah titik + provinsi (poin: tiap titik
       // punya hover bubble berisi berapa titik rusak di provinsi mana).
+      // sticky: tooltip mengikuti kursor dan HILANG saat kursor keluar
+      // dari marker (perbaikan: sebelumnya tooltip "stay" setelah un-hover).
       const prov = detectProvince(report.lat, report.lng);
       marker.bindTooltip(
         `<b>1 titik rusak</b>${prov ? ` — ${prov}` : ''}`,
-        { direction: 'top', offset: [0, -8], opacity: 0.95 }
+        { direction: 'top', offset: [0, -8], opacity: 0.95, sticky: true }
       );
 
       // Tombol "Lihat Detail" di popup -> DetailModal penuh (semua info +
