@@ -1,0 +1,167 @@
+[
+  {
+    "location_name": "Ruas Jalan Nasional Ruteng–Reo–Kedindi, Manggarai (NTT)",
+    "description": "Gempa bumi M7,7 Laut Flores (15/8/2026) merusak ruas jalan nasional Ruteng–Reo–Kedindi: 12 titik longsoran tebing, 3 titik amblesan badan jalan (STA 50+150 dan STA 53+050 dengan celah sedalam 1 meter), serta kerusakan struktur Jembatan Wae Pesi Baru. Ruas ini menjadi salah satu jalur terberat dari total 94 titik kerusakan infrastruktur di Flores.",
+    "source_name": "Kompas.com",
+    "source_url": "https://www.kompas.com/properti/read/2026/08/23/103123421/darurat-infrastruktur-ntt-94-titik-kerusakan-dan-75-longsoran",
+    "source_date": "2026-08-23",
+    "severity": "berat",
+    "infra_type": "jalan",
+    "vital_status": [
+      "akses_ekonomi",
+      "akses_kesehatan"
+    ],
+    "geocode_query": "Ruteng, Manggarai, Nusa Tenggara Timur",
+    "fallback_lat": -8.61,
+    "fallback_lng": 120.46,
+    "related_earthquake": "Gempa Laut Flores M7,7 (15/8/2026)"
+  },
+  {
+    "location_name": "Jembatan Wae Longge, Ruas Labuan Bajo–Malwatar, Manggarai Barat (NTT)",
+    "description": "Jembatan Wae Longge di ruas Labuan Bajo–Malwatar mengalami kerusakan struktural berat akibat gempa M7,7 Laut Flores (15/8/2026): pergeseran posisi bentang, sobeknya landasan elastomer (karet perletakan), retaknya tembok kepala jembatan (backwall), hingga kerusakan siar muai (expansion joint).",
+    "source_name": "Kompas.com",
+    "source_url": "https://www.kompas.com/properti/read/2026/08/23/103123421/darurat-infrastruktur-ntt-94-titik-kerusakan-dan-75-longsoran",
+    "source_date": "2026-08-23",
+    "severity": "berat",
+    "infra_type": "jembatan",
+    "vital_status": [
+      "akses_ekonomi",
+      "akses_antar_kampung"
+    ],
+    "geocode_query": "Labuan Bajo, Manggarai Barat, Nusa Tenggara Timur",
+    "fallback_lat": -8.49,
+    "fallback_lng": 119.87,
+    "related_earthquake": "Gempa Laut Flores M7,7 (15/8/2026)"
+  },
+  {
+    "location_name": "Jembatan Nanga Roro, Ruas Aegela–Batas Kota Ende (NTT)",
+    "description": "Jembatan Nanga Roro di ruas Aegela–Batas Kota Ende rusak akibat gempa M7,7 Laut Flores (15/8/2026). Pemeriksaan Kementerian PU menemukan kerusakan pada balok penahan gempa, fondasi yang mengalami gerusan, dinding penahan tanah, wingwall, dan expansion joint; penanganan sementara dilakukan untuk mengamankan struktur.",
+    "source_name": "Akurat.co",
+    "source_url": "https://www.akurat.co/infrastruktur/884815/gempa-ntt-kementerian-pu-tangani-94-titik-jalan-dan-jembatan",
+    "source_date": "2026-08-20",
+    "severity": "berat",
+    "infra_type": "jembatan",
+    "vital_status": [
+      "akses_ekonomi",
+      "akses_kesehatan"
+    ],
+    "geocode_query": "Aegela, Ende, Nusa Tenggara Timur",
+    "fallback_lat": -8.8,
+    "fallback_lng": 121.68,
+    "related_earthquake": "Gempa Laut Flores M7,7 (15/8/2026)"
+  },
+  {
+    "location_name": "Jembatan Wae Maki, Manggarai Timur (NTT)",
+    "description": "Jembatan Wae Maki di Kabupaten Manggarai Timur rusak akibat gempa M7,7 Laut Flores (15/8/2026) — termasuk jembatan utama yang mengalami pergeseran posisi bentang dan kerusakan elemen struktur, bersama Jembatan Wae Mokel, Nanga Roro, dan Nangaba dalam pendataan 16 jembatan/duiker rusak di seluruh Flores.",
+    "source_name": "Kompas.com",
+    "source_url": "https://www.kompas.com/properti/read/2026/08/23/103123421/darurat-infrastruktur-ntt-94-titik-kerusakan-dan-75-longsoran",
+    "source_date": "2026-08-23",
+    "severity": "berat",
+    "infra_type": "jembatan",
+    "vital_status": [
+      "akses_antar_kampung",
+      "akses_ekonomi"
+    ],
+    "geocode_query": "Borong, Manggarai Timur, Nusa Tenggara Timur",
+    "fallback_lat": -8.66,
+    "fallback_lng": 120.58,
+    "related_earthquake": "Gempa Laut Flores M7,7 (15/8/2026)"
+  },
+  {
+    "location_name": "Sekolah-sekolah terdampak gempa di Kabupaten Manggarai (NTT)",
+    "description": "Kabupaten Manggarai menjadi wilayah dengan jumlah sekolah terdampak gempa M7,7 Laut Flores terbanyak: 104 satuan pendidikan dari total 253 di tujuh kabupaten Pulau Flores. Salah satunya MIN 1 Manggarai di kawasan Reo yang bangunannya mengalami kerusakan; ribuan ruang kelas (5.500 di seluruh NTT) rusak hingga pembelajaran dialihkan ke tenda darurat.",
+    "source_name": "Tribunnews.com",
+    "source_url": "https://www.tribunnews.com/nasional/7869512/kemendikdasmen-catat-253-sekolah-rusak-akibat-gempa-ntt-3-murid-dan-satu-guru-meninggal",
+    "source_date": "2026-08-17",
+    "severity": "berat",
+    "infra_type": "sekolah",
+    "vital_status": [
+      "akses_sekolah"
+    ],
+    "geocode_query": "Reo, Manggarai, Nusa Tenggara Timur",
+    "fallback_lat": -8.52,
+    "fallback_lng": 120.46,
+    "related_earthquake": "Gempa Laut Flores M7,7 (15/8/2026)"
+  },
+  {
+    "location_name": "Sekolah-sekolah terdampak gempa di Kabupaten Nagekeo (NTT)",
+    "description": "Gempa M7,7 Laut Flores (15/8/2026) merusak 44 satuan pendidikan di Kabupaten Nagekeo: 15 sekolah rusak berat dan 20 rusak sedang, termasuk SDK Rowa yang berdekatan dengan SMP Negeri 6 Boawae dan TK Santa Clara. Mendikdasmen meninjau langsung dan menyerahkan bantuan revitalisasi untuk pemulihan.",
+    "source_name": "Katadata.co.id",
+    "source_url": "https://katadata.co.id/berita/nasional/6a8c1ed356288/mendikdasmen-tinjau-sekolah-terdampak-gempa-ntt-siapkan-dana-revitalisasi",
+    "source_date": "2026-08-24",
+    "severity": "berat",
+    "infra_type": "sekolah",
+    "vital_status": [
+      "akses_sekolah"
+    ],
+    "geocode_query": "Boawae, Nagekeo, Nusa Tenggara Timur",
+    "fallback_lat": -8.8,
+    "fallback_lng": 121.27,
+    "related_earthquake": "Gempa Laut Flores M7,7 (15/8/2026)"
+  },
+  {
+    "location_name": "SMPN Satap Wae Nunung, Manggarai (NTT)",
+    "description": "SMPN Satap Wae Nunung rusak akibat gempa M7,7 Laut Flores (15/8/2026). Bangunan sekolah yang hancur membuat pembelajaran tatap muka tidak bisa dilaksanakan dengan standar aman; pemerintah menyiapkan 50 tenda ruang kelas darurat untuk sekolah-sekolah rusak berat di NTT.",
+    "source_name": "Kompas.com",
+    "source_url": "https://www.kompas.com/edu/read/2026/08/19/093600171/gempa-rusak-sekolah-di-ntt-pemerintah-diminta-segera-perbaiki",
+    "source_date": "2026-08-19",
+    "severity": "berat",
+    "infra_type": "sekolah",
+    "vital_status": [
+      "akses_sekolah"
+    ],
+    "geocode_query": "Wae Nunung, Manggarai, Nusa Tenggara Timur",
+    "fallback_lat": -8.55,
+    "fallback_lng": 120.4,
+    "related_earthquake": "Gempa Laut Flores M7,7 (15/8/2026)"
+  },
+  {
+    "location_name": "Jembatan Penghubung Jalur Trans Flores, Labuan Bajo–Maumere (NTT)",
+    "description": "Jembatan penghubung di jalur Trans Flores (akses strategis dari Labuan Bajo hingga Maumere) terancam putus akibat gempa M7,7 Laut Flores (15/8/2026). Kepala BPBD setempat menyebut jembatan ini adalah akses vital — jika putus, distribusi bantuan ke wilayah terdampak akan semakin sulit.",
+    "source_name": "Kompas.com",
+    "source_url": "https://regional.kompas.com/read/2026/08/20/083300778/jembatan-penghubung-di-jalur-trans-flores-terancam-putus-akibat-gempa-ntt",
+    "source_date": "2026-08-20",
+    "severity": "berat",
+    "infra_type": "jembatan",
+    "vital_status": [
+      "akses_ekonomi",
+      "akses_kesehatan"
+    ],
+    "geocode_query": "Trans Flores, Manggarai, Nusa Tenggara Timur",
+    "fallback_lat": -8.55,
+    "fallback_lng": 120.3,
+    "related_earthquake": "Gempa Laut Flores M7,7 (15/8/2026)"
+  },
+  {
+    "location_name": "5 Bandara di NTT Rusak Akibat Gempa (Landasan Pacu Retak)",
+    "description": "Gempa M7,7 Laut Flores (15/8/2026) merusak lima bandara di NTT, termasuk Bandara Frans Seda Maumere — landasan pacunya sampai retak. Kerusakan bandara mengganggu jalur logistik bantuan dan mobilitas pascagempa di Pulau Flores.",
+    "source_name": "Suara.com",
+    "source_url": "https://www.suara.com/news/2026/08/15/173215/5-bandara-rusak-diguncang-gempa-ntt-landasan-pacu-sampai-retak",
+    "source_date": "2026-08-15",
+    "severity": "berat",
+    "infra_type": "prasarana_publik",
+    "vital_status": [
+      "akses_ekonomi"
+    ],
+    "geocode_query": "Maumere, Sikka, Nusa Tenggara Timur",
+    "fallback_lat": -8.64,
+    "fallback_lng": 122.24,
+    "related_earthquake": "Gempa Laut Flores M7,7 (15/8/2026)"
+  },
+  {
+    "location_name": "Hotel dan Fasilitas Publik di Labuan Bajo Rusak (NTT)",
+    "description": "Gempa M7,7 Laut Flores (15/8/2026) merusak sejumlah hotel dan fasilitas publik di Labuan Bajo, Manggarai Barat — kawasan pariwisata super prioritas. Sejumlah bangunan dilaporkan rusak dan BMKG sempat mengeluarkan peringatan tsunami yang memicu evakuasi warga.",
+    "source_name": "CNN Indonesia",
+    "source_url": "https://www.cnnindonesia.com/nasional/20260815064445-20-1392569/gempa-m77-guncang-ntt-hotel-fasilitas-publik-di-labuan-bajo-rusak",
+    "source_date": "2026-08-15",
+    "severity": "sedang",
+    "infra_type": "gedung",
+    "vital_status": [
+      "akses_ekonomi"
+    ],
+    "geocode_query": "Labuan Bajo, Manggarai Barat, Nusa Tenggara Timur",
+    "fallback_lat": -8.49,
+    "fallback_lng": 119.87,
+    "related_earthquake": "Gempa Laut Flores M7,7 (15/8/2026)"
+  }
+]

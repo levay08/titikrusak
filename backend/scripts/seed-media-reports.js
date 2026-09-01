@@ -102,8 +102,9 @@ async function main() {
       `INSERT INTO reports (
          infra_type, severity, bridge_authority, vital_status, vital_status_note,
          description, location_name, lat, lng, photo_urls, status,
-         source_type, source_media_name, source_media_url, source_media_date
-       ) VALUES (?, ?, 'tidak_diketahui', ?, NULL, ?, ?, ?, ?, ?, 'dilaporkan', 'media', ?, ?, ?)`
+         source_type, source_media_name, source_media_url, source_media_date,
+         related_earthquake
+       ) VALUES (?, ?, 'tidak_diketahui', ?, NULL, ?, ?, ?, ?, ?, 'dilaporkan', 'media', ?, ?, ?, ?)`
     ).run(
       item.infra_type,
       item.severity,
@@ -115,7 +116,8 @@ async function main() {
       photo ? JSON.stringify([photo]) : null,
       item.source_name,
       item.source_url,
-      item.source_date
+      item.source_date,
+      item.related_earthquake || null
     );
     inserted += 1;
     console.log(`+ INSERT: ${item.location_name} (${lat.toFixed(4)}, ${lng.toFixed(4)})`);

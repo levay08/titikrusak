@@ -7,7 +7,10 @@
     "source_date": "2025-11-25",
     "severity": "ambruk",
     "infra_type": "jembatan",
-    "vital_status": ["akses_antar_kampung", "akses_ekonomi"],
+    "vital_status": [
+      "akses_antar_kampung",
+      "akses_ekonomi"
+    ],
     "geocode_query": "Adian Koting, Tapanuli Utara, Sumatera Utara",
     "fallback_lat": 1.97,
     "fallback_lng": 98.98
@@ -20,7 +23,10 @@
     "source_date": "2025-10-26",
     "severity": "ambruk",
     "infra_type": "jembatan",
-    "vital_status": ["akses_antar_kampung", "akses_sekolah"],
+    "vital_status": [
+      "akses_antar_kampung",
+      "akses_sekolah"
+    ],
     "geocode_query": "Pagelaran, Cianjur, Jawa Barat",
     "fallback_lat": -7.28,
     "fallback_lng": 107.05
@@ -33,7 +39,10 @@
     "source_date": "2025-10-15",
     "severity": "berat",
     "infra_type": "jembatan",
-    "vital_status": ["akses_antar_kampung", "akses_ekonomi"],
+    "vital_status": [
+      "akses_antar_kampung",
+      "akses_ekonomi"
+    ],
     "geocode_query": "Enrekang, Sulawesi Selatan",
     "fallback_lat": -3.56,
     "fallback_lng": 119.76
@@ -46,7 +55,9 @@
     "source_date": "2026-08-30",
     "severity": "berat",
     "infra_type": "jembatan",
-    "vital_status": ["akses_antar_kampung"],
+    "vital_status": [
+      "akses_antar_kampung"
+    ],
     "geocode_query": "Cijulang, Pangandaran, Jawa Barat",
     "fallback_lat": -7.68,
     "fallback_lng": 108.65
@@ -59,7 +70,10 @@
     "source_date": "2025-06-30",
     "severity": "ambruk",
     "infra_type": "jembatan",
-    "vital_status": ["akses_ekonomi", "akses_antar_kampung"],
+    "vital_status": [
+      "akses_ekonomi",
+      "akses_antar_kampung"
+    ],
     "geocode_query": "Lahat, Sumatera Selatan",
     "fallback_lat": -3.79,
     "fallback_lng": 103.54
@@ -72,7 +86,9 @@
     "source_date": "2024-09-25",
     "severity": "ambruk",
     "infra_type": "jembatan",
-    "vital_status": ["akses_antar_kampung"],
+    "vital_status": [
+      "akses_antar_kampung"
+    ],
     "geocode_query": "Malang, Jawa Timur",
     "fallback_lat": -7.95,
     "fallback_lng": 112.62
@@ -85,7 +101,9 @@
     "source_date": "2024-10-14",
     "severity": "ambruk",
     "infra_type": "jembatan",
-    "vital_status": ["aset_utilitas"],
+    "vital_status": [
+      "aset_utilitas"
+    ],
     "geocode_query": "Medan, Sumatera Utara",
     "fallback_lat": 3.52,
     "fallback_lng": 98.65
@@ -98,7 +116,10 @@
     "source_date": "2026-01-06",
     "severity": "berat",
     "infra_type": "jembatan",
-    "vital_status": ["akses_antar_kampung", "akses_ekonomi"],
+    "vital_status": [
+      "akses_antar_kampung",
+      "akses_ekonomi"
+    ],
     "geocode_query": "Klaten, Jawa Tengah",
     "fallback_lat": -7.78,
     "fallback_lng": 110.51
@@ -111,7 +132,10 @@
     "source_date": "2026-03-31",
     "severity": "ambruk",
     "infra_type": "jembatan",
-    "vital_status": ["akses_antar_kampung", "akses_sekolah"],
+    "vital_status": [
+      "akses_antar_kampung",
+      "akses_sekolah"
+    ],
     "geocode_query": "Situbondo, Jawa Timur",
     "fallback_lat": -7.7,
     "fallback_lng": 114.01
@@ -124,7 +148,10 @@
     "source_date": "2025-03-10",
     "severity": "ambruk",
     "infra_type": "jembatan",
-    "vital_status": ["akses_antar_kampung", "akses_ekonomi"],
+    "vital_status": [
+      "akses_antar_kampung",
+      "akses_ekonomi"
+    ],
     "geocode_query": "Mandrehe, Nias Barat, Sumatera Utara",
     "fallback_lat": 1.03,
     "fallback_lng": 97.3
@@ -137,7 +164,9 @@
     "source_date": "2024-09-16",
     "severity": "ambruk",
     "infra_type": "jembatan",
-    "vital_status": ["akses_antar_kampung"],
+    "vital_status": [
+      "akses_antar_kampung"
+    ],
     "geocode_query": "Dharmasraya, Sumatera Barat",
     "fallback_lat": -0.95,
     "fallback_lng": 101.65
@@ -150,7 +179,9 @@
     "source_date": "2024-10-24",
     "severity": "ambruk",
     "infra_type": "jembatan",
-    "vital_status": ["akses_ekonomi"],
+    "vital_status": [
+      "akses_ekonomi"
+    ],
     "geocode_query": "Makassar, Sulawesi Selatan",
     "fallback_lat": -5.14,
     "fallback_lng": 119.42
@@ -163,7 +194,9 @@
     "source_date": "2026-04-04",
     "severity": "ambruk",
     "infra_type": "jembatan",
-    "vital_status": ["akses_antar_kampung"],
+    "vital_status": [
+      "akses_antar_kampung"
+    ],
     "geocode_query": "Sukabumi, Jawa Barat",
     "fallback_lat": -6.92,
     "fallback_lng": 106.93
@@ -176,7 +209,9 @@
     "source_date": "2024-12-25",
     "severity": "ambruk",
     "infra_type": "jembatan",
-    "vital_status": ["akses_ekonomi"],
+    "vital_status": [
+      "akses_ekonomi"
+    ],
     "geocode_query": "Taman Nasional Gunung Halimun Salak, Jawa Barat",
     "fallback_lat": -6.75,
     "fallback_lng": 106.52
@@ -189,7 +224,10 @@
     "source_date": "2025-11-25",
     "severity": "berat",
     "infra_type": "jalan",
-    "vital_status": ["akses_ekonomi", "akses_kesehatan"],
+    "vital_status": [
+      "akses_ekonomi",
+      "akses_kesehatan"
+    ],
     "geocode_query": "Sipirok, Tapanuli Selatan, Sumatera Utara",
     "fallback_lat": 1.6,
     "fallback_lng": 99.28
@@ -202,7 +240,10 @@
     "source_date": "2025-11-27",
     "severity": "berat",
     "infra_type": "jalan",
-    "vital_status": ["akses_ekonomi", "akses_kesehatan"],
+    "vital_status": [
+      "akses_ekonomi",
+      "akses_kesehatan"
+    ],
     "geocode_query": "Kutacane, Aceh Tenggara",
     "fallback_lat": 3.49,
     "fallback_lng": 97.81
@@ -215,7 +256,10 @@
     "source_date": "2025-11-24",
     "severity": "berat",
     "infra_type": "jalan",
-    "vital_status": ["akses_ekonomi", "akses_kesehatan"],
+    "vital_status": [
+      "akses_ekonomi",
+      "akses_kesehatan"
+    ],
     "geocode_query": "Adian Koting, Tapanuli Utara",
     "fallback_lat": 1.98,
     "fallback_lng": 98.97
@@ -228,9 +272,331 @@
     "source_date": "2025-12-02",
     "severity": "berat",
     "infra_type": "jalan",
-    "vital_status": ["akses_ekonomi", "akses_kesehatan"],
+    "vital_status": [
+      "akses_ekonomi",
+      "akses_kesehatan"
+    ],
     "geocode_query": "Lembah Anai, Tanah Datar, Sumatera Barat",
     "fallback_lat": -0.39,
     "fallback_lng": 100.39
+  },
+  {
+    "location_name": "Jalur Pengastian–Pendem, Jembrana (Bali)",
+    "description": "Tanah longsor terjadi pada Senin malam (29/9/2025) di jalur Pengastian–Pendem, Kabupaten Jembrana, Bali, merusak badan jalan hingga nyaris memutus total akses warga. Jalur ini merupakan rute utama yang sehari-hari digunakan ratusan warga, termasuk siswa sekolah di sekitarnya. Bupati Jembrana menyebut siswa menjadi pihak paling terdampak karena akses utama mereka terputus.",
+    "source_name": "Kompas.com",
+    "source_url": "https://denpasar.kompas.com/read/2025/09/30/151918478/jalan-longsor-di-jembrana-akibatkan-akses-utama-terputus-bupati-siswa",
+    "source_date": "2025-09-30",
+    "severity": "berat",
+    "infra_type": "jalan",
+    "vital_status": [
+      "akses_antar_kampung",
+      "akses_sekolah",
+      "akses_ekonomi"
+    ],
+    "geocode_query": "Kabupaten Jembrana, Bali",
+    "fallback_lat": -8.35,
+    "fallback_lng": 114.68
+  },
+  {
+    "location_name": "Jalan Denpasar–Gilimanuk, Selemadeg, Tabanan (Bali)",
+    "description": "Jalan nasional di depan Pasar Bajera, Desa Bajera, Kecamatan Selemadeg, Kabupaten Tabanan, Bali, ambles sedalam sekitar delapan meter pada Senin (7/7/2025). Longsor dipicu runtuhnya saluran irigasi di bawah badan jalan dan menyisakan lubang besar yang menutup hampir seluruh badan jalan. Akibatnya, jalur utama Denpasar–Gilimanuk ditutup total dan Pemprov Bali melakukan penanganan darurat selama 30 hari.",
+    "source_name": "Kompas.com",
+    "source_url": "https://denpasar.kompas.com/read/2025/07/08/200735978/longsor-di-tabanan-lumpuhkan-jalur-denpasar-gilimanuk-pemprov-bali-lakukan",
+    "source_date": "2025-07-08",
+    "severity": "berat",
+    "infra_type": "jalan",
+    "vital_status": [
+      "akses_ekonomi"
+    ],
+    "geocode_query": "Selemadeg, Tabanan, Bali",
+    "fallback_lat": -8.51,
+    "fallback_lng": 115.02
+  },
+  {
+    "location_name": "Jembatan dan jalan provinsi, Kabupaten Bima (Nusa Tenggara Barat)",
+    "description": "Banjir yang menerjang Kabupaten Bima, NTB, pada Minggu (29/12/2024) memutus dua jembatan dan ruas jalan provinsi. Data BPBD Kabupaten Bima menunjukkan akses jalan antarwilayah terputus akibat diterjang arus banjir. Kerusakan ini memutus konektivitas warga dan distribusi di sejumlah kecamatan di Kabupaten Bima.",
+    "source_name": "detikBali",
+    "source_url": "https://www.detik.com/bali/nusra/d-7708800/banjir-putus-2-jembatan-dan-ruas-jalan-provinsi-di-bima",
+    "source_date": "2024-12-29",
+    "severity": "berat",
+    "infra_type": "jembatan",
+    "vital_status": [
+      "akses_antar_kampung",
+      "akses_ekonomi"
+    ],
+    "geocode_query": "Kabupaten Bima, Nusa Tenggara Barat",
+    "fallback_lat": -8.5,
+    "fallback_lng": 118.7
+  },
+  {
+    "location_name": "Jalan wisata Pusuk–Sembalun, Lombok Timur (Nusa Tenggara Barat)",
+    "description": "Tanah longsor menimpa jalan wisata menuju Pusuk Sembalun di kaki Gunung Rinjani, Kabupaten Lombok Timur, NTB, pada Minggu (8/2/2026) sekitar pukul 13.00 WITA setelah wilayah setempat diguyur hujan lebat. Material longsor setebal 0,5–1,5 meter menutupi badan jalan sepanjang 10 meter sehingga akses menuju kawasan wisata Rinjani tertutup. BPBD NTB menerjunkan petugas untuk membersihkan material longsor.",
+    "source_name": "ANTARA News",
+    "source_url": "https://mataram.antaranews.com/berita/530050/akses-ke-rinjani-lombok-timur-tertimbun-longsor",
+    "source_date": "2026-02-08",
+    "severity": "sedang",
+    "infra_type": "jalan",
+    "vital_status": [
+      "akses_ekonomi"
+    ],
+    "geocode_query": "Sembalun, Lombok Timur, Nusa Tenggara Barat",
+    "fallback_lat": -8.42,
+    "fallback_lng": 116.47
+  },
+  {
+    "location_name": "Jembatan Oelmasi I Trans Timor, Oelamasi, Kupang (Nusa Tenggara Timur)",
+    "description": "Jembatan Oelmasi I di Kilometer 38, Oelamasi, Kabupaten Kupang, ambruk pada Kamis (26/3/2026) sehingga jalur utama Trans Timor terputus total. Akses vital penghubung antarwilayah di Pulau Timor ini lumpuh dan menghambat mobilitas masyarakat serta distribusi logistik. Pemprov NTT bersama BPJN mempercepat pembukaan jalur alternatif untuk penanganan darurat.",
+    "source_name": "Metrotvnews",
+    "source_url": "https://www.metrotvnews.com/read/ba4CPv1O-jembatan-trans-timor-ambruk-pemprov-ntt-percepat-buka-jalur-alternatif",
+    "source_date": "2026-03-26",
+    "severity": "ambruk",
+    "infra_type": "jembatan",
+    "vital_status": [
+      "akses_ekonomi",
+      "akses_kesehatan",
+      "akses_antar_kampung"
+    ],
+    "geocode_query": "Oelamasi, Kupang, Nusa Tenggara Timur",
+    "fallback_lat": -10.32,
+    "fallback_lng": 123.78
+  },
+  {
+    "location_name": "MIN 1 Manggarai, Reo, Kabupaten Manggarai (Nusa Tenggara Timur)",
+    "description": "Gempa bumi magnitudo 7,7 yang mengguncang kawasan Flores pada Agustus 2026 menyebabkan 1.378 sekolah di Pulau Flores, NTT, mengalami kerusakan. Bangunan MIN 1 Manggarai di kawasan Reo, Kabupaten Manggarai, rusak akibat gempa tersebut. Hingga Kamis (20/8/2026), BNPB mencatat 804 fasilitas pendidikan terdampak dan 923 sekolah masih meliburkan siswa sementara.",
+    "source_name": "ANTARA News",
+    "source_url": "https://kupang.antaranews.com/berita/197757/bnpb-1378-sekolah-di-flores-ntt-terdampak-gempa-m77",
+    "source_date": "2026-08-21",
+    "severity": "berat",
+    "infra_type": "sekolah",
+    "vital_status": [
+      "akses_sekolah"
+    ],
+    "geocode_query": "Reo, Manggarai, Nusa Tenggara Timur",
+    "fallback_lat": -8.32,
+    "fallback_lng": 120.49
+  },
+  {
+    "location_name": "Jalan Trans Flores Ende–Bajawa, Nangaba, Nagekeo (Nusa Tenggara Timur)",
+    "description": "Gempa bumi magnitudo 7,7 mengguncang NTT pada Sabtu (15/8/2026) pukul 04.58 WIB dengan episentrum sekitar 30 kilometer timur laut Mbay, Kabupaten Nagekeo. Gempa memicu longsor yang menimbun badan jalan Trans Flores ruas Ende–Bajawa di kawasan Nangaba sehingga jalur penghubung Ende dan Bajawa tidak dapat dilalui kendaraan. Akses warga dari arah Barai menuju Nangaba putus total tertimbun material longsor.",
+    "source_name": "Kompas.com",
+    "source_url": "https://regional.kompas.com/read/2026/08/15/081732478/gempa-ntt-m-77-hari-ini-bikin-jalan-trans-flores-putus-longsor-timbun-jalur",
+    "source_date": "2026-08-15",
+    "severity": "berat",
+    "infra_type": "jalan",
+    "vital_status": [
+      "akses_ekonomi",
+      "akses_kesehatan"
+    ],
+    "geocode_query": "Nagekeo, Nusa Tenggara Timur",
+    "fallback_lat": -8.55,
+    "fallback_lng": 121.33
+  },
+  {
+    "location_name": "SDI Klatanlo, Wulanggitang, Flores Timur (Nusa Tenggara Timur)",
+    "description": "Letusan Gunung Lewotobi Laki-laki pada Minggu (3/11/2024) malam merusak berat empat sekolah di Kabupaten Flores Timur, NTT. Gedung SDI Klatanlo di Kecamatan Wulanggitang roboh, atap ruang kelas SMP Katolik Sanctissima Trinitas Hokeng runtuh, serta SDI Wolorona dan Seminari San Dominggo Hokeng ikut rusak. Dinding ruangan mengalami retak dan ambruk akibat tertimpa material vulkanik.",
+    "source_name": "Kompas.com",
+    "source_url": "https://regional.kompas.com/read/2024/11/04/170353678/dampak-letusan-gunung-lewotobi-4-sekolah-rusak-berat",
+    "source_date": "2024-11-04",
+    "severity": "ambruk",
+    "infra_type": "sekolah",
+    "vital_status": [
+      "akses_sekolah"
+    ],
+    "geocode_query": "Wulanggitang, Flores Timur, Nusa Tenggara Timur",
+    "fallback_lat": -8.38,
+    "fallback_lng": 122.78
+  },
+  {
+    "location_name": "Kabupaten Nabire (Papua Tengah)",
+    "description": "Gempa bumi magnitudo 6,6 yang mengguncang Kabupaten Nabire, Papua Tengah, pada Jumat (19/9/2025) menyebabkan jaringan listrik dan komunikasi sempat terganggu. Kepala BNPB menyebut listrik dan sinyal GSM sempat tidak berfungsi dan mulai berangsur pulih pada Jumat pagi. BNPB juga mencatat jembatan putus serta bandara dan kantor bupati mengalami kerusakan akibat gempa tersebut.",
+    "source_name": "CNN Indonesia",
+    "source_url": "https://www.cnnindonesia.com/nasional/20250919115502-20-1275418/jaringan-listrik-dan-komunikasi-di-nabire-mulai-pulih-usai-gempa",
+    "source_date": "2025-09-19",
+    "severity": "sedang",
+    "infra_type": "jaringan_listrik",
+    "vital_status": [
+      "aset_utilitas"
+    ],
+    "geocode_query": "Nabire, Papua Tengah",
+    "fallback_lat": -3.37,
+    "fallback_lng": 135.5
+  },
+  {
+    "location_name": "Jalan Trans Papua KM 352, Distrik Benawa, Yalimo (Papua Pegunungan)",
+    "description": "Jalan Trans Papua penghubung Provinsi Papua dan Papua Pegunungan di KM 352, Distrik Benawa, Kabupaten Yalimo, putus akibat longsor pada Kamis (30/10/2025). Jalan vital ini menjadi jalur logistik truk pengangkut barang dari Jayapura menuju Wamena sehingga mobilitas dan distribusi terganggu saat putus. PJN Wilayah IV Wamena menurunkan dua alat berat untuk perbaikan darurat hingga jalan kembali dapat dilalui.",
+    "source_name": "Kompas.com",
+    "source_url": "https://regional.kompas.com/read/2025/11/01/132440778/sempat-putus-akibat-longsor-jalan-trans-papua-penghubung-papua-dan-papua",
+    "source_date": "2025-11-01",
+    "severity": "berat",
+    "infra_type": "jalan",
+    "vital_status": [
+      "akses_ekonomi"
+    ],
+    "geocode_query": "Benawa, Yalimo, Papua Pegunungan",
+    "fallback_lat": -3.86,
+    "fallback_lng": 139.35
+  },
+  {
+    "location_name": "Kota Ambon (Maluku)",
+    "description": "Bencana tanah longsor dan pohon tumbang yang terjadi pada Sabtu (21/6/2025) di Kota Ambon, Maluku, menyebabkan 78 unit rumah warga rusak tertimpa material longsor dan pohon tumbang. Akses jalan di sejumlah lokasi terputus akibat bencana tersebut. Gubernur Maluku meninjau lokasi longsor di Desa Naku, Kecamatan Leitimur Selatan, dan menyerahkan bantuan bagi warga korban bencana.",
+    "source_name": "Kompas.com",
+    "source_url": "https://regional.kompas.com/read/2025/06/22/195727278/update-bencana-alam-di-ambon-78-rumah-rusak-dan-akses-jalan-putus",
+    "source_date": "2025-06-22",
+    "severity": "berat",
+    "infra_type": "jalan",
+    "vital_status": [
+      "akses_antar_kampung",
+      "akses_kesehatan"
+    ],
+    "geocode_query": "Kota Ambon, Maluku",
+    "fallback_lat": -3.68,
+    "fallback_lng": 128.17
+  },
+  {
+    "location_name": "Jembatan Dusun Laala, Huamual, Seram Bagian Barat (Maluku)",
+    "description": "Dua jembatan di Dusun Laala, Kecamatan Huamual, Kabupaten Seram Bagian Barat, Maluku, ambruk dan putus diterjang banjir luapan Sungai Wae Laala pada awal Februari 2025. Hujan deras yang mengguyur sejak malam membuat sungai meluap dan menghancurkan dua jembatan penghubung. Akibatnya, akses transportasi darat yang menghubungkan desa-desa di Huamual dengan Piru, ibu kota kabupaten, lumpuh total.",
+    "source_name": "Kompas.com",
+    "source_url": "https://regional.kompas.com/read/2025/02/03/123723678/jembatan-putus-akses-transportasi-di-seram-barat-maluku-lumpuh",
+    "source_date": "2025-02-03",
+    "severity": "ambruk",
+    "infra_type": "jembatan",
+    "vital_status": [
+      "akses_antar_kampung",
+      "akses_ekonomi"
+    ],
+    "geocode_query": "Huamual, Seram Bagian Barat, Maluku",
+    "fallback_lat": -3.2,
+    "fallback_lng": 127.9
+  },
+  {
+    "location_name": "Ruas Jalan Nasional Ruteng–Reo–Kedindi, Manggarai (NTT)",
+    "description": "Gempa bumi M7,7 Laut Flores (15/8/2026) merusak ruas jalan nasional Ruteng–Reo–Kedindi: 12 titik longsoran tebing, 3 titik amblesan badan jalan (STA 50+150 dan STA 53+050 dengan celah sedalam 1 meter), serta kerusakan struktur Jembatan Wae Pesi Baru. Ruas ini menjadi salah satu jalur terberat dari total 94 titik kerusakan infrastruktur di Flores.",
+    "source_name": "Kompas.com",
+    "source_url": "https://www.kompas.com/properti/read/2026/08/23/103123421/darurat-infrastruktur-ntt-94-titik-kerusakan-dan-75-longsoran",
+    "source_date": "2026-08-23",
+    "severity": "berat",
+    "infra_type": "jalan",
+    "vital_status": [
+      "akses_ekonomi",
+      "akses_kesehatan"
+    ],
+    "geocode_query": "Ruteng, Manggarai, Nusa Tenggara Timur",
+    "fallback_lat": -8.61,
+    "fallback_lng": 120.46,
+    "related_earthquake": "Gempa Laut Flores M7,7 (15/8/2026)"
+  },
+  {
+    "location_name": "Jembatan Nanga Roro, Ruas Aegela–Batas Kota Ende (NTT)",
+    "description": "Jembatan Nanga Roro di ruas Aegela–Batas Kota Ende rusak akibat gempa M7,7 Laut Flores (15/8/2026). Pemeriksaan Kementerian PU menemukan kerusakan pada balok penahan gempa, fondasi yang mengalami gerusan, dinding penahan tanah, wingwall, dan expansion joint; penanganan sementara dilakukan untuk mengamankan struktur.",
+    "source_name": "Akurat.co",
+    "source_url": "https://www.akurat.co/infrastruktur/884815/gempa-ntt-kementerian-pu-tangani-94-titik-jalan-dan-jembatan",
+    "source_date": "2026-08-20",
+    "severity": "berat",
+    "infra_type": "jembatan",
+    "vital_status": [
+      "akses_ekonomi",
+      "akses_kesehatan"
+    ],
+    "geocode_query": "Aegela, Ende, Nusa Tenggara Timur",
+    "fallback_lat": -8.8,
+    "fallback_lng": 121.68,
+    "related_earthquake": "Gempa Laut Flores M7,7 (15/8/2026)"
+  },
+  {
+    "location_name": "Sekolah-sekolah terdampak gempa di Kabupaten Manggarai (NTT)",
+    "description": "Kabupaten Manggarai menjadi wilayah dengan jumlah sekolah terdampak gempa M7,7 Laut Flores terbanyak: 104 satuan pendidikan dari total 253 di tujuh kabupaten Pulau Flores. Salah satunya MIN 1 Manggarai di kawasan Reo yang bangunannya mengalami kerusakan; ribuan ruang kelas (5.500 di seluruh NTT) rusak hingga pembelajaran dialihkan ke tenda darurat.",
+    "source_name": "Tribunnews.com",
+    "source_url": "https://www.tribunnews.com/nasional/7869512/kemendikdasmen-catat-253-sekolah-rusak-akibat-gempa-ntt-3-murid-dan-satu-guru-meninggal",
+    "source_date": "2026-08-17",
+    "severity": "berat",
+    "infra_type": "sekolah",
+    "vital_status": [
+      "akses_sekolah"
+    ],
+    "geocode_query": "Reo, Manggarai, Nusa Tenggara Timur",
+    "fallback_lat": -8.52,
+    "fallback_lng": 120.46,
+    "related_earthquake": "Gempa Laut Flores M7,7 (15/8/2026)"
+  },
+  {
+    "location_name": "Sekolah-sekolah terdampak gempa di Kabupaten Nagekeo (NTT)",
+    "description": "Gempa M7,7 Laut Flores (15/8/2026) merusak 44 satuan pendidikan di Kabupaten Nagekeo: 15 sekolah rusak berat dan 20 rusak sedang, termasuk SDK Rowa yang berdekatan dengan SMP Negeri 6 Boawae dan TK Santa Clara. Mendikdasmen meninjau langsung dan menyerahkan bantuan revitalisasi untuk pemulihan.",
+    "source_name": "Katadata.co.id",
+    "source_url": "https://katadata.co.id/berita/nasional/6a8c1ed356288/mendikdasmen-tinjau-sekolah-terdampak-gempa-ntt-siapkan-dana-revitalisasi",
+    "source_date": "2026-08-24",
+    "severity": "berat",
+    "infra_type": "sekolah",
+    "vital_status": [
+      "akses_sekolah"
+    ],
+    "geocode_query": "Boawae, Nagekeo, Nusa Tenggara Timur",
+    "fallback_lat": -8.8,
+    "fallback_lng": 121.27,
+    "related_earthquake": "Gempa Laut Flores M7,7 (15/8/2026)"
+  },
+  {
+    "location_name": "SMPN Satap Wae Nunung, Manggarai (NTT)",
+    "description": "SMPN Satap Wae Nunung rusak akibat gempa M7,7 Laut Flores (15/8/2026). Bangunan sekolah yang hancur membuat pembelajaran tatap muka tidak bisa dilaksanakan dengan standar aman; pemerintah menyiapkan 50 tenda ruang kelas darurat untuk sekolah-sekolah rusak berat di NTT.",
+    "source_name": "Kompas.com",
+    "source_url": "https://www.kompas.com/edu/read/2026/08/19/093600171/gempa-rusak-sekolah-di-ntt-pemerintah-diminta-segera-perbaiki",
+    "source_date": "2026-08-19",
+    "severity": "berat",
+    "infra_type": "sekolah",
+    "vital_status": [
+      "akses_sekolah"
+    ],
+    "geocode_query": "Wae Nunung, Manggarai, Nusa Tenggara Timur",
+    "fallback_lat": -8.55,
+    "fallback_lng": 120.4,
+    "related_earthquake": "Gempa Laut Flores M7,7 (15/8/2026)"
+  },
+  {
+    "location_name": "Jembatan Penghubung Jalur Trans Flores, Labuan Bajo–Maumere (NTT)",
+    "description": "Jembatan penghubung di jalur Trans Flores (akses strategis dari Labuan Bajo hingga Maumere) terancam putus akibat gempa M7,7 Laut Flores (15/8/2026). Kepala BPBD setempat menyebut jembatan ini adalah akses vital — jika putus, distribusi bantuan ke wilayah terdampak akan semakin sulit.",
+    "source_name": "Kompas.com",
+    "source_url": "https://regional.kompas.com/read/2026/08/20/083300778/jembatan-penghubung-di-jalur-trans-flores-terancam-putus-akibat-gempa-ntt",
+    "source_date": "2026-08-20",
+    "severity": "berat",
+    "infra_type": "jembatan",
+    "vital_status": [
+      "akses_ekonomi",
+      "akses_kesehatan"
+    ],
+    "geocode_query": "Trans Flores, Manggarai, Nusa Tenggara Timur",
+    "fallback_lat": -8.55,
+    "fallback_lng": 120.3,
+    "related_earthquake": "Gempa Laut Flores M7,7 (15/8/2026)"
+  },
+  {
+    "location_name": "5 Bandara di NTT Rusak Akibat Gempa (Landasan Pacu Retak)",
+    "description": "Gempa M7,7 Laut Flores (15/8/2026) merusak lima bandara di NTT, termasuk Bandara Frans Seda Maumere — landasan pacunya sampai retak. Kerusakan bandara mengganggu jalur logistik bantuan dan mobilitas pascagempa di Pulau Flores.",
+    "source_name": "Suara.com",
+    "source_url": "https://www.suara.com/news/2026/08/15/173215/5-bandara-rusak-diguncang-gempa-ntt-landasan-pacu-sampai-retak",
+    "source_date": "2026-08-15",
+    "severity": "berat",
+    "infra_type": "prasarana_publik",
+    "vital_status": [
+      "akses_ekonomi"
+    ],
+    "geocode_query": "Maumere, Sikka, Nusa Tenggara Timur",
+    "fallback_lat": -8.64,
+    "fallback_lng": 122.24,
+    "related_earthquake": "Gempa Laut Flores M7,7 (15/8/2026)"
+  },
+  {
+    "location_name": "Hotel dan Fasilitas Publik di Labuan Bajo Rusak (NTT)",
+    "description": "Gempa M7,7 Laut Flores (15/8/2026) merusak sejumlah hotel dan fasilitas publik di Labuan Bajo, Manggarai Barat — kawasan pariwisata super prioritas. Sejumlah bangunan dilaporkan rusak dan BMKG sempat mengeluarkan peringatan tsunami yang memicu evakuasi warga.",
+    "source_name": "CNN Indonesia",
+    "source_url": "https://www.cnnindonesia.com/nasional/20260815064445-20-1392569/gempa-m77-guncang-ntt-hotel-fasilitas-publik-di-labuan-bajo-rusak",
+    "source_date": "2026-08-15",
+    "severity": "sedang",
+    "infra_type": "gedung",
+    "vital_status": [
+      "akses_ekonomi"
+    ],
+    "geocode_query": "Labuan Bajo, Manggarai Barat, Nusa Tenggara Timur",
+    "fallback_lat": -8.49,
+    "fallback_lng": 119.87,
+    "related_earthquake": "Gempa Laut Flores M7,7 (15/8/2026)"
   }
 ]
