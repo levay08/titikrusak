@@ -65,6 +65,7 @@ describe('MapView: marker laporan approved menampilkan centang (poin Alur Inti 2
     expect(L.divIcon).toHaveBeenCalledWith(
       expect.objectContaining({
         html: expect.stringContaining('✓'),
+        popupAnchor: [0, -30],
       })
     );
     const iconHtml = L.divIcon.mock.calls[0][0].html;

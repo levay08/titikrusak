@@ -667,6 +667,10 @@ export default function MapView({
           html: `<div class="${glowClass}" style="width:26px;height:26px;border-radius:50%;background:${color};border:3px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:#fff;line-height:1">✓</div>`,
           iconSize: [26, 26],
           iconAnchor: [13, 13],
+          // Tanpa popupAnchor, popup menempel di titik tengah marker (default
+          // [0,0]) sehingga terlihat seperti tidak muncul saat diklik. Anchor
+          // di atas marker agar popup tampil jelas seperti marker circle.
+          popupAnchor: [0, -30],
         });
         marker = L.marker([report.lat, report.lng], { icon, severity: report.severity });
       } else {
