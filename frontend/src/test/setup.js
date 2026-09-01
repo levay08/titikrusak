@@ -5,6 +5,14 @@
 
 import { vi } from 'vitest';
 
+// Modal selamat datang hanya untuk kunjungan pertama per tab — preset flag
+// sessionStorage di test agar App.test dkk tidak terganggu overlay welcome.
+try {
+  sessionStorage.setItem('titikrusak_welcome_seen', '1');
+} catch (_e) {
+  // abaikan bila sessionStorage tidak tersedia
+}
+
 // matchMedia tidak ada di jsdom — stub agar komponen yang memakai
 // useIsMobile bisa dirender (default desktop: matches=false).
 Object.defineProperty(window, 'matchMedia', {

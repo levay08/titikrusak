@@ -39,6 +39,21 @@ const VP_SIMPLE_PATH = '/api/v1/verifier/presentation/simple/';
 const VP_RESULT_PATH = '/api/v1/verifier/presentation/result/';
 
 // Verification schema id per role (diisi dari env, hasil langkah ketiga).
+// WARGA memakai skema Member Lv1 (email/phone, TANPA KTP) — e.id tidak
+// menyediakan field nama di skema ini. Nama tampilan diturunkan dari
+// username email: "pahlevy.gmx@gmail.com" -> "Pahlevy Gmx".
+function usernameFromEmail(email) {
+  if (!email || typeof email !== 'string') return null;
+  const name = String(email).trim().split('@')[0];
+  if (!name) return null;
+  return name
+    .replace(/[._\-]+/g, ' ')
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(' ');
+}
 const ROLE_TO_VS_ID = {
   warga: env.EID_VS_ID_WARGA,
   otoritas: env.EID_VS_ID_OTORITAS,
@@ -202,7 +217,9 @@ router.get('/result/:session_id', async (req, res) => {
         (subject.names && subject.names[0]) ||
         null;
     } else {
-      holderName = subject.email || subject.phone_number || subject.name || null;
+      // WARGA: tampilkan "Nama - Email" (nama turunan username + email).
+      const uname = usernameFromEmail(subject.email);
+      holderName = uname ? `${uname} - ${subject.email}` : subject.name || null;
     }
 
     db.prepare(

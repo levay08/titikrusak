@@ -103,6 +103,7 @@ export default function FilterPanel({
   // menampilkan status OTORITAS (KYC) dengan tombol keluar, sejalan dengan
   // login otoritas di header/admin.
   onLogoutOtoritas = () => {},
+  onRequestLogin = () => {}, // masuk sebagai OTORITAS (KYC e-KTP)
 }) {
   // Toggle nilai multi-select (severity/authority/vital) -> onChange.
   const toggle = (key) => (value) => (e) => {
@@ -322,6 +323,24 @@ export default function FilterPanel({
             >
               Keluar / Logout e.id
             </button>
+            <button
+              type="button"
+              onClick={onRequestVerify}
+              style={{
+                width: '100%',
+                marginTop: 6,
+                padding: '7px 10px',
+                borderRadius: 6,
+                border: 'none',
+                background: '#eff6ff',
+                color: '#2563eb',
+                fontSize: 12,
+                fontWeight: 700,
+                cursor: 'pointer',
+              }}
+            >
+              Verifikasi sebagai Warga
+            </button>
           </div>
         ) : eidVerified ? (
           <div
@@ -393,6 +412,24 @@ export default function FilterPanel({
             >
               Keluar / Logout e.id
             </button>
+            <button
+              type="button"
+              onClick={onRequestLogin}
+              style={{
+                width: '100%',
+                marginTop: 6,
+                padding: '7px 10px',
+                borderRadius: 6,
+                border: 'none',
+                background: '#facc15',
+                color: '#1c1917',
+                fontSize: 12,
+                fontWeight: 700,
+                cursor: 'pointer',
+              }}
+            >
+              Login sebagai Otoritas
+            </button>
           </div>
         ) : (
           <div
@@ -450,6 +487,24 @@ export default function FilterPanel({
               }}
             >
               Verifikasi e.id
+            </button>
+            <button
+              type="button"
+              onClick={onRequestLogin}
+              style={{
+                width: '100%',
+                marginTop: 6,
+                padding: '8px 10px',
+                borderRadius: 6,
+                border: '1px solid #facc15',
+                background: '#fffef5',
+                color: '#854d0e',
+                fontSize: 12,
+                fontWeight: 700,
+                cursor: 'pointer',
+              }}
+            >
+              Login sebagai Otoritas
             </button>
           </div>
         )}

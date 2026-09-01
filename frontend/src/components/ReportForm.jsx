@@ -300,6 +300,68 @@ export default function ReportForm({ onSubmitted, onClose }) {
     return errs;
   };
 
+  // ---- Foto laporan (opsional, maks. 5) ----
+  const MAX_PHOTOS = 5;
+  const [photos, setPhotos] = useState([]);
+  const [photoError, setPhotoError] = useState('');
+
+  // Kompresi gambar ke JPEG data URL (maks. sisi 900px, kualitas 0.72)
+  // agar payload POST tetap wajar; fallback data URL asli tanpa canvas.
+  const compressImage = (file) =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const img = new Image();
+        img.onload = () => {
+          try {
+            const maxDim = 900;
+            let { width, height } = img;
+            if (width > maxDim || height > maxDim) {
+              const scale = maxDim / Math.max(width, height);
+              width = Math.round(width * scale);
+              height = Math.round(height * scale);
+            }
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+            resolve(canvas.toDataURL('image/jpeg', 0.72));
+          } catch (_e) {
+            resolve(reader.result);
+          }
+        };
+        img.onerror = () => resolve(reader.result);
+        img.src = reader.result;
+      };
+      reader.onerror = () => reject(new Error('Gagal membaca file'));
+      reader.readAsDataURL(file);
+    });
+
+  const handlePhotoChange = async (e) => {
+    const files = Array.from(e.target.files || []);
+    e.target.value = ''; // izinkan memilih ulang file yang sama
+    setPhotoError('');
+    if (files.length === 0) return;
+    if (photos.length + files.length > MAX_PHOTOS) {
+      setPhotoError(`Maksimal ${MAX_PHOTOS} foto per laporan.`);
+      return;
+    }
+    for (const file of files) {
+      if (!file.type.startsWith('image/')) {
+        setPhotoError('Hanya file gambar yang bisa dilampirkan.');
+        continue;
+      }
+      try {
+        const dataUrl = await compressImage(file);
+        setPhotos((prev) => [...prev, dataUrl]);
+      } catch (_err) {
+        setPhotoError('Gagal membaca foto — coba file lain.');
+      }
+    }
+  };
+
+  const removePhoto = (index) => setPhotos((prev) => prev.filter((_, i) => i !== index));
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     const errs = validate();
@@ -326,6 +388,9 @@ export default function ReportForm({ onSubmitted, onClose }) {
     if (verification && verification.isVerified) {
       payload.reporter_display_name = verification.displayName || null;
       payload.reporter_is_verified = true;
+    }
+    if (photos.length > 0) {
+      payload.photo_urls = photos;
     }
 
     try {
@@ -832,6 +897,80 @@ export default function ReportForm({ onSubmitted, onClose }) {
               style={inputStyle}
             />
             {errors.vital_status_note && <div style={errorStyle}>{errors.vital_status_note}</div>}
+          </div>
+        )}
+      </div>
+
+      {/* 4b. Foto Kerusakan (opsional, maks. 5) */}
+      <div style={{ marginBottom: 16 }}>
+        <span style={labelStyle}>Foto Kerusakan (opsional, maks. 5)</span>
+        <input
+          id="report_photos"
+          type="file"
+          accept="image/*"
+          multiple
+          onChange={handlePhotoChange}
+          style={{ display: 'none' }}
+        />
+        <div style={{ marginTop: 6 }}>
+          <label
+            htmlFor="report_photos"
+            style={{
+              display: 'inline-block',
+              border: '1.5px dashed #cbd5e1',
+              borderRadius: 10,
+              padding: '10px 16px',
+              fontSize: 12.5,
+              color: '#334155',
+              cursor: 'pointer',
+              background: '#f8fafc',
+            }}
+          >
+            Pilih Foto…
+          </label>
+          <span style={{ fontSize: 11.5, color: '#94a3b8', marginLeft: 8 }}>
+            JPG/PNG — dikompres otomatis
+          </span>
+        </div>
+        {photoError && <div style={errorStyle}>{photoError}</div>}
+        {photos.length > 0 && (
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 10 }}>
+            {photos.map((photo, i) => (
+              <div key={i} style={{ position: 'relative' }}>
+                <img
+                  src={photo}
+                  alt={`Foto ${i + 1}`}
+                  style={{
+                    width: 84,
+                    height: 84,
+                    objectFit: 'cover',
+                    borderRadius: 8,
+                    border: '1px solid #e2e8f0',
+                  }}
+                />
+                <button
+                  type="button"
+                  aria-label={`Hapus foto ${i + 1}`}
+                  onClick={() => removePhoto(i)}
+                  style={{
+                    position: 'absolute',
+                    top: -6,
+                    right: -6,
+                    width: 20,
+                    height: 20,
+                    borderRadius: '50%',
+                    border: 'none',
+                    background: '#1c1917',
+                    color: '#fff',
+                    fontSize: 11,
+                    lineHeight: 1,
+                    cursor: 'pointer',
+                  }}
+                >
+                  ✕
+                </button>
+              </div>
+            ))}
           </div>
         )}
       </div>

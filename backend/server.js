@@ -12,7 +12,9 @@ const enrichmentRouter = require('./routes/enrichment.js');
 
 const app = express();
 
-app.use(express.json());
+// Body limit diperbesar: laporan bisa membawa foto (data URL hasil
+// kompresi frontend, maks. 5 foto) — File 1 Bagian 5.2.
+app.use(express.json({ limit: '12mb' }));
 
 // Route laporan (File 2 Bagian 6.3 langkah kedua).
 // Rate limiting untuk POST diterapkan di dalam routes/reports.js

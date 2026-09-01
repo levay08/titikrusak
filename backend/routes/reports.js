@@ -323,11 +323,24 @@ router.post('/', reportLimiter, async (req, res) => {
       : null;
   const reporter_is_verified = body.reporter_is_verified === true ? 1 : 0;
 
+  // Foto laporan (opsional, File 1 Bagian 5.2): array string — URL publik
+  // atau data URL hasil kompresi di frontend. Maksimal 5, masing-masing
+  // dibatasi panjangnya agar ukuran database tetap wajar.
+  let photo_urls = null;
+  if (Array.isArray(body.photo_urls)) {
+    const clean = body.photo_urls
+      .filter((u) => typeof u === 'string' && u.trim() !== '' && u.trim().length <= 4_000_000)
+      .map((u) => u.trim())
+      .slice(0, 5);
+    if (clean.length > 0) photo_urls = JSON.stringify(clean);
+  }
+
   const stmt = db.prepare(`
     INSERT INTO reports (
       infra_type, severity, bridge_authority, vital_status, vital_status_note,
-      location_name, lat, lng, description, reporter_display_name, reporter_is_verified
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      location_name, lat, lng, description, photo_urls,
+      reporter_display_name, reporter_is_verified
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
 
   const info = stmt.run(
@@ -340,6 +353,7 @@ router.post('/', reportLimiter, async (req, res) => {
     lat,
     lng,
     description,
+    photo_urls,
     reporter_display_name,
     reporter_is_verified
   );

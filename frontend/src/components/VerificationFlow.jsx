@@ -56,6 +56,8 @@ export default function VerificationFlow({
   const [holderName, setHolderName] = useState(null);
   const [aliasMode, setAliasMode] = useState(false);
   const [alias, setAlias] = useState('');
+  // Sisa waktu sesi (display countdown, 1 detik).
+  const [remainingMs, setRemainingMs] = useState(maxWaitMs);
 
   const deadlineRef = useRef(0);
   const sessionRef = useRef(null);
@@ -173,6 +175,23 @@ export default function VerificationFlow({
     return () => clearInterval(interval);
   }, [phase, sessionId, pollIntervalMs]);
 
+  // ---- Countdown sisa waktu sesi (display per detik) ----
+  useEffect(() => {
+    if (phase !== 'qr') return undefined;
+    const update = () => setRemainingMs(Math.max(0, deadlineRef.current - Date.now()));
+    update();
+    const interval = setInterval(update, 1000);
+    return () => clearInterval(interval);
+  }, [phase]);
+
+  // mm:ss — angka tabular agar tidak berkedip saat berdetak.
+  const fmtTime = (ms) => {
+    const total = Math.max(0, Math.ceil(ms / 1000));
+    const m = Math.floor(total / 60);
+    const s = total % 60;
+    return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+  };
+
   // ---- Langkah 5: kirim hasil ke pemanggil sesuai pilihan (File 1 3.5) ----
   const handleRealName = () => {
     onComplete({ displayName: holderName, isVerified: true });
@@ -194,6 +213,19 @@ export default function VerificationFlow({
       </h2>
       <p style={{ margin: '0 0 14px', fontSize: 12, lineHeight: 1.5, color: '#64748b' }}>
         {roleSchemaNote}
+      </p>
+
+      <p style={{ margin: '0 0 14px', fontSize: 12, lineHeight: 1.5, color: '#64748b' }}>
+        Belum punya akun e.id atau perlu daftar ulang?{' '}
+        <a
+          href="https://wallet.e.id/auth/login"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ color: '#2563eb', fontWeight: 600, textDecoration: 'underline' }}
+        >
+          Daftar atau masuk di sini
+        </a>
+        .
       </p>
 
       {/* Indikator tahapan (File 1 Bagian 9.8) */}
@@ -254,6 +286,22 @@ export default function VerificationFlow({
             <br />
             Sesi berlaku maksimal 5 menit.
           </p>
+          <div
+            style={{
+              display: 'inline-block',
+              marginTop: 12,
+              padding: '6px 14px',
+              borderRadius: 999,
+              fontSize: 13,
+              fontWeight: 700,
+              fontVariantNumeric: 'tabular-nums',
+              background: remainingMs < 10000 ? '#fef2f2' : '#f8fafc',
+              border: `1px solid ${remainingMs < 10000 ? '#fca5a5' : '#e2e8f0'}`,
+              color: remainingMs < 10000 ? '#b91c1c' : '#1c1917',
+            }}
+          >
+            Sisa waktu: {fmtTime(remainingMs)}
+          </div>
         </div>
       )}
 

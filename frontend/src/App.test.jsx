@@ -146,7 +146,7 @@ describe('App: alur lapor kerusakan end-to-end', () => {
     expect(screen.getByRole('button', { name: /^pantau$/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /^notifikasi$/i })).toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: /login sebagai otoritas/i }));
+    await user.click(screen.getAllByRole('button', { name: /login sebagai otoritas/i })[0]);
 
     // Info tampil (pesan baku SAMA dengan form warga): butuh scan QR +
     // hanya optimal dan lancar di desktop.
@@ -229,16 +229,20 @@ describe('App: alur lapor kerusakan end-to-end', () => {
     render(<App />);
     await waitFor(() => expect(fetchMock).toHaveBeenCalled());
 
-    const loginBtn = screen.getByRole('button', { name: /login sebagai otoritas/i });
+    // Tombol login otoritas: header (desktop) — elemen pertama; sidebar
+    // kini juga punya tombol "Login sebagai Otoritas" (switch role).
+    const loginBtn = screen.getAllByRole('button', { name: /login sebagai otoritas/i })[0];
     expect(loginBtn).toHaveTextContent('🔒 Login');
     // Belum ada teks panjang "Masuk sebagai Otoritas Lokal".
     expect(screen.queryByText('Masuk sebagai Otoritas Lokal')).not.toBeInTheDocument();
 
-    // Hover -> bubble muncul; keluar hover -> bubble hilang.
+    // Hover -> bubble muncul (kini ada 2 elemen berteks sama: bubble
+    // hover header + tombol switch-role di sidebar); keluar hover ->
+    // bubble hilang (tersisa 1: tombol sidebar).
     await user.hover(loginBtn);
-    expect(screen.getByText('Login sebagai Otoritas')).toBeInTheDocument();
+    expect(screen.getAllByText('Login sebagai Otoritas')).toHaveLength(2);
     await user.unhover(loginBtn);
-    expect(screen.queryByText('Login sebagai Otoritas')).not.toBeInTheDocument();
+    expect(screen.getAllByText('Login sebagai Otoritas')).toHaveLength(1);
   });
 
   it('sidebar filter desktop bisa disembunyikan dan dimunculkan lagi', async () => {

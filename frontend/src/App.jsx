@@ -29,6 +29,7 @@ import useIsMobile from './lib/useIsMobile.js';
 import SearchModal from './components/SearchModal.jsx';
 import AdminView from './components/AdminView.jsx';
 import DetailModal from './components/DetailModal.jsx';
+import WelcomeModal from './components/WelcomeModal.jsx';
 import { DocModal, TermsModal } from './components/FooterModals.jsx';
 
 // Logo sponsor di footer (poin Alur Inti: "supported by"):
@@ -359,6 +360,9 @@ export default function App() {
   const [refreshKey, setRefreshKey] = useState(0);
   const [filters, setFilters] = useState(EMPTY_FILTERS);
   const [activeView, setActiveView] = useState('map'); // 'map' | 'list' | 'admin'
+  // Sinyal reset peta ke tampilan awal (seluruh Indonesia) saat judul
+  // header "titikrusak.id" diklik — berfungsi juga saat sudah di mode Peta.
+  const [homeResetKey, setHomeResetKey] = useState(0);
   const [reports, setReports] = useState([]);
   const [dataError, setDataError] = useState(null);
   // Total laporan di database (fetch tanpa filter) untuk membedakan
@@ -379,6 +383,25 @@ export default function App() {
   // warga dari sidebar FilterPanel.
   const [eidVerified, setEidVerified] = useState(() => Boolean(getStoredEidVerification()));
   const [eidFlowOpen, setEidFlowOpen] = useState(false);
+  // Modal selamat datang: SESI per tab — muncul saat kunjungan pertama
+  // tab/window (tab baru setelah tab ditutup => muncul lagi). Selama tab
+  // masih terbuka, flag sessionStorage membuat modal tidak muncul kembali
+  // walau kembali ke halaman pertama.
+  const [welcomeOpen, setWelcomeOpen] = useState(() => {
+    try {
+      return !sessionStorage.getItem('titikrusak_welcome_seen');
+    } catch (_e) {
+      return true;
+    }
+  });
+  const handleWelcomeClose = () => {
+    try {
+      sessionStorage.setItem('titikrusak_welcome_seen', '1');
+    } catch (_e) {
+      // abaikan bila sessionStorage tidak tersedia
+    }
+    setWelcomeOpen(false);
+  };
   // Drawer filter di mobile (File 1 Bagian 9.7) + drawer menu header.
   const isMobile = useIsMobile();
   const [filtersOpen, setFiltersOpen] = useState(false);
@@ -507,6 +530,9 @@ export default function App() {
   const goHomeView = () => {
     closeAllModals();
     setActiveView('map');
+    // Reset peta ke tampilan awal (seluruh Indonesia) — berlaku juga saat
+    // sudah berada di mode Peta (mis. sudah zoom ke titik tertentu).
+    setHomeResetKey((k) => k + 1);
   };
 
   const openEidFlow = () => {
@@ -832,6 +858,10 @@ export default function App() {
             onLogoutEid={handleLogoutEid}
             otoritas={otoritas}
             onLogoutOtoritas={() => setOtoritas(null)}
+            onRequestLogin={() => {
+              closeAllModals();
+              setOtoritasOpen(true);
+            }}
           />
         )}
         {/* Tab tipis untuk memunculkan kembali sidebar yang disembunyikan */}
@@ -898,6 +928,7 @@ export default function App() {
               onOpenDetail={openReportDetail}
               otoritas={otoritas}
               onReportUpdated={handleSubmitted}
+              homeResetKey={homeResetKey}
             />
           ) : (
             <ListView
@@ -986,6 +1017,11 @@ export default function App() {
                   onLogoutOtoritas={() => {
                     setFiltersOpen(false);
                     setOtoritas(null);
+                  }}
+                  onRequestLogin={() => {
+                    setFiltersOpen(false);
+                    closeAllModals();
+                    setOtoritasOpen(true);
                   }}
                 />
               </div>
@@ -1249,6 +1285,9 @@ export default function App() {
               </div>
             </div>
           )}
+
+          {/* Modal selamat datang (kunjungan pertama saja) */}
+          {welcomeOpen && <WelcomeModal onClose={handleWelcomeClose} />}
 
           {/* Modal verifikasi e.id WARGA dari sidebar (poin Alur Inti 5):
               Member level 1 (email/nama/alamat/no. telp, tanpa KTP) —

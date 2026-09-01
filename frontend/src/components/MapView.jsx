@@ -220,6 +220,9 @@ function SeverityLegend() {
 function ZoomSlider({ map }) {
   const [zoom, setZoom] = useState(() => (map ? map.getZoom() : 6));
   const [dragging, setDragging] = useState(false);
+  // Toggle sembunyikan/tampilkan kontrol zoom (mobile) agar tidak
+  // menghalangi pandangan saat zoom in ke titik di peta.
+  const [hidden, setHidden] = useState(false);
   const isMobile = useIsMobile();
 
   useEffect(() => {
@@ -255,6 +258,50 @@ function ZoomSlider({ map }) {
     justifyContent: 'center',
     padding: 0,
   };
+
+  const toggleBtnStyle = {
+    width: 30,
+    height: 30,
+    borderRadius: '50%',
+    border: '1px solid #cbd5e1',
+    background: 'rgba(255, 255, 255, 0.95)',
+    color: '#1c1917',
+    fontSize: 15,
+    fontWeight: 700,
+    lineHeight: 1,
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 0,
+    boxShadow: '0 1px 6px rgba(0, 0, 0, 0.3)',
+  };
+
+  // Mobile + slider disembunyikan: cukup satu tombol kecil untuk tampilkan
+  // kembali kontrol zoom di posisi yang sama (di atas area tombol Lapor).
+  if (isMobile && hidden) {
+    return (
+      <div
+        style={{
+          position: 'absolute',
+          bottom: 78,
+          left: '50%',
+          transform: 'translateX(-50%)',
+          zIndex: 1100,
+        }}
+      >
+        <button
+          type="button"
+          onClick={() => setHidden(false)}
+          aria-label="Tampilkan kontrol zoom"
+          title="Tampilkan kontrol zoom"
+          style={toggleBtnStyle}
+        >
+          ▲
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -333,6 +380,17 @@ function ZoomSlider({ map }) {
       >
         <span style={{ fontSize: isMobile ? 11 : 12, lineHeight: 1 }}>⛶</span> Fit Layar
       </button>
+      {isMobile && (
+        <button
+          type="button"
+          onClick={() => setHidden(true)}
+          aria-label="Sembunyikan kontrol zoom"
+          title="Sembunyikan kontrol zoom"
+          style={{ ...toggleBtnStyle, width: 26, height: 26, fontSize: 13, boxShadow: 'none' }}
+        >
+          ▼
+        </button>
+      )}
       {dragging && (
         <span
           style={{
@@ -370,6 +428,7 @@ export default function MapView({
   onOpenDetail = null,
   otoritas = null, // sesi otoritas aktif (untuk tindakan status di detail)
   onReportUpdated = () => {},
+  homeResetKey = 0, // berubah -> reset peta ke tampilan awal (judul header diklik)
 }) {
   const containerRef = useRef(null);
   const mapRef = useRef(null);
@@ -418,6 +477,16 @@ export default function MapView({
     setNavHistory([]);
     mapRef.current?.fitBounds(HOME_BOUNDS, { padding: HOME_PADDING, maxZoom: HOME_MAX_ZOOM });
   };
+
+  // Judul header "titikrusak.id" diklik -> App menaikkan homeResetKey;
+  // reset peta ke tampilan awal (seluruh Indonesia). Skip nilai awal agar
+  // fitBounds bawaan saat mount tidak terpanggil dua kali.
+  const homeResetKeyRef = useRef(homeResetKey);
+  useEffect(() => {
+    if (homeResetKey === homeResetKeyRef.current) return;
+    homeResetKeyRef.current = homeResetKey;
+    goHome();
+  }, [homeResetKey]);
 
   // Inisialisasi peta sekali.
   useEffect(() => {

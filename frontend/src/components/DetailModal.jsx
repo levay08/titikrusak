@@ -103,7 +103,9 @@ function parseEnrich(value) {
   try {
     return JSON.parse(value);
   } catch (_e) {
-    return null;
+    // Nilai lama berupa teks bebas (mis. seed NTT "Gempa Laut Flores M7,7
+    // (15/8/2026)") — tampilkan apa adanya.
+    return value;
   }
 }
 
@@ -132,6 +134,26 @@ const BMKG_SOURCE = (
 function EarthquakeBadge({ value }) {
   const d = parseEnrich(value);
   if (!d) return '—';
+  // Nilai teks biasa (seed lama): tampilkan langsung tanpa format objek.
+  if (typeof d === 'string') {
+    return (
+      <span
+        style={{
+          display: 'inline-block',
+          background: '#fef3c7',
+          border: '1px solid #fcd34d',
+          color: '#78350f',
+          borderRadius: 8,
+          padding: '6px 10px',
+          fontSize: 12,
+          lineHeight: 1.45,
+        }}
+      >
+        {d}
+        {BMKG_SOURCE}
+      </span>
+    );
+  }
   return (
     <span
       style={{
@@ -155,6 +177,26 @@ function EarthquakeBadge({ value }) {
 function WeatherBadge({ value }) {
   const d = parseEnrich(value);
   if (!d) return '—';
+  // Nilai teks biasa: tampilkan langsung.
+  if (typeof d === 'string') {
+    return (
+      <span
+        style={{
+          display: 'inline-block',
+          background: '#eff6ff',
+          border: '1px solid #bfdbfe',
+          color: '#1e3a8a',
+          borderRadius: 8,
+          padding: '6px 10px',
+          fontSize: 12,
+          lineHeight: 1.45,
+        }}
+      >
+        {d}
+        {BMKG_SOURCE}
+      </span>
+    );
+  }
   return (
     <span
       style={{
