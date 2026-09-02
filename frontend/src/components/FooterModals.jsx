@@ -254,15 +254,13 @@ export function TermsModal({ onClose }) {
   );
 }
 
-// ---- Kontak (form -> email hello@arfhacorp.com) ----
-// Pengiriman LANGSUNG dari browser ke relay FormSubmit.co (bukan lewat
-// backend): Cloudflare FormSubmit menolak request server (Error 1010 /
-// "must be opened through a web server") — dari browser Origin
-// https://titikrusak.id diterima. Kode error/status body dicek sungguhan
-// (backend lama sempat menganggap sukses walau success:false — bug yang
-// bikin "tidak ada email masuk").
-const CONTACT_EMAIL = 'hello@arfhacorp.com';
-const CONTACT_ENDPOINT = `https://formsubmit.co/ajax/${CONTACT_EMAIL}`;
+// ---- Kontak (kirim pesan via WHATSAPP — koreksi user: email tidak
+// bisa diandalkan, ganti ke nomor 62818101990) ----
+// Submit membuka chat WhatsApp (wa.me) dengan pesan yang sudah tersusun —
+// tidak butuh server email/relay apa pun.
+const WA_NUMBER = '62818101990';
+const waLink = (text) =>
+  `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(text)}`;
 
 const contactInput = {
   width: '100%',
@@ -276,54 +274,50 @@ const contactInput = {
 };
 
 export function ContactModal({ onClose }) {
-  const [form, setForm] = useState({ name: '', email: '', message: '' });
+  const [form, setForm] = useState({ name: '', message: '' });
   const [errors, setErrors] = useState({});
-  const [state, setState] = useState('idle'); // idle | sending | sent | error
-  const [serverError, setServerError] = useState('');
+  const [state, setState] = useState('idle'); // idle | sent
+  const [waUrl, setWaUrl] = useState('');
 
   const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
 
   const validate = () => {
     const errs = {};
     if (form.name.trim().length < 2) errs.name = 'Nama wajib diisi.';
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) errs.email = 'Email tidak valid.';
     if (form.message.trim().length < 10) errs.message = 'Pesan minimal 10 karakter.';
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
 
-  const submit = async (e) => {
+  // Susun pesan WhatsApp dengan format RAPI (bukan satu baris panjang),
+  // lalu buka chat wa.me — tidak butuh server email apa pun.
+  const submit = (e) => {
     e.preventDefault();
     if (!validate()) return;
-    setState('sending');
-    setServerError('');
-    try {
-      const res = await fetch(CONTACT_ENDPOINT, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json',
-        },
-        body: JSON.stringify({
-          name: form.name.trim(),
-          email: form.email.trim(),
-          message: form.message.trim(),
-          _subject: `[titikrusak.id] Pesan kontak dari ${form.name.trim()}`,
-          _captcha: 'false',
-        }),
-      });
-      const data = await res.json().catch(() => ({}));
-      // FormSubmit mengembalikan HTTP 200 dengan body.success "false" saat
-      // menolak — jangan dianggap sukses.
-      if (!res.ok || data.success === 'false' || data.success === false) {
-        throw new Error(data.message || `HTTP ${res.status}`);
-      }
-      setForm({ name: '', email: '', message: '' });
-      setState('sent');
-    } catch (err) {
-      setServerError(err.message);
-      setState('error');
-    }
+    const text =
+      'Halo Admin titikrusak.id,\n' +
+      'saya menghubungi melalui form Kontak di situs.\n' +
+      '\n' +
+      '------------------------------------------\n' +
+      'Nama: ' + form.name.trim() + '\n' +
+      '------------------------------------------\n' +
+      '\n' +
+      'Pesan:\n' +
+      form.message.trim() + '\n' +
+      '\n' +
+      '------------------------------------------\n' +
+      'Dikirim dari titikrusak.id';
+    const url = waLink(text);
+    setWaUrl(url);
+    setState('sent');
+    window.open(url, '_blank', 'noopener');
+  };
+
+  const reset = () => {
+    setForm({ name: '', message: '' });
+    setErrors({});
+    setWaUrl('');
+    setState('idle');
   };
 
   const fieldError = (key) =>
@@ -334,8 +328,8 @@ export function ContactModal({ onClose }) {
   return (
     <ModalShell title="Kontak" onClose={onClose} maxWidth={520}>
       <p style={{ margin: '0 0 14px', fontSize: 13, lineHeight: 1.55, color: '#334155' }}>
-        Ada masukan, pertanyaan, atau kerja sama? Kirim pesan lewat form ini — pesan
-        diteruskan ke <strong>{CONTACT_EMAIL}</strong>. Kami membalas secepatnya.
+        Ada masukan, pertanyaan, atau kerja sama? Isi form lalu tekan kirim — WhatsApp
+        terbuka dengan pesan Anda ke <strong>+62 818-1019-90 (62818101990)</strong>.
       </p>
 
       {state === 'sent' && (
@@ -346,29 +340,52 @@ export function ContactModal({ onClose }) {
             border: '1px solid #bbf7d0',
             color: '#15803d',
             borderRadius: 8,
-            padding: '10px 12px',
+            padding: '12px',
             fontSize: 13,
+            lineHeight: 1.55,
             marginBottom: 12,
           }}
         >
-          ✓ Terima kasih! Pesan Anda terkirim ke {CONTACT_EMAIL}. Kami akan segera
-          membalas.
-        </div>
-      )}
-      {state === 'error' && (
-        <div
-          role="alert"
-          style={{
-            background: '#fef2f2',
-            border: '1px solid #fecaca',
-            color: '#b91c1c',
-            borderRadius: 8,
-            padding: '10px 12px',
-            fontSize: 13,
-            marginBottom: 12,
-          }}
-        >
-          ✕ Gagal mengirim pesan: {serverError}
+          <p style={{ margin: '0 0 8px', fontWeight: 600 }}>
+            ✓ WhatsApp terbuka dengan pesan Anda — tinggal tekan tombol kirim di
+            WhatsApp.
+          </p>
+          <p style={{ margin: '0 0 10px', fontSize: 12.5, color: '#334155' }}>
+            Kalau tidak terbuka otomatis (pop-up diblokir), gunakan tombol di bawah.
+          </p>
+          <a
+            href={waUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              display: 'inline-block',
+              padding: '9px 16px',
+              borderRadius: 8,
+              background: '#22c55e',
+              color: '#fff',
+              fontSize: 13.5,
+              fontWeight: 700,
+              textDecoration: 'none',
+            }}
+          >
+            💬 Buka WhatsApp
+          </a>
+          <button
+            type="button"
+            onClick={reset}
+            style={{
+              marginLeft: 8,
+              padding: '9px 14px',
+              borderRadius: 8,
+              border: '1px solid #cbd5e1',
+              background: '#fff',
+              color: '#475569',
+              fontSize: 13,
+              cursor: 'pointer',
+            }}
+          >
+            Tulis pesan lain
+          </button>
         </div>
       )}
 
@@ -388,20 +405,6 @@ export function ContactModal({ onClose }) {
             />
             {fieldError('name')}
           </div>
-          <div style={{ marginBottom: 12 }}>
-            <label htmlFor="contact-email" style={sectionTitle}>
-              Email *
-            </label>
-            <input
-              id="contact-email"
-              type="email"
-              value={form.email}
-              onChange={set('email')}
-              placeholder="nama@contoh.com"
-              style={contactInput}
-            />
-            {fieldError('email')}
-          </div>
           <div style={{ marginBottom: 14 }}>
             <label htmlFor="contact-message" style={sectionTitle}>
               Pesan *
@@ -418,21 +421,19 @@ export function ContactModal({ onClose }) {
           </div>
           <button
             type="submit"
-            disabled={state === 'sending'}
             style={{
               width: '100%',
               padding: '11px 0',
               borderRadius: 8,
               border: 'none',
-              background: '#facc15',
-              color: '#1c1917',
+              background: '#22c55e',
+              color: '#fff',
               fontSize: 14,
               fontWeight: 700,
-              cursor: state === 'sending' ? 'wait' : 'pointer',
-              opacity: state === 'sending' ? 0.7 : 1,
+              cursor: 'pointer',
             }}
           >
-            {state === 'sending' ? 'Mengirim…' : `Kirim ke ${CONTACT_EMAIL}`}
+            💬 Kirim via WhatsApp (62818101990)
           </button>
         </form>
       )}

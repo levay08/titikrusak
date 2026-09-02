@@ -57,66 +57,59 @@ describe('FooterModals: Syarat & Ketentuan', () => {
   });
 });
 
-describe('FooterModals: Kontak (form kirim email hello@arfhacorp.com)', () => {
-  it('validasi: nama/email/pesan wajib sebelum submit', async () => {
-    const user = (await import('@testing-library/user-event')).default;
-    const fetchMock = vi.fn();
-    vi.stubGlobal('fetch', fetchMock);
-    render(<ContactModal onClose={vi.fn()} />);
-
-    await user.click(screen.getByRole('button', { name: /kirim ke hello@arfhacorp\.com/i }));
-    expect(screen.getByText(/nama wajib diisi/i)).toBeInTheDocument();
-    expect(screen.getByText(/email tidak valid/i)).toBeInTheDocument();
-    expect(screen.getByText(/pesan minimal 10 karakter/i)).toBeInTheDocument();
-    expect(fetchMock).not.toHaveBeenCalled();
+describe('FooterModals: Kontak (form -> buka WhatsApp 62818101990)', () => {
+  let origOpen;
+  beforeEach(() => {
+    origOpen = window.open;
+    window.open = vi.fn();
+  });
+  afterEach(() => {
+    window.open = origOpen;
   });
 
-  it('submit valid -> POST ke relay FormSubmit + feedback sukses', async () => {
-    vi.unstubAllGlobals();
-    const fetchMock = vi.fn(() =>
-      Promise.resolve({ ok: true, status: 200, json: async () => ({ success: 'true' }) })
-    );
-    vi.stubGlobal('fetch', fetchMock);
+  it('validasi: nama & pesan wajib sebelum membuka WhatsApp', async () => {
+    const user = (await import('@testing-library/user-event')).default;
+    render(<ContactModal onClose={vi.fn()} />);
+
+    await user.click(screen.getByRole('button', { name: /kirim via whatsapp/i }));
+    expect(screen.getByText(/nama wajib diisi/i)).toBeInTheDocument();
+    expect(screen.getByText(/pesan minimal 10 karakter/i)).toBeInTheDocument();
+    expect(window.open).not.toHaveBeenCalled();
+  });
+
+  it('submit valid -> buka WhatsApp dengan pesan berformat rapi (bukan satu baris)', async () => {
     const user = (await import('@testing-library/user-event')).default;
     render(<ContactModal onClose={vi.fn()} />);
 
     await user.type(screen.getByLabelText(/nama \*/i), 'Pahlevy');
-    await user.type(screen.getByLabelText(/email \*/i), 'pahlevy@example.com');
     await user.type(
       screen.getByLabelText(/pesan \*/i),
       'Halo, saya ingin bertanya tentang kerja sama.'
     );
-    await user.click(screen.getByRole('button', { name: /kirim ke hello@arfhacorp\.com/i }));
+    await user.click(screen.getByRole('button', { name: /kirim via whatsapp/i }));
 
-    await screen.findByText(/pesan anda terkirim ke hello@arfhacorp\.com/i);
-    expect(fetchMock).toHaveBeenCalledWith(
-      'https://formsubmit.co/ajax/hello@arfhacorp.com',
-      expect.objectContaining({ method: 'POST' })
+    expect(window.open).toHaveBeenCalledTimes(1);
+    const url = window.open.mock.calls[0][0];
+    expect(url).toContain('https://wa.me/62818101990?text=');
+    // Isi form ikut terbawa + format pakai baris baru (encode %0A), bukan
+    // satu baris panjang.
+    const decoded = decodeURIComponent(url);
+    expect(decoded).toContain('Nama: Pahlevy');
+    expect(decoded).toContain('Pesan:');
+    expect(decoded).toContain('Halo, saya ingin bertanya tentang kerja sama.');
+    expect(url).toContain('%0A'); // URL memakai baris baru (encode) -> rapi
+    expect(decoded).toContain('\n'); // pesan multi-baris, bukan satu baris
+
+    // Feedback sukses + tombol cadangan Buka WhatsApp (teks utuh di <p>,
+    // cek lewat textContent karena emoji/aksen di awal kalimat).
+    expect(
+      await screen.findByText(
+        (_c, el) => el.tagName === 'P' && el.textContent.includes('WhatsApp terbuka dengan pesan Anda') && el.textContent.includes('tinggal tekan tombol kirim')
+      )
+    ).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /buka whatsapp/i })).toHaveAttribute(
+      'href',
+      url
     );
-  });
-
-  it('FormSubmit menolak (success:false) -> feedback error, bukan sukses', async () => {
-    vi.unstubAllGlobals();
-    const fetchMock = vi.fn(() =>
-      Promise.resolve({
-        ok: true,
-        status: 200,
-        json: async () => ({ success: 'false', message: 'Relay menolak pesan.' }),
-      })
-    );
-    vi.stubGlobal('fetch', fetchMock);
-    const user = (await import('@testing-library/user-event')).default;
-    render(<ContactModal onClose={vi.fn()} />);
-
-    await user.type(screen.getByLabelText(/nama \*/i), 'Pahlevy');
-    await user.type(screen.getByLabelText(/email \*/i), 'pahlevy@example.com');
-    await user.type(
-      screen.getByLabelText(/pesan \*/i),
-      'Halo, ini pesan uji penolakan relay.'
-    );
-    await user.click(screen.getByRole('button', { name: /kirim ke hello@arfhacorp\.com/i }));
-
-    expect(await screen.findByText(/relay menolak pesan/i)).toBeInTheDocument();
-    expect(screen.queryByText(/pesan anda terkirim/i)).not.toBeInTheDocument();
   });
 });
