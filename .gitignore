@@ -1,2 +1,10 @@
 hits-*.jsonl
 tk-scp-test.txt
+hits-*.jsonl
+tk-scp-test.txt
+backend/.env
+*.db
+*.db-wal
+*.db-shm
+node_modules/
+frontend/dist/
