@@ -94,7 +94,11 @@ async function main() {
     }
     await sleep(1100); // hormati usage policy Nominatim
 
-    const photo = await fetchOgImage(item.source_url);
+    // Foto: prioritas photo_url dari JSON (hasil kurasi/riset, sudah
+    // terverifikasi), fallback ambil og:image dari halaman artikel.
+    const photo = /^https?:\/\//i.test(item.photo_url || '')
+      ? item.photo_url
+      : await fetchOgImage(item.source_url);
     if (photo) console.log(`  ~ foto: ${photo.slice(0, 90)}…`);
     else console.log('  ~ tanpa foto (og:image tidak ditemukan)');
 
