@@ -281,8 +281,8 @@ export default function FilterPanel({
           <option value="verified">✓ Sudah diverifikasi otoritas</option>
           <option value="belum">Belum diverifikasi</option>
         </select>
-        <p style={{ margin: '3px 0 0', fontSize: 10.5, lineHeight: 1.4, color: '#64748b' }}>
-          ✓ = sudah diverifikasi/ditindak otoritas (hijau = selesai diperbaiki).
+        <p style={{ margin: '3px 0 0', fontSize: 10.5, lineHeight: 1.4, color: '#64748b', textAlign: 'justify' }}>
+          ✓ = sudah diverifikasi/ditindak otoritas. Hijau = selesai diperbaiki.
         </p>
       </div>
 
