@@ -206,13 +206,32 @@ body {
 .tk-logo:hover {
   transform: scale(1.06);
 }
-/* Logo header: denyut lembut (pulse) — animasi simple & tidak menyilaukan. */
+/* Logo header: TETAP (statis) + efek kilau pantulan cahaya menyapu dari
+   KANAN ke KIRI di atas tile logo (koreksi user — bukan pulse/denyut).
+   Band kilau digambar di dalam SVG (Logo.jsx), digerakkan via CSS. */
 .tk-logo-animated {
-  animation: tk-logo-pulse 2.4s ease-in-out infinite;
+  /* logo tidak beranimasi lagi; kilau ada di .tk-logo-shine-band */
 }
-@keyframes tk-logo-pulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.07); }
+.tk-logo-shine-band {
+  animation: tk-logo-shine 3.6s ease-in-out infinite;
+  will-change: transform;
+}
+@keyframes tk-logo-shine {
+  0% {
+    transform: translateX(88px); /* mulai dari kanan */
+  }
+  40% {
+    transform: translateX(-96px); /* menyapu ke kiri */
+  }
+  100% {
+    transform: translateX(-96px); /* jeda, lalu ulang */
+  }
+}
+/* Aksesibilitas: kurangi gerak -> kilau dimatikan, logo tetap statis. */
+@media (prefers-reduced-motion: reduce) {
+  .tk-logo-shine-band {
+    animation: none;
+  }
 }
 
 /* Fokus keyboard yang jelas & konsisten (aksen kuning) — modern & aksesibel */

@@ -35,6 +35,34 @@ export default function Logo({ size = 30, title = 'Logo titikrusak.id', animated
       {/* Garis tengah TERPUTUS = kerusakan/putus */}
       <line x1="27.5" y1="27" x2="30.5" y2="27" stroke="#a16207" strokeWidth="3.5" strokeLinecap="round" />
       <line x1="33.5" y1="27" x2="36.5" y2="27" stroke="#a16207" strokeWidth="3.5" strokeLinecap="round" />
+
+      {/* Efek kilau (pantulan cahaya) menyapu dari KANAN ke KIRI — logo
+          TETAP (statis), hanya kilau yang bergerak. Clip ke tile badge
+          agar cahaya tidak keluar dari area logo. */}
+      {animated && (
+        <g clipPath="url(#tk-logo-clip)">
+          <g className="tk-logo-shine-band">
+            <rect
+              x="-16"
+              y="-10"
+              width="26"
+              height="84"
+              fill="url(#tk-logo-shine-grad)"
+              transform="skewX(-18)"
+            />
+          </g>
+        </g>
+      )}
+      <defs>
+        <linearGradient id="tk-logo-shine-grad" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stopColor="#ffffff" stopOpacity="0" />
+          <stop offset="0.5" stopColor="#ffffff" stopOpacity="0.6" />
+          <stop offset="1" stopColor="#ffffff" stopOpacity="0" />
+        </linearGradient>
+        <clipPath id="tk-logo-clip">
+          <rect x="2" y="2" width="60" height="60" rx="15" />
+        </clipPath>
+      </defs>
     </svg>
   );
 }
