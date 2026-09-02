@@ -57,6 +57,10 @@ export default function ReportManagePanel({ report, otoritas, onReportUpdated, o
   const isOwner = isWarga && report.source_type === 'warga' && report.reporter_is_verified === 1;
   const canEditDelete = isOwner && report.status === 'dilaporkan';
   const canClaim = isWarga && report.status !== 'selesai_diperbaiki' && !report.unverifiable;
+  // Alur tolak otoritas: wajib alasan (koreksi user) — alasan tampil di
+  // detail titik agar publik paham kenapa laporan ditolak.
+  const [markOpen, setMarkOpen] = useState(false);
+  const [markReason, setMarkReason] = useState('');
 
   const api = async (url, opts) => {
     const res = await fetch(url, {
@@ -105,24 +109,43 @@ export default function ReportManagePanel({ report, otoritas, onReportUpdated, o
     setVerifyOpen(false);
   };
 
-  // ---- Otoritas: tanda X ----
-  const toggleUnverifiable = async (next) => {
-    if (window.confirm(next
-      ? 'Tandai laporan ini sebagai TIDAK DAPAT DIVERIFIKASI keasliannya? Titik akan ditampilkan dengan tanda ✗. Laporan tidak dihapus.'
-      : 'Batalkan tanda tidak dapat diverifikasi pada laporan ini?')) {
-      setBusy('x');
-      setErr('');
-      try {
-        await api(`/api/reports/${report.id}/unverifiable`, {
-          method: 'PATCH',
-          body: JSON.stringify({ unverifiable: next }),
-        });
-        onReportUpdated();
-      } catch (e) {
-        setErr(e.message);
-      } finally {
-        setBusy('');
-      }
+  // ---- Otoritas: tanda X (tolak) — WAJIB alasan ----
+  const submitMark = async () => {
+    if (markReason.trim().length < 10) {
+      setErr('Alasan penolakan wajib diisi minimal 10 karakter.');
+      return;
+    }
+    setBusy('x');
+    setErr('');
+    try {
+      await api(`/api/reports/${report.id}/unverifiable`, {
+        method: 'PATCH',
+        body: JSON.stringify({ unverifiable: true, reason: markReason.trim() }),
+      });
+      setMarkOpen(false);
+      setMarkReason('');
+      onReportUpdated();
+    } catch (e) {
+      setErr(e.message);
+    } finally {
+      setBusy('');
+    }
+  };
+
+  const unmark = async () => {
+    if (!window.confirm('Batalkan penolakan (tanda ✗) pada laporan ini?')) return;
+    setBusy('x');
+    setErr('');
+    try {
+      await api(`/api/reports/${report.id}/unverifiable`, {
+        method: 'PATCH',
+        body: JSON.stringify({ unverifiable: false }),
+      });
+      onReportUpdated();
+    } catch (e) {
+      setErr(e.message);
+    } finally {
+      setBusy('');
     }
   };
 
@@ -258,9 +281,13 @@ export default function ReportManagePanel({ report, otoritas, onReportUpdated, o
             marginBottom: 12,
           }}
         >
-          ✗ <strong>Tidak dapat diverifikasi keasliannya</strong> — otoritas menandai
-          laporan ini tidak bisa dipastikan keasliannya (indikasi laporan palsu).
-          Laporan tetap tersimpan untuk transparansi.
+          ✗ <strong>Laporan ditolak otoritas</strong> — tidak dapat diverifikasi
+          keasliannya.
+          {report.unverifiable_reason && (
+            <div style={{ marginTop: 4, color: '#7f1d1d' }}>
+              Alasan: <strong>{report.unverifiable_reason}</strong>
+            </div>
+          )}
         </div>
       )}
 
@@ -268,17 +295,44 @@ export default function ReportManagePanel({ report, otoritas, onReportUpdated, o
         <div style={{ marginBottom: 14 }}>
           <span style={sectionTitle}>Otoritas</span>
           {report.unverifiable ? (
-            <button type="button" style={btnBase} disabled={busy === 'x'} onClick={() => toggleUnverifiable(false)}>
-              {busy === 'x' ? 'Menyimpan…' : 'Batalkan tanda ✗ (dianggap dapat diverifikasi)'}
+            <button type="button" style={btnBase} disabled={busy === 'x'} onClick={unmark}>
+              {busy === 'x' ? 'Menyimpan…' : 'Batalkan penolakan (✗)'}
             </button>
+          ) : markOpen ? (
+            <div style={{ border: '1px solid #fecaca', borderRadius: 8, padding: 10 }}>
+              <textarea
+                aria-label="Alasan penolakan laporan"
+                placeholder="Alasan penolakan (min. 10 karakter) — akan terlihat publik di detail titik, mis. lokasi tidak sesuai fakta / foto tidak asli"
+                value={markReason}
+                onChange={(e) => setMarkReason(e.target.value)}
+                rows={3}
+                style={{ width: '100%', boxSizing: 'border-box', padding: '8px 10px', borderRadius: 8, border: '1px solid #cbd5e1', fontSize: 13, marginBottom: 8, resize: 'vertical' }}
+              />
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button
+                  type="button"
+                  style={{ ...btnBase, background: '#b91c1c', border: 'none', color: '#fff' }}
+                  disabled={busy === 'x'}
+                  onClick={submitMark}
+                >
+                  {busy === 'x' ? 'Menyimpan…' : '✗ Konfirmasi tolak laporan'}
+                </button>
+                <button
+                  type="button"
+                  style={{ ...btnBase }}
+                  onClick={() => { setMarkOpen(false); setMarkReason(''); }}
+                >
+                  Batal
+                </button>
+              </div>
+            </div>
           ) : (
             <button
               type="button"
               style={{ ...btnBase, borderColor: '#fca5a5', color: '#b91c1c' }}
-              disabled={busy === 'x'}
-              onClick={() => toggleUnverifiable(true)}
+              onClick={() => { setMarkOpen(true); setErr(''); }}
             >
-              ✗ Tandai tidak dapat diverifikasi keasliannya
+              ✗ Tolak laporan (wajib alasan)
             </button>
           )}
 

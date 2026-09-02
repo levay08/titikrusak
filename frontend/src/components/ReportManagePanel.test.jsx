@@ -94,11 +94,14 @@ describe('ReportManagePanel (kelola laporan)', () => {
     expect(screen.getByText(/status laporan/i)).toBeInTheDocument();
   });
 
-  it('otoritas: tombol tandai ✗ muncul, dan TIDAK ada tombol Hapus', () => {
+  it('otoritas: tombol tolak laporan muncul, dan TIDAK ada tombol Hapus; alasan wajib', async () => {
     localStorage.setItem(
       'titikrusak_eid_session',
       JSON.stringify({ session_id: 'sess-otor-9', role: 'otoritas' })
     );
+    const fetchMock = vi.fn(() => Promise.resolve({ ok: true, json: async () => ({}) }));
+    vi.stubGlobal('fetch', fetchMock);
+    const user = userEvent.setup();
     render(
       <ReportManagePanel
         report={baseReport}
@@ -107,8 +110,28 @@ describe('ReportManagePanel (kelola laporan)', () => {
         onClose={() => {}}
       />
     );
-    expect(screen.getByRole('button', { name: /tandai tidak dapat diverifikasi/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /tolak laporan/i })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /hapus laporan/i })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /edit laporan/i })).not.toBeInTheDocument();
+
+    // Tanpa alasan -> diblokir (belum ada request).
+    await user.click(screen.getByRole('button', { name: /tolak laporan/i }));
+    await user.click(screen.getByRole('button', { name: /konfirmasi tolak laporan/i }));
+    expect(screen.getByText(/alasan penolakan wajib diisi minimal 10 karakter/i)).toBeInTheDocument();
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('detail titik yang ditolak menampilkan ALASAN penolakan dari otoritas', () => {
+    asWarga();
+    render(
+      <ReportManagePanel
+        report={{ ...baseReport, unverifiable: 1, unverifiable_reason: 'Foto tidak sesuai lokasi yang dilaporkan' }}
+        otoritas={null}
+        onReportUpdated={() => {}}
+        onClose={() => {}}
+      />
+    );
+    expect(screen.getByText(/laporan ditolak otoritas/i)).toBeInTheDocument();
+    expect(screen.getByText(/foto tidak sesuai lokasi yang dilaporkan/i)).toBeInTheDocument();
   });
 });

@@ -20,6 +20,9 @@ function ensureUnverifiableColumn() {
   if (!cols.includes('unverifiable')) {
     db.exec('ALTER TABLE reports ADD COLUMN unverifiable INTEGER NOT NULL DEFAULT 0');
   }
+  if (!cols.includes('unverifiable_reason')) {
+    db.exec('ALTER TABLE reports ADD COLUMN unverifiable_reason TEXT');
+  }
 }
 ensureUnverifiableColumn();
 

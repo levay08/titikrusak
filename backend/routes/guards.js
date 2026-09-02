@@ -39,9 +39,9 @@ const PUBLIC_COLUMNS = [
   'reporter_is_verified', 'validated_by_display_name', 'validated_by_did',
   'validated_at', 'status', 'source_type', 'source_media_name', 'source_media_url',
   'source_media_date', 'related_earthquake', 'related_weather', 'vote_count',
-  'unverifiable',
-];
-const PS = PUBLIC_COLUMNS.join(', ');
+ 'unverifiable', 'unverifiable_reason',
+ ];
+ const PS = PUBLIC_COLUMNS.join(', ');
 
 const db = require('../db/db.js');
 
@@ -208,10 +208,19 @@ router.patch('/:id/unverifiable', requireSession('otoritas'), (req, res) => {
   if (!existing) return res.status(404).json({ error: 'Laporan tidak ditemukan' });
 
   const flag = (req.body || {}).unverifiable === true ? 1 : 0;
+  const rawReason =
+    req.body && typeof req.body.reason === 'string' ? req.body.reason.trim() : '';
+  if (flag === 1 && rawReason.length < 10) {
+    return res
+      .status(400)
+      .json({ error: 'Alasan penolakan wajib diisi minimal 10 karakter (terlihat oleh publik di detail titik)' });
+  }
   // Catatan: tidak memakai status_history (kolom new_status punya CHECK
-  // 4 status resmi). Tanda X tercatat di kolom unverifiable + updated_at;
-  // otoritas yang menandai ada di sesi (req.eidSession) untuk audit manual.
-  db.prepare('UPDATE reports SET unverifiable = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(flag, id);
+  // 4 status resmi). Tanda X + alasan tercatat di kolom unverifiable &
+  // unverifiable_reason; otoritas yang menandai ada di sesi (req.eidSession).
+  db.prepare(
+    'UPDATE reports SET unverifiable = ?, unverifiable_reason = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?'
+  ).run(flag, flag === 1 ? rawReason : null, id);
 
   res.json(getRow(id));
 });

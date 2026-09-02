@@ -250,7 +250,7 @@ function SeverityLegend({ onHide }) {
       </div>
 
       <p style={{ margin: '8px 0 0', fontSize: 11, lineHeight: 1.4, color: '#475569' }}>
-        ✓ = sudah diverifikasi otoritas · ✗ = laporan tidak benar
+        ✓ = sudah diverifikasi otoritas · ✗ = laporan ditolak otoritas
       </p>
 
       {open && (
