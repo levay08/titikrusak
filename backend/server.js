@@ -16,6 +16,22 @@ const captchaRouter = require('./routes/captcha.js');
 
 const app = express();
 
+// Jangan bocorkan teknologi backend ke publik.
+app.disable('x-powered-by');
+
+// API hanya menerima JSON untuk request yang membawa body (perlindungan
+// tambahan: multipart/form CSRF & tipe lain ditolak 415).
+app.use((req, res, next) => {
+  const method = req.method;
+  if ((method === 'POST' || method === 'PATCH' || method === 'PUT') && req.headers['content-type']) {
+    const ct = String(req.headers['content-type']).toLowerCase();
+    if (!ct.startsWith('application/json')) {
+      return res.status(415).json({ error: 'Content-Type harus application/json' });
+    }
+  }
+  next();
+});
+
 // Body limit diperbesar: laporan bisa membawa foto (data URL hasil
 // kompresi frontend, maks. 5 foto) — File 1 Bagian 5.2.
 app.use(express.json({ limit: '12mb' }));

@@ -25,6 +25,7 @@
 
 const express = require('express');
 const { requireSession, verifyCaptcha } = require('../lib/security.js');
+const { guardPhotos } = require('../lib/uploadGuard.js');
 
 const router = express.Router();
 
@@ -250,7 +251,7 @@ router.delete('/:id', requireSession('warga'), (req, res) => {
 // ---- POST /:id/fix-claim : warga e.id terverifikasi menandai titik
 //      SUDAH DIPERBAIKI — wajib lampirkan minimal 1 foto bukti.
 //      Klaim masuk antrean otoritas (status 'menunggu'). ----
-router.post('/:id/fix-claim', requireSession('warga'), (req, res) => {
+router.post('/:id/fix-claim', requireSession('warga'), async (req, res) => {
   const id = Number(req.params.id);
   if (!Number.isInteger(id) || id <= 0) return res.status(404).json({ error: 'Laporan tidak ditemukan' });
   const report = db.prepare('SELECT id, status, unverifiable FROM reports WHERE id = ?').get(id);
@@ -260,13 +261,13 @@ router.post('/:id/fix-claim', requireSession('warga'), (req, res) => {
   }
 
   const body = req.body || {};
-  const photos = Array.isArray(body.photo_urls) ? body.photo_urls : [];
-  const cleanPhotos = photos
-    .filter((p) => typeof p === 'string' && p.trim() !== '' && p.length < 4_000_000)
-    .slice(0, 5);
-  if (cleanPhotos.length === 0) {
-    return res.status(400).json({ error: 'Klaim sudah diperbaiki wajib menyertakan minimal 1 foto bukti' });
+  // Foto bukti klaim WAJIB: divalidasi magic bytes + scan ClamAV bila
+  // tersedia (lib/uploadGuard.js — proteksi upload 2 Sep 2026).
+  const guarded = await guardPhotos(body.photo_urls || []);
+  if (guarded.photos.length === 0) {
+    return res.status(400).json({ error: guarded.errors[0] || 'Klaim sudah diperbaiki wajib menyertakan minimal 1 foto bukti' });
   }
+  const cleanPhotos = guarded.photos;
   const note =
     body.note !== undefined && typeof body.note === 'string' ? body.note.trim().slice(0, 1000) : null;
 

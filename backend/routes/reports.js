@@ -7,6 +7,7 @@
 
 const express = require('express');
 const db = require('../db/db.js');
+const { guardPhotos } = require('../lib/uploadGuard.js');
 const { reportLimiter } = require('../middleware/rateLimiter.js');
 const { bmkg } = require('../services/bmkgClient.js');
 
@@ -325,16 +326,17 @@ router.post('/', reportLimiter, async (req, res) => {
       : null;
   const reporter_is_verified = body.reporter_is_verified === true ? 1 : 0;
 
-  // Foto laporan (opsional, File 1 Bagian 5.2): array string — URL publik
-  // atau data URL hasil kompresi di frontend. Maksimal 5, masing-masing
-  // dibatasi panjangnya agar ukuran database tetap wajar.
+  // Foto laporan (opsional): array string — URL publik atau data URL
+  // hasil kompresi di frontend. Maksimal 5; data URL divalidasi isi
+  // byte-nya (magic bytes gambar asli, SVG/HTML ditolak) + scan ClamAV
+  // bila tersedia (lib/uploadGuard.js — proteksi upload 2 Sep 2026).
   let photo_urls = null;
-  if (Array.isArray(body.photo_urls)) {
-    const clean = body.photo_urls
-      .filter((u) => typeof u === 'string' && u.trim() !== '' && u.trim().length <= 4_000_000)
-      .map((u) => u.trim())
-      .slice(0, 5);
-    if (clean.length > 0) photo_urls = JSON.stringify(clean);
+  if (Array.isArray(body.photo_urls) && body.photo_urls.length > 0) {
+    const guarded = await guardPhotos(body.photo_urls);
+    if (guarded.errors.length > 0) {
+      return res.status(422).json({ error: `Foto ditolak: ${guarded.errors[0]}` });
+    }
+    if (guarded.photos.length > 0) photo_urls = JSON.stringify(guarded.photos);
   }
 
   const stmt = db.prepare(`
