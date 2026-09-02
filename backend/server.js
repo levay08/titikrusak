@@ -16,6 +16,11 @@ const captchaRouter = require('./routes/captcha.js');
 
 const app = express();
 
+// Logger hit (JSONL kecil per jam) — real-time, ringan, di /srv/tk-hits.
+const { hitLogger, start: startHitLogger } = require('./lib/hitLogger.js');
+app.use(hitLogger);
+startHitLogger();
+
 // Jangan bocorkan teknologi backend ke publik.
 app.disable('x-powered-by');
 
