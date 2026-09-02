@@ -442,9 +442,8 @@ describe('MapView: legenda bisa di-hide + memuat baris Selesai Diperbaiki (hijau
     expect(screen.getByText('Tingkat Kerusakan')).toBeInTheDocument();
     expect(screen.getByText('Ringan')).toBeInTheDocument();
     expect(screen.getByText('Selesai Diperbaiki')).toBeInTheDocument();
-    expect(
-      screen.getByText((_c, el) => el.tagName === 'P' && el.textContent.includes('✓ = sudah diverifikasi otoritas') && el.textContent.includes('✗ = laporan ditolak otoritas'))
-    ).toBeInTheDocument();
+    expect(screen.getByText('Sudah diverifikasi otoritas')).toBeInTheDocument();
+    expect(screen.getByText('Ditolak otoritas')).toBeInTheDocument();
 
     // ✕ -> legenda hilang, tombol kecil "Legenda" muncul.
     await user.click(screen.getByRole('button', { name: /sembunyikan legenda/i }));

@@ -88,6 +88,7 @@ export default function SeedNotice() {
           fontSize: 12.5,
           lineHeight: 1.45,
           color: '#1c1917',
+          textAlign: 'justify',
         }}
       >
         Beberapa titik di peta di antaranya adalah data aktual kerusakan

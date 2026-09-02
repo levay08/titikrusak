@@ -249,9 +249,53 @@ function SeverityLegend({ onHide }) {
         <span>Selesai Diperbaiki</span>
       </div>
 
-      <p style={{ margin: '8px 0 0', fontSize: 11, lineHeight: 1.4, color: '#475569' }}>
-        ✓ = sudah diverifikasi otoritas · ✗ = laporan ditolak otoritas
-      </p>
+      {/* ✓ / ✗ — dua baris pendek tanpa wrap (koreksi user) */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6, whiteSpace: 'nowrap' }}>
+        <span
+          style={{
+            width: 14,
+            height: 14,
+            borderRadius: '50%',
+            background: '#2563eb',
+            border: '2px solid #fff',
+            boxShadow: '0 0 0 1px #1f2937',
+            color: '#fff',
+            flexShrink: 0,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: 9,
+            fontWeight: 900,
+            lineHeight: 1,
+          }}
+        >
+          ✓
+        </span>
+        <span>Sudah diverifikasi otoritas</span>
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6, whiteSpace: 'nowrap' }}>
+        <span
+          style={{
+            width: 14,
+            height: 14,
+            borderRadius: '50%',
+            background: '#b91c1c',
+            border: '2px solid #fff',
+            boxShadow: '0 0 0 1px #1f2937',
+            color: '#fff',
+            flexShrink: 0,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: 9,
+            fontWeight: 900,
+            lineHeight: 1,
+          }}
+        >
+          ✗
+        </span>
+        <span>Ditolak otoritas</span>
+      </div>
 
       {open && (
         <div style={{ marginTop: 8, borderTop: '1px solid #e2e8f0', paddingTop: 8 }}>
