@@ -291,18 +291,26 @@ router.post('/', reportLimiter, async (req, res) => {
   if (vital_status && vital_status.includes('lainnya') && !vital_status_note) {
     errors.push('vital_status_note wajib diisi saat Lainnya dipilih');
   }
+  if (vital_status_note && vital_status_note.length > 1000) {
+    errors.push('vital_status_note maksimal 1000 karakter');
+  }
 
   const location_name = typeof body.location_name === 'string' && body.location_name.trim() !== '' ? body.location_name.trim() : null;
   if (!location_name) errors.push('location_name wajib diisi');
+  else if (location_name.length > 300) errors.push('location_name maksimal 300 karakter');
 
   const lat = Number(body.lat);
   if (body.lat === undefined || body.lat === null || body.lat === '' || !Number.isFinite(lat)) {
     errors.push('lat wajib diisi berupa angka');
+  } else if (lat < -90 || lat > 90) {
+    errors.push('lat di luar rentang valid (-90 s.d. 90)');
   }
 
   const lng = Number(body.lng);
   if (body.lng === undefined || body.lng === null || body.lng === '' || !Number.isFinite(lng)) {
     errors.push('lng wajib diisi berupa angka');
+  } else if (lng < -180 || lng > 180) {
+    errors.push('lng di luar rentang valid (-180 s.d. 180)');
   }
 
   if (errors.length > 0) {
@@ -313,6 +321,9 @@ router.post('/', reportLimiter, async (req, res) => {
   const description = body.description !== undefined && body.description !== null
     ? String(body.description)
     : null;
+  if (description && description.length > 5000) {
+    return res.status(400).json({ error: 'description maksimal 5000 karakter' });
+  }
 
   // Hasil verifikasi e.id dari frontend (File 1 Bagian 5.2 langkah 4a).
   // reporter_display_name opsional; reporter_is_verified true hanya jika
@@ -324,6 +335,9 @@ router.post('/', reportLimiter, async (req, res) => {
     String(body.reporter_display_name).trim() !== ''
       ? String(body.reporter_display_name).trim()
       : null;
+  if (reporter_display_name && reporter_display_name.length > 120) {
+    return res.status(400).json({ error: 'reporter_display_name maksimal 120 karakter' });
+  }
   const reporter_is_verified = body.reporter_is_verified === true ? 1 : 0;
 
   // Foto laporan (opsional): array string — URL publik atau data URL

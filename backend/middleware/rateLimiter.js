@@ -21,4 +21,16 @@ const reportLimiter = rateLimit({
   },
 });
 
-module.exports = { reportLimiter };
+// Limiter verifikasi e.id (anti spam session dari IP sama — mis. bot
+// mencoba membuat banyak sesi verifikasi).
+const verifyLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 menit
+  max: 12,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    error: 'Terlalu banyak permintaan verifikasi dari IP ini. Coba lagi sebentar lagi.',
+  },
+});
+
+module.exports = { reportLimiter, verifyLimiter };

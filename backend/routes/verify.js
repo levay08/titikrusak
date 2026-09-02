@@ -28,6 +28,7 @@
 //        data { holder_did, presentation.credentialSubject { ... }, ... }
 
 const express = require('express');
+const { verifyLimiter } = require('../middleware/rateLimiter.js');
 const db = require('../db/db.js');
 const env = require('../config/env.js');
 const eidClient = require('../services/eidClient.js');
@@ -107,7 +108,7 @@ async function parseEidResponse(res) {
 }
 
 // ---- POST /api/verify/start ----
-router.post('/start', async (req, res) => {
+router.post('/start', verifyLimiter, async (req, res) => {
   const role = req.body && req.body.role;
   if (role !== 'warga' && role !== 'otoritas') {
     return res.status(400).json({ error: 'role harus "warga" atau "otoritas"' });

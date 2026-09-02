@@ -174,11 +174,17 @@ router.patch('/:id', requireSession('warga'), (req, res) => {
     if (typeof body.description !== 'string' || body.description.trim().length < 10) {
       return res.status(400).json({ error: 'Deskripsi minimal 10 karakter' });
     }
+    if (body.description.trim().length > 5000) {
+      return res.status(400).json({ error: 'Deskripsi maksimal 5000 karakter' });
+    }
     upd.description = body.description.trim();
   }
   if (body.location_name !== undefined) {
     if (typeof body.location_name !== 'string' || body.location_name.trim() === '') {
       return res.status(400).json({ error: 'Nama lokasi tidak boleh kosong' });
+    }
+    if (body.location_name.trim().length > 300) {
+      return res.status(400).json({ error: 'Nama lokasi maksimal 300 karakter' });
     }
     upd.location_name = body.location_name.trim();
   }
@@ -215,6 +221,9 @@ router.patch('/:id/unverifiable', requireSession('otoritas'), (req, res) => {
     return res
       .status(400)
       .json({ error: 'Alasan penolakan wajib diisi minimal 10 karakter (terlihat oleh publik di detail titik)' });
+  }
+  if (rawReason.length > 1000) {
+    return res.status(400).json({ error: 'Alasan penolakan maksimal 1000 karakter' });
   }
   // Catatan: tidak memakai status_history (kolom new_status punya CHECK
   // 4 status resmi). Tanda X + alasan tercatat di kolom unverifiable &
