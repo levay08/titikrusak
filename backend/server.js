@@ -11,6 +11,7 @@ const verifyRouter = require('./routes/verify.js');
 const enrichmentRouter = require('./routes/enrichment.js');
 const activityRouter = require('./routes/activity.js');
 const newsRouter = require('./routes/news.js');
+const contactRouter = require('./routes/contact.js');
 
 const app = express();
 
@@ -35,6 +36,9 @@ app.use('/api/activity', activityRouter);
 
 // Route berita terkini (news flash) dari agregasi RSS Indonesia.
 app.use('/api/news', newsRouter);
+
+// Route form kontak footer -> email (relay FormSubmit / SMTP via env).
+app.use('/api/contact', contactRouter);
 
 // 404 JSON untuk endpoint yang tidak dikenal.
 app.use((req, res) => {

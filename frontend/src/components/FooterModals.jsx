@@ -16,6 +16,7 @@ import {
   STATUS_LABELS,
   STATUS_COLORS,
 } from '../lib/labels.js';
+import { useState } from 'react';
 import { ModalShell } from './HeaderModals.jsx';
 
 const sectionTitle = {
@@ -249,6 +250,178 @@ export function TermsModal({ onClose }) {
           </p>
         </div>
       </div>
+    </ModalShell>
+  );
+}
+
+// ---- Kontak (form -> email hello@arfhacorp.com via backend /api/contact) ----
+const CONTACT_EMAIL = 'hello@arfhacorp.com';
+
+const contactInput = {
+  width: '100%',
+  boxSizing: 'border-box',
+  padding: '9px 11px',
+  borderRadius: 8,
+  border: '1px solid #cbd5e1',
+  fontSize: 14,
+  background: '#fff',
+  color: '#1c1917',
+};
+
+export function ContactModal({ onClose }) {
+  const [form, setForm] = useState({ name: '', email: '', message: '' });
+  const [errors, setErrors] = useState({});
+  const [state, setState] = useState('idle'); // idle | sending | sent | error
+  const [serverError, setServerError] = useState('');
+
+  const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
+
+  const validate = () => {
+    const errs = {};
+    if (form.name.trim().length < 2) errs.name = 'Nama wajib diisi.';
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) errs.email = 'Email tidak valid.';
+    if (form.message.trim().length < 10) errs.message = 'Pesan minimal 10 karakter.';
+    setErrors(errs);
+    return Object.keys(errs).length === 0;
+  };
+
+  const submit = async (e) => {
+    e.preventDefault();
+    if (!validate()) return;
+    setState('sending');
+    setServerError('');
+    try {
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: form.name.trim(),
+          email: form.email.trim(),
+          message: form.message.trim(),
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data.error || `HTTP ${res.status}`);
+      }
+      setForm({ name: '', email: '', message: '' });
+      setState('sent');
+    } catch (err) {
+      setServerError(err.message);
+      setState('error');
+    }
+  };
+
+  const fieldError = (key) =>
+    errors[key] ? (
+      <p style={{ margin: '4px 0 0', fontSize: 12, color: '#dc2626' }}>{errors[key]}</p>
+    ) : null;
+
+  return (
+    <ModalShell title="Kontak" onClose={onClose} maxWidth={520}>
+      <p style={{ margin: '0 0 14px', fontSize: 13, lineHeight: 1.55, color: '#334155' }}>
+        Ada masukan, pertanyaan, atau kerja sama? Kirim pesan lewat form ini — pesan
+        diteruskan ke <strong>{CONTACT_EMAIL}</strong>. Kami membalas secepatnya.
+      </p>
+
+      {state === 'sent' && (
+        <div
+          role="status"
+          style={{
+            background: '#f0fdf4',
+            border: '1px solid #bbf7d0',
+            color: '#15803d',
+            borderRadius: 8,
+            padding: '10px 12px',
+            fontSize: 13,
+            marginBottom: 12,
+          }}
+        >
+          ✓ Terima kasih! Pesan Anda terkirim ke {CONTACT_EMAIL}. Kami akan segera
+          membalas.
+        </div>
+      )}
+      {state === 'error' && (
+        <div
+          role="alert"
+          style={{
+            background: '#fef2f2',
+            border: '1px solid #fecaca',
+            color: '#b91c1c',
+            borderRadius: 8,
+            padding: '10px 12px',
+            fontSize: 13,
+            marginBottom: 12,
+          }}
+        >
+          ✕ Gagal mengirim pesan: {serverError}
+        </div>
+      )}
+
+      {state !== 'sent' && (
+        <form onSubmit={submit} noValidate>
+          <div style={{ marginBottom: 12 }}>
+            <label htmlFor="contact-name" style={sectionTitle}>
+              Nama *
+            </label>
+            <input
+              id="contact-name"
+              type="text"
+              value={form.name}
+              onChange={set('name')}
+              placeholder="Nama Anda"
+              style={contactInput}
+            />
+            {fieldError('name')}
+          </div>
+          <div style={{ marginBottom: 12 }}>
+            <label htmlFor="contact-email" style={sectionTitle}>
+              Email *
+            </label>
+            <input
+              id="contact-email"
+              type="email"
+              value={form.email}
+              onChange={set('email')}
+              placeholder="nama@contoh.com"
+              style={contactInput}
+            />
+            {fieldError('email')}
+          </div>
+          <div style={{ marginBottom: 14 }}>
+            <label htmlFor="contact-message" style={sectionTitle}>
+              Pesan *
+            </label>
+            <textarea
+              id="contact-message"
+              value={form.message}
+              onChange={set('message')}
+              placeholder="Tulis pesan Anda di sini…"
+              rows={5}
+              style={{ ...contactInput, resize: 'vertical', fontFamily: 'inherit' }}
+            />
+            {fieldError('message')}
+          </div>
+          <button
+            type="submit"
+            disabled={state === 'sending'}
+            style={{
+              width: '100%',
+              padding: '11px 0',
+              borderRadius: 8,
+              border: 'none',
+              background: '#facc15',
+              color: '#1c1917',
+              fontSize: 14,
+              fontWeight: 700,
+              cursor: state === 'sending' ? 'wait' : 'pointer',
+              opacity: state === 'sending' ? 0.7 : 1,
+            }}
+          >
+            {state === 'sending' ? 'Mengirim…' : `Kirim ke ${CONTACT_EMAIL}`}
+          </button>
+        </form>
+      )}
     </ModalShell>
   );
 }

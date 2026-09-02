@@ -104,6 +104,17 @@ describe('AboutModal (menu Tentang — konten SAMA dengan modal welcome)', () =>
     // Tidak ada lagi konten lama (hero/kartu fitur/cara pakai).
     expect(screen.queryByText('Cara pakai')).not.toBeInTheDocument();
     expect(screen.queryByText(/platform crowdsourcing untuk melaporkan/i)).not.toBeInTheDocument();
+
+    // Disclaimer independensi (koreksi user — juga tampil di modal welcome
+    // karena memakai WelcomeBody yang sama).
+    expect(
+      screen.getByText(
+        (_c, el) =>
+          el.tagName === 'P' &&
+          el.textContent.includes('portal independen dari warga untuk warga') &&
+          el.textContent.includes('tidak berafiliasi dengan lembaga')
+      )
+    ).toBeInTheDocument();
   });
 });
 

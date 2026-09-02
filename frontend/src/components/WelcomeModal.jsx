@@ -74,6 +74,32 @@ export function WelcomeBody({
         Anda lebih dipercaya.
       </p>
 
+      {/* Disclaimer independensi (menu Tentang & modal welcome — koreksi
+          user): titikrusak.id portal INDEPENDEN, bukan bagian dari
+          lembaga/pemerintah/organisasi mana pun. */}
+      <div
+        style={{
+          display: 'flex',
+          gap: 8,
+          alignItems: 'flex-start',
+          background: '#f8fafc',
+          border: '1px solid #e2e8f0',
+          borderRadius: 8,
+          padding: '9px 12px',
+          marginBottom: 12,
+        }}
+      >
+        <span aria-hidden="true" style={{ fontSize: 13, lineHeight: 1.4 }}>
+          🕊️
+        </span>
+        <p style={{ margin: 0, fontSize: 12, lineHeight: 1.55, color: '#475569' }}>
+          <strong>Disclaimer:</strong> titikrusak.id adalah portal independen dari
+          warga untuk warga dan tidak berafiliasi dengan lembaga, pemerintah, maupun
+          organisasi mana pun. Otoritas yang ingin memverifikasi laporan dapat masuk
+          melalui verifikasi e.id.
+        </p>
+      </div>
+
       {children}
     </>
   );

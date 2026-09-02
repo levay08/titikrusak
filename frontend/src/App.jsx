@@ -32,7 +32,7 @@ import DetailModal from './components/DetailModal.jsx';
 import NewsTicker from './components/NewsTicker.jsx';
 import SeedNotice from './components/SeedNotice.jsx';
 import WelcomeModal from './components/WelcomeModal.jsx';
-import { DocModal, TermsModal } from './components/FooterModals.jsx';
+import { DocModal, TermsModal, ContactModal } from './components/FooterModals.jsx';
 
 // Logo sponsor di footer (poin Alur Inti: "supported by"):
 // PANDI, e.id, dan IDCloudHost. Setiap logo punya URL: hover menampilkan
@@ -225,9 +225,9 @@ function HeaderNavItem({ label, onClick, icon, framed = false }) {
   );
 }
 
-// Item menu footer (Dokumentasi / Status / Syarat & Ketentuan / Kontak):
-// link teks dengan hover halus; variant `disabled` untuk menu yang belum
-// aktif (Status & Kontak — "Segera hadir", tidak bisa diklik).
+// Item menu footer (Dokumentasi / Syarat & Ketentuan / Kontak): link teks
+// dengan hover halus. Menu "Status" sudah dihapus (koreksi user).
+// variant `disabled` dicadangkan untuk menu yang belum aktif.
 function FooterLink({ label, onClick, disabled = false }) {
   const [hover, setHover] = useState(false);
   if (disabled) {
@@ -379,10 +379,11 @@ export default function App() {
   // Detail laporan dibuka dari tingkat App: hasil pencarian atau tombol
   // "Lihat Detail" di popup peta — satu modal detail di level App.
   const [detailReport, setDetailReport] = useState(null);
-  // Modal menu footer (Dokumentasi + Syarat & Ketentuan; Status & Kontak
-  // masih disable).
+  // Modal menu footer (Dokumentasi + Syarat & Ketentuan + Kontak aktif;
+  // menu Status dihapus — koreksi user).
   const [docOpen, setDocOpen] = useState(false);
   const [termsOpen, setTermsOpen] = useState(false);
+  const [contactOpen, setContactOpen] = useState(false);
 
   // Satu-satunya fetch data hasil-filter: ulang saat filter berubah
   // (real-time) atau setelah laporan baru dikirim (refreshKey).
@@ -467,6 +468,7 @@ export default function App() {
     setDetailReport(null);
     setDocOpen(false);
     setTermsOpen(false);
+    setContactOpen(false);
   };
 
   // Buka modal pencarian header (dari search bar desktop atau tombol 🔍
@@ -1344,6 +1346,7 @@ export default function App() {
               (seluruh laporan TANPA filter). */}
           {docOpen && <DocModal onClose={() => setDocOpen(false)} />}
           {termsOpen && <TermsModal onClose={() => setTermsOpen(false)} />}
+          {contactOpen && <ContactModal onClose={() => setContactOpen(false)} />}
           {aboutOpen && <AboutModal onClose={() => setAboutOpen(false)} />}
           {statsOpen && (
             <StatistikModal reports={allReports} onClose={() => setStatsOpen(false)} />
@@ -1369,8 +1372,8 @@ export default function App() {
           flexShrink: 0,
         }}
       >
-        {/* Menu footer: Dokumentasi & Syarat & Ketentuan (modal); Status &
-            Kontak masih disable. */}
+        {/* Menu footer: Dokumentasi, Syarat & Ketentuan, dan Kontak (AKTIF
+            — form kirim email); menu Status DIHAPUS (koreksi user). */}
         <div
           style={{
             width: '100%',
@@ -1388,7 +1391,6 @@ export default function App() {
               setDocOpen(true);
             }}
           />
-          <FooterLink label="Status" disabled />
           <FooterLink
             label="Syarat & Ketentuan"
             onClick={() => {
@@ -1396,7 +1398,13 @@ export default function App() {
               setTermsOpen(true);
             }}
           />
-          <FooterLink label="Kontak" disabled />
+          <FooterLink
+            label="Kontak"
+            onClick={() => {
+              closeAllModals();
+              setContactOpen(true);
+            }}
+          />
         </div>
 
         <div
@@ -1438,6 +1446,22 @@ export default function App() {
               <SponsorLogo key={s.name} name={s.name} src={s.src} url={s.url} />
             ))}
           </div>
+        </div>
+
+        {/* Hak cipta (koreksi user: All Rights Reserved © 2026) */}
+        <div
+          style={{
+            width: '100%',
+            marginTop: 12,
+            paddingTop: 10,
+            borderTop: '1px solid rgba(255, 255, 255, 0.12)',
+            textAlign: 'center',
+            fontSize: 11,
+            opacity: 0.7,
+            color: '#e2e8f0',
+          }}
+        >
+          © 2026 titikrusak.id — All Rights Reserved.
         </div>
       </footer>
     </div>
