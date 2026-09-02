@@ -17,7 +17,6 @@ import ListView from './components/ListView.jsx';
 import ReportForm from './components/ReportForm.jsx';
 import FilterPanel from './components/FilterPanel.jsx';
 import VerificationFlow from './components/VerificationFlow.jsx';
-import EidDesktopInfo from './components/EidDesktopInfo.jsx';
 import Logo from './components/Logo.jsx';
 import {
   AboutModal,
@@ -26,10 +25,12 @@ import {
   NotifikasiModal,
 } from './components/HeaderModals.jsx';
 import useIsMobile from './lib/useIsMobile.js';
+import useIsTouchDevice from './lib/useIsTouchDevice.js';
 import SearchModal from './components/SearchModal.jsx';
 import AdminView from './components/AdminView.jsx';
 import DetailModal from './components/DetailModal.jsx';
 import NewsTicker from './components/NewsTicker.jsx';
+import SeedNotice from './components/SeedNotice.jsx';
 import WelcomeModal from './components/WelcomeModal.jsx';
 import { DocModal, TermsModal } from './components/FooterModals.jsx';
 
@@ -348,6 +349,9 @@ export default function App() {
   };
   // Drawer filter di mobile (File 1 Bagian 9.7) + drawer menu header.
   const isMobile = useIsMobile();
+  // Perangkat sentuh (ponsel/tablet): alur verifikasi e.id memakai deep
+  // link wallet (tanpa scan QR); desktop memakai QR.
+  const isTouchDevice = useIsTouchDevice();
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   // Sidebar filter desktop bisa disembunyikan (poin: sidebar bisa di-hide).
@@ -631,7 +635,7 @@ export default function App() {
                 marginRight: 12,
               }}
             >
-              🚧
+              🔔
             </button>
             {/* Login Otoritas (gabungan menu login + Admin): buka halaman
                 Administrator; isinya digate otoritas bila belum masuk. */}
@@ -923,6 +927,11 @@ export default function App() {
             </button>
           )}
 
+          {/* Keterangan data: seluruh titik saat ini dari pemberitaan
+              media (bukan laporan warga) — bisa ditutup (lihat
+              SeedNotice). Tidak di halaman Admin. */}
+          {activeView !== 'admin' && totalCount > 0 && <SeedNotice />}
+
           {/* Drawer filter mobile (File 1 Bagian 9.7) */}
           {isMobile && filtersOpen && (
             <>
@@ -1044,7 +1053,7 @@ export default function App() {
                   { icon: 'ℹ️', label: 'Tentang', open: openHeaderModal(setAboutOpen) },
                   { icon: '📊', label: 'Statistik', open: openHeaderModal(setStatsOpen) },
                   { icon: '🚧', label: 'Pantau', open: openHeaderModal(setPantauOpen) },
-                  { icon: '🚧', label: 'Notifikasi', open: openHeaderModal(setNotifOpen) },
+                  { icon: '🔔', label: 'Notifikasi', open: openHeaderModal(setNotifOpen) },
                   { icon: '🔒', label: 'Login Otoritas', open: openAdmin },
                 ].map((item) => (
                   <button
@@ -1215,25 +1224,18 @@ export default function App() {
                 }}
                 onClick={(e) => e.stopPropagation()}
               >
-                {isMobile ? (
-                  /* Mobile: alur e.id butuh scan QR di perangkat lain —
-                     tampilkan info (pesan SAMA dengan form warga), bukan QR
-                     (File 1 Bagian 9.7). */
-                  <EidDesktopInfo
-                    title="Masuk sebagai Otoritas Lokal"
-                    actionLabel="Tutup"
-                    onAction={() => setOtoritasOpen(false)}
-                  />
-                ) : (
-                  <VerificationFlow
-                    role="otoritas"
-                    onComplete={(result) => {
-                      setOtoritas({ displayName: result.displayName });
-                      setOtoritasOpen(false);
-                    }}
-                    onCancel={() => setOtoritasOpen(false)}
-                  />
-                )}
+                {/* Alur e.id: desktop = scan QR; perangkat sentuh
+                    (ponsel/tablet) = buka wallet e.id langsung (deep
+                    link) tanpa scan — lihat VerificationFlow walletMode. */}
+                <VerificationFlow
+                  role="otoritas"
+                  walletMode={isTouchDevice}
+                  onComplete={(result) => {
+                    setOtoritas({ displayName: result.displayName });
+                    setOtoritasOpen(false);
+                  }}
+                  onCancel={() => setOtoritasOpen(false)}
+                />
               </div>
             </div>
           )}
@@ -1243,7 +1245,7 @@ export default function App() {
 
           {/* Modal verifikasi e.id WARGA dari sidebar (poin Alur Inti 5):
               Member level 1 (email/nama/alamat/no. telp, tanpa KTP) —
-              desktop alur QR penuh, mobile info scan QR. */}
+              desktop alur QR penuh, perangkat sentuh alur wallet e.id. */}
           {eidFlowOpen && (
             <div
               className="tk-modal-backdrop"
@@ -1273,27 +1275,20 @@ export default function App() {
                 }}
                 onClick={(e) => e.stopPropagation()}
               >
-                {isMobile ? (
-                  <EidDesktopInfo
-                    title="Verifikasi e.id"
-                    actionLabel="Tutup"
-                    onAction={() => setEidFlowOpen(false)}
-                  />
-                ) : (
-                  <VerificationFlow
-                    role="warga"
-                    onComplete={(result) => {
-                      try {
-                        localStorage.setItem('titikrusak_eid', JSON.stringify(result));
-                      } catch (_e) {
-                        // abaikan bila localStorage tidak tersedia
-                      }
-                      setEidVerified(true);
-                      setEidFlowOpen(false);
-                    }}
-                    onCancel={() => setEidFlowOpen(false)}
-                  />
-                )}
+                <VerificationFlow
+                  role="warga"
+                  walletMode={isTouchDevice}
+                  onComplete={(result) => {
+                    try {
+                      localStorage.setItem('titikrusak_eid', JSON.stringify(result));
+                    } catch (_e) {
+                      // abaikan bila localStorage tidak tersedia
+                    }
+                    setEidVerified(true);
+                    setEidFlowOpen(false);
+                  }}
+                  onCancel={() => setEidFlowOpen(false)}
+                />
               </div>
             </div>
           )}

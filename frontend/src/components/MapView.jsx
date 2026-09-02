@@ -2,8 +2,9 @@
 // Peta utama titikrusak.id (File 2 Bagian 6.3 langkah ketiga).
 // Leaflet.js + tile layer OpenStreetMap standar (File 1 Bagian 7.2).
 // Pusat peta: -2.5, 118 dengan zoom menampilkan seluruh Indonesia
-// (File 1 Bagian 5.1). Marker berwarna sesuai severity (File 1 6.8.2):
-// ringan=hijau, sedang=kuning, berat=oranye, ambruk=merah.
+// (File 1 Bagian 5.1). Warna titik: ringan=biru muda, sedang=kuning,
+// berat=oranye, ambruk=merah; HIJAU khusus laporan sudah diperbaiki
+// (lihat reportMarkerColor di labels.js).
 //
 // Mode tampilan "Peta": data laporan TIDAK di-fetch di sini — diterima
 // sebagai props dari App (satu sumber data yang sama dengan ListView,
@@ -23,6 +24,8 @@ import {
   SEVERITY_DEFINITIONS,
   INFRA_LABELS,
   STATUS_LABELS,
+  STATUS_COLORS,
+  reportMarkerColor,
 } from '../lib/labels.js';
 import useIsMobile from '../lib/useIsMobile.js';
 import { detectProvince } from '../lib/regions.js';
@@ -137,10 +140,14 @@ function NavButtons({ canGoBack, onBack, onHome, isMobile }) {
   );
 }
 
-// Legend warna tingkat kerusakan + ikon info definisi (File 1 Bagian 9.3).
-// Kotak kecil di pojok kanan bawah; klik atau hover ikon info menampilkan
-// definisi singkat tiap kategori.
-function SeverityLegend() {
+// Legend warna titik di peta (File 1 Bagian 9.3) — koreksi user:
+// - RINGAN = biru muda (hijau tidak lagi dipakai tingkat kerusakan);
+// - HIJAU khusus untuk laporan yang SUDAH DIPERBAIKI;
+// - centang ✓ = laporan sudah diverifikasi otoritas;
+// - latar 80% transparan (sama dengan slider zoom) & bisa di-hide.
+// Kotak kecil di pojok kanan bawah; klik/hover ikon info menampilkan
+// definisi singkat tiap kategori kerusakan.
+function SeverityLegend({ onHide }) {
   const [open, setOpen] = useState(false);
   const toggle = () => setOpen((v) => !v);
 
@@ -151,7 +158,7 @@ function SeverityLegend() {
         right: 12,
         bottom: 40, // di atas kontrol attribution Leaflet (kanan bawah)
         zIndex: 1000,
-        background: 'rgba(255, 255, 255, 0.95)',
+        background: 'rgba(255, 255, 255, 0.8)',
         borderRadius: 8,
         boxShadow: '0 1px 6px rgba(0, 0, 0, 0.35)',
         padding: '10px 12px',
@@ -181,6 +188,24 @@ function SeverityLegend() {
         >
           ⓘ
         </button>
+        <button
+          type="button"
+          onClick={onHide}
+          aria-label="Sembunyikan legenda"
+          title="Sembunyikan legenda"
+          style={{
+            border: '1px solid #cbd5e1',
+            background: '#fff',
+            cursor: 'pointer',
+            fontSize: 11,
+            lineHeight: 1,
+            color: '#334155',
+            padding: '3px 6px',
+            borderRadius: 5,
+          }}
+        >
+          ✕
+        </button>
       </div>
 
       {SEVERITY_ORDER.map((sev) => (
@@ -199,6 +224,36 @@ function SeverityLegend() {
         </div>
       ))}
 
+      {/* Hijau KHUSUS laporan yang sudah diperbaiki (bukan severity) */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6 }}>
+        <span
+          style={{
+            width: 14,
+            height: 14,
+            borderRadius: '50%',
+            background: STATUS_COLORS.selesai_diperbaiki,
+            border: '3px solid #fff',
+            boxShadow: '0 0 0 1px #1f2937',
+            color: '#fff',
+            flexShrink: 0,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: 9,
+            fontWeight: 900,
+            lineHeight: 1,
+          }}
+        >
+          ✓
+        </span>
+        <span>Selesai Diperbaiki</span>
+      </div>
+
+      <p style={{ margin: '8px 0 0', fontSize: 11, lineHeight: 1.4, color: '#475569' }}>
+        ✓ di dalam titik = laporan sudah diverifikasi otoritas. Warna titik tetap
+        menunjukkan tingkat kerusakan — kecuali hijau: laporan sudah diperbaiki.
+      </p>
+
       {open && (
         <div style={{ marginTop: 8, borderTop: '1px solid #e2e8f0', paddingTop: 8 }}>
           {SEVERITY_ORDER.map((sev) => (
@@ -209,6 +264,37 @@ function SeverityLegend() {
         </div>
       )}
     </div>
+  );
+}
+
+// Tombol kecil untuk memunculkan kembali legenda yang sudah di-hide user.
+function LegendToggle({ onShow }) {
+  return (
+    <button
+      type="button"
+      onClick={onShow}
+      title="Tampilkan legenda"
+      style={{
+        position: 'absolute',
+        right: 12,
+        bottom: 40,
+        zIndex: 1000,
+        background: 'rgba(255, 255, 255, 0.8)',
+        border: '1px solid #cbd5e1',
+        borderRadius: 999,
+        padding: '6px 12px',
+        fontSize: 12,
+        fontWeight: 600,
+        color: '#1c1917',
+        cursor: 'pointer',
+        boxShadow: '0 1px 6px rgba(0, 0, 0, 0.3)',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 6,
+      }}
+    >
+      <span style={{ fontSize: 13, lineHeight: 1 }}>ℹ️</span> Legenda
+    </button>
   );
 }
 
@@ -448,6 +534,9 @@ export default function MapView({
   // titik); tampil lagi di tampilan negara/region (<= LEGEND_MAX_ZOOM).
   const [zoomLevel, setZoomLevel] = useState(6);
   const LEGEND_MAX_ZOOM = 7;
+  // Legenda juga bisa di-hide manual oleh user (tombol ✕); tersimpan per
+  // sesi komponen — tombol "ℹ️ Legenda" memunculkannya kembali.
+  const [legendHidden, setLegendHidden] = useState(false);
   // Riwayat navigasi zoom (File 1 Bagian 9.1): array {center, zoom} yang
   // didorong setiap kali pengguna zoom in ke cluster/marker; tombol
   // "Kembali" mem-pop satu langkah.
@@ -653,7 +742,9 @@ export default function MapView({
     };
 
     reports.forEach((report) => {
-      const color = SEVERITY_COLORS[report.severity] || '#64748b';
+      // Warna titik: HIJAU khusus laporan selesai_diperbaiki; selain itu
+      // warna tingkat kerusakan (ringan = biru muda) — reportMarkerColor.
+      const color = reportMarkerColor(report);
       const approved = APPROVED_STATUSES.includes(report.status);
       const glowClass = GLOW_CLASS[report.severity] || '';
 
@@ -745,8 +836,15 @@ export default function MapView({
       {/* Legend hanya di tampilan negara/region — saat zoom in ke titik
           disembunyikan agar tidak mengganggu view; DI MOBILE TIDAK
           DITAMPILKAN sama sekali (menghindari tumpukan dengan tombol
-          Lapor & slider zoom; informasinya ada di menu Dokumentasi). */}
-      {!isMobile && zoomLevel <= LEGEND_MAX_ZOOM && <SeverityLegend />}
+          Lapor & slider zoom; informasinya ada di menu Dokumentasi).
+          Bisa di-hide user (✕) lalu dimunculkan lagi lewat tombol
+          "ℹ️ Legenda". */}
+      {!isMobile && zoomLevel <= LEGEND_MAX_ZOOM && !legendHidden && (
+        <SeverityLegend onHide={() => setLegendHidden(true)} />
+      )}
+      {!isMobile && zoomLevel <= LEGEND_MAX_ZOOM && legendHidden && (
+        <LegendToggle onShow={() => setLegendHidden(false)} />
+      )}
       {mapReady && <ZoomSlider map={mapRef.current} />}
 
       {/* Kondisi hasil kosong (File 1 Bagian 9.1/9.2) — sama dengan

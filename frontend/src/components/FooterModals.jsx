@@ -77,6 +77,25 @@ export function DocModal({ onClose }) {
             </div>
           ))}
         </div>
+        {/* Catatan warna (koreksi user): hijau khusus status selesai */}
+        <p
+          style={{
+            margin: '8px 0 0',
+            fontSize: 12,
+            lineHeight: 1.55,
+            color: '#854d0e',
+            background: '#fefce8',
+            border: '1px solid #fef08a',
+            borderRadius: 8,
+            padding: '9px 12px',
+          }}
+        >
+          Titik <strong>hijau</strong> di peta berarti laporan <strong>sudah diperbaiki</strong>{' '}
+          (status Selesai Diperbaiki), bukan tingkat kerusakan. Titik lain berwarna sesuai
+          tingkat kerusakan — <strong>Ringan</strong> = biru muda, Sedang = kuning, Berat =
+          oranye, Ambruk = merah. Centang <strong>✓</strong> di dalam titik = laporan sudah
+          diverifikasi otoritas.
+        </p>
       </div>
 
       {/* ---- Status laporan ---- */}

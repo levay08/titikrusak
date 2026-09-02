@@ -45,6 +45,9 @@ export default function VerificationFlow({
   role,
   onComplete,
   onCancel,
+  // Alur perangkat sentuh (ponsel/tablet): buka wallet e.id lewat deep
+  // link (eid_oauth_url) — TANPA pindai QR. Desktop (false) = QR biasa.
+  walletMode = false,
   pollIntervalMs = 4000,
   maxWaitMs = 5 * 60 * 1000,
 }) {
@@ -58,6 +61,9 @@ export default function VerificationFlow({
   const [alias, setAlias] = useState('');
   // Sisa waktu sesi (display countdown, 1 detik).
   const [remainingMs, setRemainingMs] = useState(maxWaitMs);
+  // Alur wallet (mobile): QR disembunyikan — bisa dimunculkan sebagai
+  // opsi cadangan lewat tautan "Atau pindai QR di perangkat lain".
+  const [showQr, setShowQr] = useState(false);
 
   const deadlineRef = useRef(0);
   const sessionRef = useRef(null);
@@ -77,6 +83,7 @@ export default function VerificationFlow({
     setErrorMsg('');
     setAliasMode(false);
     setAlias('');
+    setShowQr(false);
     try {
       const res = await fetch('/api/verify/start', {
         method: 'POST',
@@ -172,7 +179,17 @@ export default function VerificationFlow({
 
     tick();
     const interval = setInterval(tick, pollIntervalMs);
-    return () => clearInterval(interval);
+    // Begitu pengguna kembali ke tab ini (mis. selesai menyetujui di
+    // wallet e.id), langsung periksa status — tidak perlu menunggu
+    // interval polling berikutnya.
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') tick();
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', onVisible);
+    };
   }, [phase, sessionId, pollIntervalMs]);
 
   // ---- Countdown sisa waktu sesi (display per detik) ----
@@ -205,6 +222,52 @@ export default function VerificationFlow({
   const currentStep = phase === 'approved' ? 2 : phase === 'failed' ? -1 : phase === 'qr' ? 1 : 0;
 
   const qrValue = qrUrl || (qrData ? JSON.stringify(qrData) : '');
+  // Alur wallet hanya tersedia bila backend mengirim eid_oauth_url (deep
+  // link wallet). Tanpa URL itu, fallback ke QR seperti desktop.
+  const canWallet = walletMode && !!qrUrl;
+
+  // Chip countdown sisa waktu sesi (dipakai alur QR maupun wallet).
+  const countdownChip = (
+    <div
+      style={{
+        display: 'inline-block',
+        marginTop: 12,
+        padding: '6px 14px',
+        borderRadius: 999,
+        fontSize: 13,
+        fontWeight: 700,
+        fontVariantNumeric: 'tabular-nums',
+        background: remainingMs < 10000 ? '#fef2f2' : '#f8fafc',
+        border: `1px solid ${remainingMs < 10000 ? '#fca5a5' : '#e2e8f0'}`,
+        color: remainingMs < 10000 ? '#b91c1c' : '#1c1917',
+      }}
+    >
+      Sisa waktu: {fmtTime(remainingMs)}
+    </div>
+  );
+
+  // Panel QR (desktop & opsi cadangan alur wallet).
+  const qrPanel = (
+    <div style={{ textAlign: 'center' }}>
+      <div
+        style={{
+          display: 'inline-block',
+          background: '#fff',
+          border: '1px solid #e2e8f0',
+          borderRadius: 12,
+          padding: 14,
+          boxShadow: '0 2px 10px rgba(0,0,0,0.08)',
+        }}
+      >
+        <QRCode value={qrValue} size={200} />
+      </div>
+      <p style={{ margin: '12px 0 0', fontSize: 13, lineHeight: 1.5, color: '#334155' }}>
+        Scan QR ini dengan aplikasi e.id Anda untuk menyetujui verifikasi.
+        <br />
+        Sesi berlaku maksimal 5 menit.
+      </p>
+    </div>
+  );
 
   return (
     <div>
@@ -266,44 +329,89 @@ export default function VerificationFlow({
         <p style={{ fontSize: 14, color: '#334155' }}>Mengirim permintaan verifikasi…</p>
       )}
 
-      {/* ---- Tahap QR ---- */}
-      {phase === 'qr' && (
-        <div style={{ textAlign: 'center' }}>
-          <div
-            style={{
-              display: 'inline-block',
-              background: '#fff',
-              border: '1px solid #e2e8f0',
-              borderRadius: 12,
-              padding: 14,
-              boxShadow: '0 2px 10px rgba(0,0,0,0.08)',
-            }}
-          >
-            <QRCode value={qrValue} size={200} />
+      {/* ---- Tahap QR: menunggu persetujuan di wallet ---- */}
+      {phase === 'qr' &&
+        (canWallet ? (
+          <div style={{ textAlign: 'center' }}>
+            <div
+              style={{
+                background: '#f0fdf4',
+                border: '1px solid #bbf7d0',
+                borderRadius: 10,
+                padding: '12px 14px',
+                marginBottom: 10,
+                textAlign: 'left',
+              }}
+            >
+              <p
+                style={{
+                  margin: '0 0 10px',
+                  fontSize: 13.5,
+                  lineHeight: 1.5,
+                  color: '#15803d',
+                  fontWeight: 600,
+                }}
+              >
+                Verifikasi langsung dari perangkat ini — tanpa pindai QR.
+              </p>
+              <a
+                href={qrValue}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: 'block',
+                  width: '100%',
+                  boxSizing: 'border-box',
+                  padding: '12px 16px',
+                  borderRadius: 8,
+                  background: '#facc15',
+                  color: '#1c1917',
+                  fontSize: 14.5,
+                  fontWeight: 700,
+                  textAlign: 'center',
+                  textDecoration: 'none',
+                }}
+              >
+                📲 Buka Wallet e.id
+              </a>
+            </div>
+            <p style={{ margin: '0 0 10px', fontSize: 12.5, lineHeight: 1.55, color: '#475569' }}>
+              Aplikasi e.id akan terbuka untuk menyetujui verifikasi. Jika aplikasi
+              belum terpasang, halaman wallet e.id terbuka di browser — masuk ke akun
+              e.id lalu setujui. Setelah menyetujui, kembali ke halaman ini; status
+              diperbarui otomatis.
+            </p>
+            {countdownChip}
+            <div style={{ marginTop: 12 }}>
+              <button
+                type="button"
+                onClick={() => setShowQr((s) => !s)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#2563eb',
+                  fontSize: 12.5,
+                  fontWeight: 600,
+                  textDecoration: 'underline',
+                  cursor: 'pointer',
+                  padding: '2px 4px',
+                }}
+              >
+                {showQr ? 'Sembunyikan QR' : 'Atau pindai QR di perangkat lain'}
+              </button>
+            </div>
+            {showQr && (
+              <div style={{ marginTop: 12 }}>
+                {qrPanel}
+              </div>
+            )}
           </div>
-          <p style={{ margin: '12px 0 0', fontSize: 13, lineHeight: 1.5, color: '#334155' }}>
-            Scan QR ini dengan aplikasi e.id Anda untuk menyetujui verifikasi.
-            <br />
-            Sesi berlaku maksimal 5 menit.
-          </p>
-          <div
-            style={{
-              display: 'inline-block',
-              marginTop: 12,
-              padding: '6px 14px',
-              borderRadius: 999,
-              fontSize: 13,
-              fontWeight: 700,
-              fontVariantNumeric: 'tabular-nums',
-              background: remainingMs < 10000 ? '#fef2f2' : '#f8fafc',
-              border: `1px solid ${remainingMs < 10000 ? '#fca5a5' : '#e2e8f0'}`,
-              color: remainingMs < 10000 ? '#b91c1c' : '#1c1917',
-            }}
-          >
-            Sisa waktu: {fmtTime(remainingMs)}
+        ) : (
+          <div style={{ textAlign: 'center' }}>
+            {qrPanel}
+            {countdownChip}
           </div>
-        </div>
-      )}
+        ))}
 
       {/* ---- Tahap approved: pilihan nama (File 1 3.5) ---- */}
       {phase === 'approved' && (

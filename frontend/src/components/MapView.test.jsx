@@ -50,7 +50,7 @@ describe('MapView: marker laporan approved menampilkan centang (poin Alur Inti 2
       id: 2,
       lat: -6.2,
       lng: 106.8,
-      severity: 'ringan', // hijau #22c55e
+      severity: 'ringan', // biru muda #60a5fa (hijau khusus selesai diperbaiki)
       status: 'dilaporkan',
       location_name: 'Jalan Merdeka',
       infra_type: 'jalan',
@@ -79,18 +79,19 @@ describe('MapView: marker laporan approved menampilkan centang (poin Alur Inti 2
     );
 
     // Laporan belum approved tetap circleMarker warna severity (tanpa centang).
+    // ringan = BIRU MUDA (hijau tidak lagi dipakai severity).
     expect(L.circleMarker).toHaveBeenCalledWith(
       [-6.2, 106.8],
-      expect.objectContaining({ fillColor: '#22c55e', radius: 9 })
+      expect.objectContaining({ fillColor: '#60a5fa', radius: 9 })
     );
   });
 
-  it('laporan dalam_perbaikan / selesai_diperbaiki juga dianggap approved (bercentang)', () => {
+  it('laporan dalam_perbaikan / selesai_diperbaiki juga dianggap approved (bercentang); selesai_diperbaiki = HIJAU', () => {
     render(
       <MapView
         reports={[
-          { ...REPORTS[0], id: 3, status: 'dalam_perbaikan' },
-          { ...REPORTS[0], id: 4, status: 'selesai_diperbaiki' },
+          { ...REPORTS[0], id: 3, status: 'dalam_perbaikan' }, // berat -> oranye
+          { ...REPORTS[0], id: 4, status: 'selesai_diperbaiki' }, // HIJAU #22c55e
         ]}
       />
     );
@@ -99,6 +100,13 @@ describe('MapView: marker laporan approved menampilkan centang (poin Alur Inti 2
     expect(L.divIcon).toHaveBeenCalledTimes(2);
     expect(L.marker).toHaveBeenCalledTimes(2);
     expect(L.circleMarker).not.toHaveBeenCalled();
+
+    // Warna: dalam_perbaikan tetap warna severity (berat = oranye); yang
+    // SUDAH DIPERBAIKI memakai HIJAU (hijau khusus status selesai).
+    const htmls = L.divIcon.mock.calls.map(([opts]) => opts.html);
+    expect(htmls[0]).toContain('#f97316');
+    expect(htmls[0]).not.toContain('#22c55e');
+    expect(htmls[1]).toContain('#22c55e');
   });
 });
 
@@ -379,5 +387,71 @@ describe('MapView: slider zoom (tengah-bawah, geser untuk zoom in/out)', () => {
     expect(screen.getByText('13%')).toBeInTheDocument();
     fireEvent.pointerUp(slider);
     expect(screen.queryByText('13%')).not.toBeInTheDocument();
+  });
+});
+
+describe('MapView: titik terverifikasi (✓) bisa diklik untuk melihat detail', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  const REPORT = {
+    id: 21,
+    lat: -8.65,
+    lng: 115.22,
+    severity: 'berat',
+    status: 'terverifikasi', // approved -> L.marker divIcon bercentang
+    location_name: 'Jembatan Cibeureum, Garut',
+    description: 'Retak di pangkal pilar.',
+    infra_type: 'jembatan',
+  };
+
+  it('klik marker bercentang: zoom bertahap + popup terbuka berisi tombol "Lihat Detail"', async () => {
+    render(<MapView reports={[REPORT]} />);
+
+    // Titik approved memakai L.marker (bukan circleMarker).
+    expect(L.circleMarker).not.toHaveBeenCalled();
+    const marker = L.marker.mock.results[0].value;
+
+    // Popup titik berisi tombol Lihat Detail (data-id laporan).
+    const popupHtml = marker.bindPopup.mock.calls[0][0];
+    expect(popupHtml).toContain('Lihat Detail');
+    expect(popupHtml).toContain(`data-id="${REPORT.id}"`);
+
+    // Klik marker -> catat riwayat, zoom bertahap, popup terbuka.
+    const clickHandler = marker.on.mock.calls.find(([evt]) => evt === 'click')[1];
+    await act(async () => clickHandler());
+
+    const map = L.map.mock.results[0].value;
+    // Zoom bertahap dari zoom 5 -> max(7,14)=14 (bukan lompat jauh).
+    expect(map.setView).toHaveBeenCalledWith([-8.65, 115.22], 14, { animate: true });
+    expect(marker.openPopup).toHaveBeenCalled();
+  });
+});
+
+describe('MapView: legenda bisa di-hide + memuat baris Selesai Diperbaiki (hijau)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('legenda tampil (Ringan biru muda, Selesai Diperbaiki hijau); ✕ menyembunyikan; tombol Legenda memunculkan lagi', async () => {
+    const user = (await import('@testing-library/user-event')).default;
+    render(<MapView reports={[]} />);
+
+    // Legenda tampil dengan baris severity + baris hijau "Selesai Diperbaiki".
+    expect(screen.getByText('Tingkat Kerusakan')).toBeInTheDocument();
+    expect(screen.getByText('Ringan')).toBeInTheDocument();
+    expect(screen.getByText('Selesai Diperbaiki')).toBeInTheDocument();
+    expect(screen.getByText(/sudah diverifikasi otoritas/i)).toBeInTheDocument();
+
+    // ✕ -> legenda hilang, tombol kecil "Legenda" muncul.
+    await user.click(screen.getByRole('button', { name: /sembunyikan legenda/i }));
+    expect(screen.queryByText('Tingkat Kerusakan')).not.toBeInTheDocument();
+    const showBtn = screen.getByRole('button', { name: /legenda/i });
+    expect(showBtn).toBeInTheDocument();
+
+    // Klik tombol -> legenda kembali.
+    await user.click(showBtn);
+    expect(screen.getByText('Tingkat Kerusakan')).toBeInTheDocument();
   });
 });

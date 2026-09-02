@@ -77,21 +77,33 @@ const REPORTS = [
   },
 ];
 
-describe('AboutModal (poin 9: tentang aplikasi)', () => {
-  it('menampilkan hero + deskripsi + kartu fitur + cara pakai', () => {
+describe('AboutModal (menu Tentang — konten SAMA dengan modal welcome)', () => {
+  it('menampilkan konten yang sama dengan modal welcome: latar belakang, solusi, fitur utama, ajakan', () => {
     render(<AboutModal onClose={vi.fn()} />);
     expect(screen.getByText('Tentang titikrusak.id')).toBeInTheDocument();
-    expect(screen.getByText(/platform crowdsourcing untuk melaporkan/i)).toBeInTheDocument();
-    expect(screen.getByText('Cara pakai')).toBeInTheDocument();
 
-    // Kartu fitur utama (poin 9: desain modern/minimal).
-    expect(screen.getByText('Lapor')).toBeInTheDocument();
-    expect(screen.getByText('Pantau')).toBeInTheDocument();
-    expect(screen.getByText('Dukung')).toBeInTheDocument();
-    expect(screen.getByText('Otoritas')).toBeInTheDocument();
-
-    // Teks ajakan dukungan muncul (di kartu fitur & langkah cara pakai).
-    expect(screen.getAllByText(/Dukung laporan warga lain/i).length).toBeGreaterThan(0);
+    // Konten diambil dari WelcomeBody (satu sumber dengan WelcomeModal).
+    expect(screen.getByText('Latar Belakang')).toBeInTheDocument();
+    expect(screen.getByText('Solusi')).toBeInTheDocument();
+    expect(screen.getByText('Fitur Utama')).toBeInTheDocument();
+    expect(
+      screen.getByText(/peta terpadu kerusakan infrastruktur/i)
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/Dukungan warga via e\.id — menaikkan prioritas/i)
+    ).toBeInTheDocument();
+    // Ajakan verifikasi — teks terbagi elemen <strong>, cek textContent.
+    expect(
+      screen.getByText(
+        (_c, el) =>
+          el.tagName === 'P' &&
+          el.textContent.includes('verifikasi identitas dengan') &&
+          el.textContent.includes('tanpa KTP untuk warga')
+      )
+    ).toBeInTheDocument();
+    // Tidak ada lagi konten lama (hero/kartu fitur/cara pakai).
+    expect(screen.queryByText('Cara pakai')).not.toBeInTheDocument();
+    expect(screen.queryByText(/platform crowdsourcing untuk melaporkan/i)).not.toBeInTheDocument();
   });
 });
 

@@ -21,8 +21,8 @@ import {
   STATUS_COLORS,
 } from '../lib/labels.js';
 import VerificationFlow from './VerificationFlow.jsx';
-import EidDesktopInfo from './EidDesktopInfo.jsx';
 import useIsMobile from '../lib/useIsMobile.js';
+import useIsTouchDevice from '../lib/useIsTouchDevice.js';
 
 // Alur status laporan (File 1 Bagian 6.2): satu arah maju. Tombol tindakan
 // otoritas selalu menawarkan STATUS BERIKUTNYA dalam alur ini.
@@ -219,6 +219,9 @@ function WeatherBadge({ value }) {
 
 export default function DetailModal({ report, onClose, otoritas = null, onReportUpdated, origin = null, onOriginClick = null }) {
   const isMobile = useIsMobile();
+  // Perangkat sentuh (ponsel/tablet): verifikasi e.id untuk fitur Dukung
+  // lewat deep link wallet (tanpa scan QR) — lihat VerificationFlow.
+  const isTouchDevice = useIsTouchDevice();
   // Label asal navigasi untuk breadcrumb detail (File 1 Bagian 4.2):
   // 'list' -> Daftar Laporan, 'map' -> Peta, null -> tanpa breadcrumb.
   const originLabel = origin === 'list' ? 'Daftar Laporan' : origin === 'map' ? 'Peta' : null;
@@ -632,49 +635,39 @@ export default function DetailModal({ report, onClose, otoritas = null, onReport
                 menjadi sinyal prioritas bagi otoritas.
               </p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                {isMobile ? (
-                  <EidDesktopInfo
-                    title="Verifikasi e.id untuk Dukungan"
-                    actionLabel="Kembali"
-                    onAction={() => setVoteState('idle')}
-                  />
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => setVoteState('verifying')}
-                    style={{
-                      width: '100%',
-                      padding: '11px 14px',
-                      borderRadius: 8,
-                      border: 'none',
-                      background: '#facc15',
-                      color: '#1c1917',
-                      fontSize: 14,
-                      fontWeight: 700,
-                      cursor: 'pointer',
-                    }}
-                  >
-                    Verifikasi dengan e.id
-                  </button>
-                )}
-                {!isMobile && (
-                  <button
-                    type="button"
-                    onClick={() => setVoteState('idle')}
-                    style={{
-                      width: '100%',
-                      padding: '10px 14px',
-                      borderRadius: 8,
-                      border: '1px solid #cbd5e1',
-                      background: '#fff',
-                      color: '#1c1917',
-                      fontSize: 13,
-                      cursor: 'pointer',
-                    }}
-                  >
-                    Batal
-                  </button>
-                )}
+                <button
+                  type="button"
+                  onClick={() => setVoteState('verifying')}
+                  style={{
+                    width: '100%',
+                    padding: '11px 14px',
+                    borderRadius: 8,
+                    border: 'none',
+                    background: '#facc15',
+                    color: '#1c1917',
+                    fontSize: 14,
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                  }}
+                >
+                  Verifikasi dengan e.id
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setVoteState('idle')}
+                  style={{
+                    width: '100%',
+                    padding: '10px 14px',
+                    borderRadius: 8,
+                    border: '1px solid #cbd5e1',
+                    background: '#fff',
+                    color: '#1c1917',
+                    fontSize: 13,
+                    cursor: 'pointer',
+                  }}
+                >
+                  Batal
+                </button>
               </div>
             </div>
           )}
@@ -682,6 +675,7 @@ export default function DetailModal({ report, onClose, otoritas = null, onReport
           {voteState === 'verifying' && (
             <VerificationFlow
               role="warga"
+              walletMode={isTouchDevice}
               onComplete={handleVoteVerified}
               onCancel={() => setVoteState('prompt')}
             />

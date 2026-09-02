@@ -4,8 +4,11 @@
 // agar label/warna tidak terduplikasi antar komponen.
 
 // ---- Tingkat kerusakan (File 1 Bagian 6.8.2) ----
+// Warna: RINGAN = BIRU MUDA (koreksi user: hijau TIDAK lagi dipakai
+// severity — hijau khusus untuk laporan yang SUDAH DIPERBAIKI, lihat
+// STATUSES.selesai_diperbaiki & reportMarkerColor).
 export const SEVERITIES = [
-  { value: 'ringan', label: 'Ringan', color: '#22c55e' }, // hijau
+  { value: 'ringan', label: 'Ringan', color: '#60a5fa' }, // biru muda
   { value: 'sedang', label: 'Sedang', color: '#eab308' }, // kuning
   { value: 'berat', label: 'Berat', color: '#f97316' },   // oranye
   { value: 'ambruk', label: 'Ambruk', color: '#ef4444' }, // merah
@@ -80,3 +83,15 @@ export const STATUSES = [
 ];
 export const STATUS_LABELS = Object.fromEntries(STATUSES.map((s) => [s.value, s.label]));
 export const STATUS_COLORS = Object.fromEntries(STATUSES.map((s) => [s.value, s.color]));
+
+// ---- Warna titik di peta (koreksi user) ----
+// HIJAU hanya untuk laporan yang SUDAH DIPERBAIKI (selesai_diperbaiki).
+// Laporan lain memakai warna tingkat kerusakan (ringan = biru muda).
+// Dipakai MapView (circleMarker & divIcon approved) agar peta, legend,
+// dan dokumentasi selalu satu sumber warna.
+export function reportMarkerColor(report) {
+  if (report && report.status === 'selesai_diperbaiki') {
+    return STATUS_COLORS.selesai_diperbaiki; // #22c55e — satu-satunya hijau
+  }
+  return SEVERITY_COLORS[(report && report.severity) || ''] || '#64748b';
+}

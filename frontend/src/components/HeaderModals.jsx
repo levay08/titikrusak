@@ -18,6 +18,7 @@ import {
 import { ISLAND_REGIONS, OTHER_ISLAND, detectIsland, detectProvince } from '../lib/regions.js';
 import Logo from './Logo.jsx';
 import useIsMobile from '../lib/useIsMobile.js';
+import { WelcomeBody } from './WelcomeModal.jsx';
 
 // ---- Utilitas kecil ----
 
@@ -196,113 +197,11 @@ function DonutChart({ segments, size = 150, thickness = 20 }) {
 // ---- Tentang (poin 9: about web app ini) ----
 export function AboutModal({ onClose }) {
   return (
+    // Konten menu "Tentang" MENYAMAKAN konten modal welcome (koreksi
+    // user): latar belakang, solusi, fitur utama, dan ajakan dipakai
+    // dari WelcomeBody (satu sumber — dua tempat selalu sinkron).
     <ModalShell title="Tentang titikrusak.id" onClose={onClose} maxWidth={600}>
-      {/* Hero: logo + tagline */}
-      <div
-        style={{
-          display: 'flex',
-          gap: 14,
-          alignItems: 'center',
-          marginBottom: 14,
-          background: 'linear-gradient(135deg, #fefce8, #fef9c3)',
-          border: '1px solid #fef08a',
-          borderRadius: 12,
-          padding: '14px 16px',
-        }}
-      >
-        <Logo size={54} />
-        <div>
-          <div style={{ fontSize: 16, fontWeight: 800, color: '#1c1917' }}>titikrusak.id</div>
-          <div style={{ fontSize: 12.5, color: '#854d0e', marginTop: 2 }}>
-            Laporkan &amp; pantau infrastruktur publik yang rusak di Indonesia
-          </div>
-        </div>
-      </div>
-
-      <p style={{ margin: '0 0 14px', fontSize: 13.5, lineHeight: 1.6, color: '#334155' }}>
-        <strong>titikrusak.id</strong> adalah platform crowdsourcing untuk melaporkan dan
-        memantau kerusakan infrastruktur publik di Indonesia — jembatan, jalan, sekolah,
-        prasarana publik, dan utilitas. Warga melaporkan kondisi di lapangan, otoritas
-        memverifikasi dan menindaklanjuti, dengan verifikasi identitas e.id untuk
-        kepercayaan dan transparansi.
-      </p>
-
-      {/* Kartu fitur utama */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
-          gap: 8,
-          marginBottom: 16,
-        }}
-      >
-        {[
-          { icon: '📝', title: 'Lapor', desc: 'Laporkan kerusakan dengan lokasi & deskripsi' },
-          { icon: '🛠️', title: 'Pantau', desc: 'Ikuti status perbaikan hingga selesai' },
-          { icon: '🤝', title: 'Dukung', desc: 'Dukung laporan warga lain (terverifikasi e.id)' },
-          { icon: '🏛', title: 'Otoritas', desc: 'Verifikasi & tindak lanjut via e.id KYC e-KTP' },
-        ].map((f) => (
-          <div
-            key={f.title}
-            style={{
-              background: '#f8fafc',
-              border: '1px solid #e2e8f0',
-              borderRadius: 10,
-              padding: '12px',
-            }}
-          >
-            <div style={{ fontSize: 20, lineHeight: 1 }}>{f.icon}</div>
-            <div style={{ fontSize: 13, fontWeight: 700, color: '#1c1917', marginTop: 6 }}>
-              {f.title}
-            </div>
-            <div style={{ fontSize: 11.5, color: '#64748b', marginTop: 2, lineHeight: 1.4 }}>
-              {f.desc}
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Cara pakai */}
-      <div style={{ marginBottom: 14 }}>
-        <div
-          style={{
-            fontSize: 13,
-            fontWeight: 700,
-            color: '#1c1917',
-            marginBottom: 8,
-            display: 'flex',
-            alignItems: 'center',
-            gap: 6,
-          }}
-        >
-          <span
-            style={{ width: 14, height: 3, borderRadius: 2, background: '#eab308', display: 'inline-block' }}
-          />
-          Cara pakai
-        </div>
-        <ol style={{ margin: 0, paddingLeft: 18, fontSize: 13, lineHeight: 1.7, color: '#334155' }}>
-          <li>Laporkan kerusakan lewat tombol "Lapor Kerusakan" (form + peta lokasi).</li>
-          <li>Pantau status: Dilaporkan → Terverifikasi → Dalam Perbaikan → Selesai Diperbaiki.</li>
-          <li>Dukung laporan warga lain (terverifikasi e.id) — dukungan menaikkan prioritas.</li>
-          <li>Otoritas: masuk via e.id, verifikasi laporan, dan lanjutkan status perbaikan.</li>
-        </ol>
-      </div>
-
-      <p
-        style={{
-          margin: 0,
-          fontSize: 12,
-          lineHeight: 1.5,
-          color: '#64748b',
-          background: '#f8fafc',
-          border: '1px solid #e2e8f0',
-          borderRadius: 8,
-          padding: '10px 12px',
-        }}
-      >
-        Data laporan tersimpan di database lokal. Identitas e.id hanya ditampilkan sesuai
-        pilihan Anda (nama asli atau alias/anonim).
-      </p>
+      <WelcomeBody heading="titikrusak.id" />
     </ModalShell>
   );
 }

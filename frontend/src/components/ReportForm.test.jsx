@@ -112,10 +112,29 @@ describe('ReportForm', () => {
     expect(screen.getByText('Anonim')).toBeInTheDocument();
   });
 
-  it('mobile: tombol verifikasi e.id menampilkan info scan QR/desktop, bukan alur QR', async () => {
+  it('mobile/tablet: tombol verifikasi e.id membuka alur WALLET (buka aplikasi via deep link, tanpa scan QR)', async () => {
     setMobile(true);
-    const fetchMock = buildFetchMock({
-      postResponse: { ok: true, status: 201, json: async () => ({ id: 99 }) },
+    // stub verifikasi e.id: start -> session + eid_oauth_url; status pending.
+    const fetchMock = vi.fn((url, init) => {
+      const u = String(url);
+      if (init && init.method === 'POST' && u.includes('/api/verify/start')) {
+        return Promise.resolve({
+          ok: true,
+          status: 201,
+          json: async () => ({
+            session_id: 'sess-m1',
+            qr_data: { challenge: 'c1', qr_token: 't1', schema_id: 'vs1' },
+            eid_oauth_url: 'https://wallet.e.id/oauth/credential?c=c1&q=t1',
+          }),
+        });
+      }
+      if (u.includes('/api/verify/status/')) {
+        return Promise.resolve({ ok: true, status: 200, json: async () => ({ status: 'pending' }) });
+      }
+      if (init && init.method === 'POST') {
+        return Promise.resolve({ ok: true, status: 201, json: async () => ({ id: 99 }) });
+      }
+      return Promise.resolve({ ok: true, status: 200, json: async () => [] });
     });
     vi.stubGlobal('fetch', fetchMock);
 
@@ -124,28 +143,44 @@ describe('ReportForm', () => {
 
     await user.click(screen.getByRole('button', { name: /verifikasi dengan e\.id/i }));
 
-    // Info tampil dengan pesan baku (SAMA dengan login otoritas):
-    // butuh scan QR + hanya optimal dan lancar di desktop.
-    expect(
-      screen.getByText(
-        /Verifikasi e\.id memerlukan pemindaian QR menggunakan aplikasi e\.id di perangkat lain\. Fitur ini hanya optimal dan lancar di tampilan desktop\./i
-      )
-    ).toBeInTheDocument();
+    // Alur verifikasi LANGSUNG dimulai dari perangkat ini (POST start).
+    await waitFor(() =>
+      expect(fetchMock).toHaveBeenCalledWith('/api/verify/start', expect.anything())
+    );
+    // Tautan deep link wallet e.id (tanpa pindai QR).
+    const walletLink = await screen.findByRole('link', { name: /buka wallet e\.id/i }, { timeout: 2000 });
+    expect(walletLink).toHaveAttribute('href', 'https://wallet.e.id/oauth/credential?c=c1&q=t1');
+    expect(screen.queryByText(/Scan QR ini dengan aplikasi e\.id/i)).not.toBeInTheDocument();
 
-    // Alur QR TIDAK dimulai dari HP (tidak ada POST /api/verify/start).
-    expect(fetchMock).not.toHaveBeenCalledWith('/api/verify/start', expect.anything());
-
-    // Kembali ke layar awal pilihan verifikasi.
-    await user.click(screen.getByRole('button', { name: /^kembali$/i }));
+    // Batal -> kembali ke layar awal pilihan verifikasi.
+    await user.click(screen.getByRole('button', { name: /^batal$/i }));
     expect(
       screen.getByRole('button', { name: /lanjut tanpa verifikasi/i })
     ).toBeInTheDocument();
   });
 
-  it('mobile: tombol verifikasi e.id DI DALAM form juga menampilkan info, bukan alur QR', async () => {
+  it('mobile/tablet: tombol verifikasi DI DALAM form juga membuka alur wallet e.id', async () => {
     setMobile(true);
-    const fetchMock = buildFetchMock({
-      postResponse: { ok: true, status: 201, json: async () => ({ id: 99 }) },
+    const fetchMock = vi.fn((url, init) => {
+      const u = String(url);
+      if (init && init.method === 'POST' && u.includes('/api/verify/start')) {
+        return Promise.resolve({
+          ok: true,
+          status: 201,
+          json: async () => ({
+            session_id: 'sess-m2',
+            qr_data: { challenge: 'c2', qr_token: 't2', schema_id: 'vs2' },
+            eid_oauth_url: 'https://wallet.e.id/oauth/credential?c=c2&q=t2',
+          }),
+        });
+      }
+      if (u.includes('/api/verify/status/')) {
+        return Promise.resolve({ ok: true, status: 200, json: async () => ({ status: 'pending' }) });
+      }
+      if (init && init.method === 'POST') {
+        return Promise.resolve({ ok: true, status: 201, json: async () => ({ id: 99 }) });
+      }
+      return Promise.resolve({ ok: true, status: 200, json: async () => [] });
     });
     vi.stubGlobal('fetch', fetchMock);
 
@@ -153,19 +188,18 @@ describe('ReportForm', () => {
     render(<ReportForm onSubmitted={vi.fn()} onClose={vi.fn()} />);
     await openForm(user); // lewati layar awal -> form (badge "Melapor tanpa verifikasi")
 
-    // Tombol verifikasi di baris badge form.
+    // Tombol verifikasi di baris badge form -> alur wallet, bukan info.
     await user.click(screen.getByRole('button', { name: /verifikasi dengan e\.id/i }));
-
-    // Info tampil (pesan sama), alur QR TIDAK dimulai.
+    await waitFor(() =>
+      expect(fetchMock).toHaveBeenCalledWith('/api/verify/start', expect.anything())
+    );
     expect(
-      screen.getByText(
-        /Verifikasi e\.id memerlukan pemindaian QR menggunakan aplikasi e\.id di perangkat lain\. Fitur ini hanya optimal dan lancar di tampilan desktop\./i
-      )
+      await screen.findByRole('link', { name: /buka wallet e\.id/i }, { timeout: 2000 })
     ).toBeInTheDocument();
-    expect(fetchMock).not.toHaveBeenCalledWith('/api/verify/start', expect.anything());
+    expect(screen.queryByText(/Scan QR ini dengan aplikasi e\.id/i)).not.toBeInTheDocument();
 
-    // Kembali -> kembali ke form (bukan layar awal).
-    await user.click(screen.getByRole('button', { name: /^kembali$/i }));
+    // Batal -> kembali ke form (badge tetap).
+    await user.click(screen.getByRole('button', { name: /^batal$/i }));
     expect(screen.getByText(/melapor tanpa verifikasi identitas/i)).toBeInTheDocument();
   });
 

@@ -116,3 +116,42 @@ describe('VerificationFlow', () => {
     expect(statusCallsAfter).toBe(statusCallsBefore);
   });
 });
+
+describe('VerificationFlow walletMode (ponsel/tablet — buka wallet e.id, tanpa pindai QR)', () => {
+  beforeEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  // Status tetap pending (approveAfter sangat besar) agar UI tahap QR
+  // stabil selama pengujian — approval dibahas tes desktop terpisah.
+  const STAY_PENDING = { approveAfter: Number.MAX_SAFE_INTEGER };
+
+  it('menampilkan tautan "Buka Wallet e.id" (deep link) dan TIDAK meminta scan QR', async () => {
+    const fetchMock = buildFetchMock(STAY_PENDING);
+    vi.stubGlobal('fetch', fetchMock);
+    render(<VerificationFlow role="warga" walletMode onComplete={vi.fn()} onCancel={vi.fn()} {...FAST} />);
+
+    const walletLink = await screen.findByRole('link', { name: /buka wallet e\.id/i }, { timeout: 2000 });
+    expect(walletLink).toHaveAttribute(
+      'href',
+      'https://wallet-sandbox.e.id/oauth/credential?c=challenge-1&q=qrtoken-1'
+    );
+    expect(walletLink).toHaveAttribute('target', '_blank');
+    // Tanpa pindai QR di perangkat ini.
+    expect(screen.queryByText(/Scan QR ini dengan aplikasi e\.id/i)).not.toBeInTheDocument();
+    expect(screen.getByText(/tanpa pindai QR/i)).toBeInTheDocument();
+  });
+
+  it('opsi cadangan "pindai QR di perangkat lain" memunculkan QR', async () => {
+    const fetchMock = buildFetchMock(STAY_PENDING);
+    vi.stubGlobal('fetch', fetchMock);
+    const user = userEvent.setup();
+    render(<VerificationFlow role="warga" walletMode onComplete={vi.fn()} onCancel={vi.fn()} {...FAST} />);
+
+    await user.click(
+      await screen.findByRole('button', { name: /pindai QR di perangkat lain/i }, { timeout: 2000 })
+    );
+    expect(screen.getByText(/Scan QR ini dengan aplikasi e\.id/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /sembunyikan QR/i })).toBeInTheDocument();
+  });
+});

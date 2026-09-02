@@ -30,9 +30,8 @@ import {
   VITAL_STATUSES,
 } from '../lib/labels.js';
 import VerificationFlow from './VerificationFlow.jsx';
-import EidDesktopInfo from './EidDesktopInfo.jsx';
 import Breadcrumb, { homeCrumb } from './Breadcrumb.jsx';
-import useIsMobile from '../lib/useIsMobile.js';
+import useIsTouchDevice from '../lib/useIsTouchDevice.js';
 
 // ---- Konfigurasi geocoding & peta lokasi (File 1 Bagian 5.2) ----
 
@@ -206,9 +205,9 @@ export default function ReportForm({ onSubmitted, onClose }) {
   // null = belum memilih, {displayName, isVerified} = hasil keputusan.
   const [verification, setVerification] = useState(null);
   const [verificationOpen, setVerificationOpen] = useState(false);
-  // Di mobile alur e.id (scan QR) tidak praktis — tampilkan info, bukan QR.
-  const isMobile = useIsMobile();
-  const [eidInfoOpen, setEidInfoOpen] = useState(false);
+  // Perangkat sentuh (ponsel/tablet): alur wallet e.id (buka aplikasi via
+  // deep link) TANPA scan QR — lihat VerificationFlow walletMode.
+  const isTouchDevice = useIsTouchDevice();
 
   // Status verifikasi e.id yang TERSIMPAN (localStorage 'titikrusak_eid').
   // Kalau sudah terverifikasi, lapor berikutnya TIDAK perlu verifikasi
@@ -430,21 +429,6 @@ export default function ReportForm({ onSubmitted, onClose }) {
     setGeoError('');
   };
 
-  // ---- Layar info e.id di mobile (File 1 Bagian 9.7) ----
-  // Verifikasi e.id memerlukan scan QR dengan aplikasi e.id di perangkat
-  // lain — tidak praktis dari HP itu sendiri. Tampilkan penjelasan (pesan
-  // SAMA dengan login otoritas, lihat EidDesktopInfo), bukan alur QR;
-  // desktop tetap memakai VerificationFlow.
-  if (eidInfoOpen) {
-    return (
-      <EidDesktopInfo
-        title="Verifikasi e.id"
-        actionLabel="Kembali"
-        onAction={() => setEidInfoOpen(false)}
-      />
-    );
-  }
-
   // ---- Layar awal: pilihan verifikasi e.id (File 1 5.2 langkah 4a) ----
   if (verification === null && !verificationOpen) {
     // SUDAH terverifikasi e.id (tersimpan): tidak perlu verifikasi ulang.
@@ -561,7 +545,7 @@ export default function ReportForm({ onSubmitted, onClose }) {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           <button
             type="button"
-            onClick={() => (isMobile ? setEidInfoOpen(true) : setVerificationOpen(true))}
+            onClick={() => setVerificationOpen(true)}
             style={{
               padding: '12px 16px',
               borderRadius: 8,
@@ -643,6 +627,7 @@ export default function ReportForm({ onSubmitted, onClose }) {
     return (
       <VerificationFlow
         role="warga"
+        walletMode={isTouchDevice}
         onComplete={(result) => {
           // Simpan status terverifikasi secara lokal agar fitur Dukungan
           // laporan (ListView) tahu pengguna ini sudah terverifikasi e.id
@@ -752,7 +737,7 @@ export default function ReportForm({ onSubmitted, onClose }) {
           <span>Melapor tanpa verifikasi identitas</span>
           <button
             type="button"
-            onClick={() => (isMobile ? setEidInfoOpen(true) : setVerificationOpen(true))}
+            onClick={() => setVerificationOpen(true)}
             style={{
               border: 'none',
               background: '#facc15',

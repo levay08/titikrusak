@@ -119,16 +119,25 @@ describe('App: alur lapor kerusakan end-to-end', () => {
     expect(screen.queryByText('Lapor Kerusakan')).not.toBeInTheDocument();
   });
 
-  it('mobile: menu header (drawer) -> Login sebagai Otoritas menampilkan info scan QR/desktop, bukan alur verifikasi', async () => {
+  it('mobile/tablet: drawer -> Login sebagai Otoritas membuka alur verifikasi WALLET e.id (deep link, tanpa scan QR)', async () => {
     setMobile(true);
-    const verifyStart = vi.fn();
     const fetchMock = vi.fn((url, init) => {
       const u = String(url);
-      if (init && init.method === 'POST' && u.includes('/api/verify/start')) return verifyStart();
-      if (u.startsWith('/api/reports?')) {
-        return Promise.resolve({ ok: true, status: 200, json: async () => [] });
+      if (init && init.method === 'POST' && u.includes('/api/verify/start')) {
+        return Promise.resolve({
+          ok: true,
+          status: 201,
+          json: async () => ({
+            session_id: 'sess-ot',
+            qr_data: { challenge: 'c-ot', qr_token: 't-ot', schema_id: 'vs-kyc' },
+            eid_oauth_url: 'https://wallet.e.id/oauth/credential?c=c-ot&q=t-ot',
+          }),
+        });
       }
-      if (u === '/api/reports') {
+      if (u.includes('/api/verify/status/')) {
+        return Promise.resolve({ ok: true, status: 200, json: async () => ({ status: 'pending' }) });
+      }
+      if (u === '/api/reports' || u.startsWith('/api/reports?')) {
         return Promise.resolve({ ok: true, status: 200, json: async () => [] });
       }
       return Promise.resolve({ ok: true, status: 200, json: async () => [] });
@@ -148,19 +157,18 @@ describe('App: alur lapor kerusakan end-to-end', () => {
 
     await user.click(screen.getAllByRole('button', { name: /login sebagai otoritas/i })[0]);
 
-    // Info tampil (pesan baku SAMA dengan form warga): butuh scan QR +
-    // hanya optimal dan lancar di desktop.
-    expect(
-      screen.getByText(
-        /Verifikasi e\.id memerlukan pemindaian QR menggunakan aplikasi e\.id di perangkat lain\. Fitur ini hanya optimal dan lancar di tampilan desktop\./i
-      )
-    ).toBeInTheDocument();
-    // Alur verifikasi e.id TIDAK dimulai dari HP (tidak ada POST /api/verify/start).
-    expect(verifyStart).not.toHaveBeenCalled();
+    // Alur verifikasi LANGSUNG dimulai (POST /api/verify/start) dengan
+    // opsi membuka wallet e.id (deep link) — TANPA pindai QR.
+    await waitFor(() =>
+      expect(fetchMock).toHaveBeenCalledWith('/api/verify/start', expect.anything())
+    );
+    const walletLink = await screen.findByRole('link', { name: /buka wallet e\.id/i }, { timeout: 2000 });
+    expect(walletLink).toHaveAttribute('href', 'https://wallet.e.id/oauth/credential?c=c-ot&q=t-ot');
+    expect(screen.queryByText(/Scan QR ini dengan aplikasi e\.id/i)).not.toBeInTheDocument();
 
-    // Tutup -> modal hilang.
-    await user.click(screen.getByRole('button', { name: /^tutup$/i }));
-    expect(screen.queryByText(/pemindaian QR/i)).not.toBeInTheDocument();
+    // Batal -> modal tertutup.
+    await user.click(screen.getByRole('button', { name: /^batal$/i }));
+    expect(screen.queryByText(/buka wallet e\.id/i)).not.toBeInTheDocument();
   });
 
   it('desktop: menu header (Tentang/Statistik/Pantau/Notifikasi) membuka MODAL, bukan halaman baru', async () => {
