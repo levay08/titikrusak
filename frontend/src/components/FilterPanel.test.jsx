@@ -146,3 +146,37 @@ describe('FilterPanel', () => {
     expect(onReset).toHaveBeenCalledTimes(1);
   });
 });
+
+describe('FilterPanel: filter Verifikasi Titik (sudah diverifikasi otoritas)', () => {
+  it('dropdown verifikasi: pilih "Sudah diverifikasi" memicu onChange dengan verified=verified', async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    render(<FilterPanel filters={EMPTY} onChange={onChange} onReset={vi.fn()} />);
+
+    expect(
+      screen.getByRole('combobox', { name: /verifikasi titik/i })
+    ).toHaveValue('semua');
+
+    await user.selectOptions(
+      screen.getByRole('combobox', { name: /verifikasi titik/i }),
+      'verified'
+    );
+    expect(onChange).toHaveBeenLastCalledWith(
+      expect.objectContaining({ verified: 'verified' })
+    );
+  });
+
+  it('pilih "Belum diverifikasi" memicu onChange dengan verified=belum', async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    render(<FilterPanel filters={EMPTY} onChange={onChange} onReset={vi.fn()} />);
+
+    await user.selectOptions(
+      screen.getByRole('combobox', { name: /verifikasi titik/i }),
+      'belum'
+    );
+    expect(onChange).toHaveBeenLastCalledWith(
+      expect.objectContaining({ verified: 'belum' })
+    );
+  });
+});

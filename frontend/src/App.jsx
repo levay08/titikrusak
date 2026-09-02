@@ -143,9 +143,17 @@ const EMPTY_FILTERS = {
   infra_type: [],
   bridge_authority: [],
   vital_status: [],
+  // Filter status verifikasi titik oleh otoritas (File 1 6.2):
+  // 'semua' | 'verified' (terverifikasi/dalam_perbaikan/selesai — titik
+  // bercentang ✓ di peta) | 'belum' (dilaporkan).
+  verified: 'semua',
   q: '',
   sort: 'terbaru',
 };
+
+// Status yang tampil bercentang ✓ di peta (sudah diverifikasi/ditindak
+// otoritas) — dipakai filter verified (File 1 6.2).
+const VERIFIED_STATUSES = ['terverifikasi', 'dalam_perbaikan', 'selesai_diperbaiki'];
 
 // Enam opsi sorting FilterPanel (File 1 Bagian 6.8.10) -> pasangan
 // sort/order yang dipahami backend GET /api/reports (File 1 Bagian 7.4).
@@ -159,12 +167,20 @@ const SORT_PARAMS = {
 };
 
 // Bangun query string GET /api/reports dari state filter.
-function buildQuery(filters) {
+// (diexpor untuk unit test query filter)
+export function buildQuery(filters) {
   const f = { ...EMPTY_FILTERS, ...(filters || {}) };
   const p = new URLSearchParams();
   ['severity', 'infra_type', 'bridge_authority', 'vital_status'].forEach((key) => {
     (f[key] || []).forEach((v) => p.append(key, v));
   });
+  // Filter verifikasi titik: 'verified' -> status bercentang ✓;
+  // 'belum' -> status dilaporkan (belum diverifikasi otoritas).
+  if (f.verified === 'verified') {
+    VERIFIED_STATUSES.forEach((s) => p.append('status', s));
+  } else if (f.verified === 'belum') {
+    p.append('status', 'dilaporkan');
+  }
   if (f.q && f.q.trim()) p.set('q', f.q.trim());
   const [sort, order] = SORT_PARAMS[f.sort] || SORT_PARAMS.terbaru;
   p.set('sort', sort);
@@ -429,7 +445,8 @@ export default function App() {
     filters.severity.length +
     filters.bridge_authority.length +
     filters.vital_status.length +
-    (filters.q.trim() ? 1 : 0);
+    (filters.q.trim() ? 1 : 0) +
+    (filters.verified && filters.verified !== 'semua' ? 1 : 0);
 
   const openReportForm = () => {
     closeAllModals();

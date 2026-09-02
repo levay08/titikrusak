@@ -247,6 +247,28 @@ export default function FilterPanel({
         onToggle={toggle('vital_status')}
       />
 
+      {/* Filter verifikasi titik oleh otoritas (File 1 6.2): tampilkan
+          hanya titik yang SUDAH diverifikasi (bercentang ✓ di peta:
+          terverifikasi/dalam perbaikan/selesai) atau yang belum. */}
+      <div>
+        <label htmlFor="verified" style={sectionTitleStyle}>
+          Verifikasi Titik
+        </label>
+        <select
+          id="verified"
+          value={filters.verified || 'semua'}
+          onChange={(e) => onChange({ ...filters, verified: e.target.value })}
+          style={{ ...inputStyle, height: 34 }}
+        >
+          <option value="semua">Semua titik</option>
+          <option value="verified">✓ Sudah diverifikasi otoritas</option>
+          <option value="belum">Belum diverifikasi</option>
+        </select>
+        <p style={{ margin: '5px 0 0', fontSize: 11, lineHeight: 1.4, color: '#64748b' }}>
+          ✓ = laporan sudah diverifikasi/ditindak otoritas (hijau = selesai diperbaiki).
+        </p>
+      </div>
+
       {/* Status verifikasi e.id (poin Alur Inti 5): AKTIF — menampilkan
           ROLE yang terverifikasi. Prioritas: sesi OTORITAS (KYC e-KTP, nama
           sesuai KTP) > warga (Member Lv1). Saat belum: abu-abu + tombol
