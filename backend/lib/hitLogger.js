@@ -16,6 +16,42 @@ const path = require('path');
 
 const DIR = process.env.TK_HITS_DIR || '/srv/tk/hits';
 const FLUSH_MS = 5000;
+// Cukup rekam AWAL sesi kunjungan: 3 menit pertama per IP per hari
+// (siapa + apa yang dia lakukan saat masuk). Setelah itu IP tsb tidak
+// dicatat lagi sampai hari berikutnya → file log tetap sangat kecil.
+const WINDOW_MS = Number(process.env.TK_HITS_WINDOW_MS || 3 * 60 * 1000);
+const MAX_IPS = 20000; // pelindung memori (map dibersihkan bila penuh)
+
+// ip -> { day: 'YYYYMMDD', until: timestamp }
+const active = new Map();
+
+function dayKey(d = new Date()) {
+  const p = (n) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}`;
+}
+
+function shouldLog(ip, now) {
+  const today = dayKey();
+  const e = active.get(ip);
+  if (!e || e.day !== today || now >= e.until) {
+    // IP baru / hari baru / jendela lewat -> buka jendela 3 menit baru
+    // (catat), TAPI hanya 1x per hari per IP.
+    if (!e || e.day !== today) {
+      if (active.size >= MAX_IPS) {
+        // bersihkan entri yang sudah lewat jendelanya
+        for (const [k, v] of active) {
+          if (now >= v.until) active.delete(k);
+          if (active.size < MAX_IPS) break;
+        }
+      }
+      active.set(ip, { day: today, until: now + WINDOW_MS });
+    } else {
+      // jendela hari ini sudah lewat -> jangan catat lagi hari ini
+      return false;
+    }
+  }
+  return now < active.get(ip).until;
+}
 
 // Path yang TIDAK dicatat (noise aset): /assets/*, gambar, favicon, dll.
 const SKIP = /\.(js|css|map|png|jpe?g|gif|webp|svg|ico|woff2?|ttf|otf|webmanifest|json)$/i;
@@ -68,12 +104,14 @@ function hitLogger(req, res, next) {
       if (String(req.headers['user-agent'] || '').toLowerCase().includes('claudebot')) return;
       const fwd = req.headers['x-forwarded-for'];
       const ip = (typeof fwd === 'string' ? fwd.split(',')[0].trim() : '') || req.socket?.remoteAddress || '';
+      const ipClean = String(ip).replace('::ffff:', '');
+      if (!shouldLog(ipClean, Date.now())) return; // di luar jendela awal sesi
       const ts = new Date().toISOString();
       const ua = String(req.headers['user-agent'] || '').slice(0, 90);
       queue.push(
         JSON.stringify({
           t: ts,
-          ip: String(ip).replace('::ffff:', ''),
+          ip: ipClean,
           m: req.method,
           p: u.slice(0, 160),
           s: res.statusCode,
