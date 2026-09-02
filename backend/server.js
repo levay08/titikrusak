@@ -11,12 +11,22 @@ const verifyRouter = require('./routes/verify.js');
 const enrichmentRouter = require('./routes/enrichment.js');
 const activityRouter = require('./routes/activity.js');
 const newsRouter = require('./routes/news.js');
+const reportsGuards = require('./routes/guards.js'); // keamanan: sesi e.id, captcha, edit-own, tanda X
+const captchaRouter = require('./routes/captcha.js');
 
 const app = express();
 
 // Body limit diperbesar: laporan bisa membawa foto (data URL hasil
 // kompresi frontend, maks. 5 foto) — File 1 Bagian 5.2.
 app.use(express.json({ limit: '12mb' }));
+
+// Captcha anti-bot untuk pelapor tanpa verifikasi e.id.
+app.use('/api/captcha', captchaRouter);
+
+// Router keamanan DI DEPAN route laporan: otorisasi sesi e.id (fix
+// pentest K-1/S-1), captcha, edit-milik-sendiri, tanda "tidak dapat
+// diverifikasi" oleh otoritas. Request lain diteruskan ke reportsRouter.
+app.use('/api/reports', reportsGuards);
 
 // Route laporan (File 2 Bagian 6.3 langkah kedua).
 // Rate limiting untuk POST diterapkan di dalam routes/reports.js

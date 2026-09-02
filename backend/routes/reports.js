@@ -61,6 +61,7 @@ const PUBLIC_COLUMNS = [
   'related_earthquake',
   'related_weather',
   'vote_count',
+  'unverifiable',
 ];
 
 const PUBLIC_SELECT = PUBLIC_COLUMNS.join(', ');
