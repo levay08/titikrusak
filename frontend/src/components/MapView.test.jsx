@@ -455,3 +455,29 @@ describe('MapView: legenda bisa di-hide + memuat baris Selesai Diperbaiki (hijau
     expect(screen.getByText('Tingkat Kerusakan')).toBeInTheDocument();
   });
 });
+
+describe('MapView: anti-tumpuk koordinat identik (semua titik tetap bisa diklik)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('dua laporan di koordinat yang sama persis -> marker kedua digeser sedikit', () => {
+    const base = { severity: 'berat', status: 'dilaporkan', location_name: 'X', infra_type: 'jalan' };
+    render(
+      <MapView
+        reports={[
+          { ...base, id: 1, lat: -3.4, lng: 135.5 },
+          { ...base, id: 2, lat: -3.4, lng: 135.5 }, // koordinat PERSIS sama
+        ]}
+      />
+    );
+
+    const calls = L.circleMarker.mock.calls.map(([pos]) => pos);
+    expect(calls).toHaveLength(2);
+    // Marker pertama di posisi asli; marker kedua digeser ~0.0012° agar
+    // tidak menutupi marker pertama (tetap bisa diklik masing-masing).
+    expect(calls[0]).toEqual([-3.4, 135.5]);
+    expect(calls[1][0]).toBeCloseTo(-3.4 + 0.0012, 5);
+    expect(calls[1][1]).toBeCloseTo(135.5 + 0.0012, 5);
+  });
+});

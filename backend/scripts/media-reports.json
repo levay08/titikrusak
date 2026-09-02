@@ -254,7 +254,7 @@
  },
  {
   "location_name": "Jembatan Oelmasi I Trans Timor, Oelamasi, Kupang (Nusa Tenggara Timur)",
-  "description": "Jembatan Oelmasi I di Kilometer 38, Oelamasi, Kabupaten Kupang, ambruk pada Kamis (26/3/2026) sehingga jalur utama Trans Timor terputus total. Akses vital penghubung antarwilayah di Pulau Timor ini lumpuh dan menghambat mobilitas masyarakat serta distribusi logistik. Pemprov NTT bersama BPJN mempercepat pembukaan jalur alternatif untuk penanganan darurat.",
+  "description": "Jembatan Oelmasi I di Kilometer 38, Oelamasi, Kabupaten Kupang, ambruk pada Kamis (26/3/2026) sehingga jalur utama Trans Timor terputus total. Akses vital penghubung antarwilayah di Pulau Timor ini lumpuh dan menghambat mobilitas masyarakat serta distribusi logistik. Pemprov NTT bersama BPJN mempercepat pembukaan jalur alternatif untuk penanganan darurat. Pemberitaan lain menyebut jembatan sepanjang 12 meter di perbatasan Kelurahan Naibonat (Kupang Timur) dan Desa Kuimasi (Fatuleu) ambles 1,3 meter; pipa air di lokasi ikut patah sehingga berpotensi mengganggu distribusi air bersih.",
   "source_name": "Metrotvnews",
   "source_url": "https://www.metrotvnews.com/read/ba4CPv1O-jembatan-trans-timor-ambruk-pemprov-ntt-percepat-buka-jalur-alternatif",
   "source_date": "2026-03-26",
@@ -397,22 +397,6 @@
   "related_earthquake": "Gempa Laut Flores M7,7 (15/8/2026)"
  },
  {
-  "location_name": "Sekolah-sekolah terdampak gempa di Kabupaten Manggarai (NTT)",
-  "description": "Kabupaten Manggarai menjadi wilayah dengan jumlah sekolah terdampak gempa M7,7 Laut Flores terbanyak: 104 satuan pendidikan dari total 253 di tujuh kabupaten Pulau Flores. Salah satunya MIN 1 Manggarai di kawasan Reo yang bangunannya mengalami kerusakan; ribuan ruang kelas (5.500 di seluruh NTT) rusak hingga pembelajaran dialihkan ke tenda darurat.",
-  "source_name": "Tribunnews.com",
-  "source_url": "https://www.tribunnews.com/nasional/7869512/kemendikdasmen-catat-253-sekolah-rusak-akibat-gempa-ntt-3-murid-dan-satu-guru-meninggal",
-  "source_date": "2026-08-17",
-  "severity": "berat",
-  "infra_type": "sekolah",
-  "vital_status": [
-   "akses_sekolah"
-  ],
-  "geocode_query": "Reo, Manggarai, Nusa Tenggara Timur",
-  "fallback_lat": -8.52,
-  "fallback_lng": 120.46,
-  "related_earthquake": "Gempa Laut Flores M7,7 (15/8/2026)"
- },
- {
   "location_name": "Sekolah-sekolah terdampak gempa di Kabupaten Nagekeo (NTT)",
   "description": "Gempa M7,7 Laut Flores (15/8/2026) merusak 44 satuan pendidikan di Kabupaten Nagekeo: 15 sekolah rusak berat dan 20 rusak sedang, termasuk SDK Rowa yang berdekatan dengan SMP Negeri 6 Boawae dan TK Santa Clara. Mendikdasmen meninjau langsung dan menyerahkan bantuan revitalisasi untuk pemulihan.",
   "source_name": "Katadata.co.id",
@@ -540,22 +524,6 @@
   "geocode_query": "Sukatani, Bekasi, Jawa Barat",
   "fallback_lat": -6.22,
   "fallback_lng": 107.13
- },
- {
-  "location_name": "Tanggul Sungai Kalimalang, Telukjambe Barat, Karawang (Jawa Barat)",
-  "description": "Tanggul Sungai Kalimalang di Karawang jebol pada Jumat (16/1/2026) sehingga memperparah banjir yang melanda 12 kecamatan dan 23 desa di Kabupaten Karawang dengan 3.932 kepala keluarga terdampak. Banjir menggenang setinggi 30 sentimeter hingga 1 meter di wilayah Karawang Barat dan Pemprov Jawa Barat mengirim bronjong untuk memperbaiki tanggul yang jebol.",
-  "source_name": "detikJabar",
-  "source_url": "https://www.detik.com/jabar/berita/d-8314106/8-ribu-lebih-kk-terdampak-banjir-karawang-dan-bekasi",
-  "source_date": "2026-01-19",
-  "severity": "berat",
-  "infra_type": "tanggul",
-  "vital_status": [
-   "aset_utilitas",
-   "akses_ekonomi"
-  ],
-  "geocode_query": "Telukjambe Barat, Karawang, Jawa Barat",
-  "fallback_lat": -6.36,
-  "fallback_lng": 107.26
  },
  {
   "location_name": "Jaringan listrik Kampung Babakan Junti, Desa Warjabakti, Cimaung, Bandung (Jawa Barat)",
@@ -1114,23 +1082,6 @@
   "fallback_lng": 117.42
  },
  {
-  "location_name": "Jembatan Trans Timor, Kupang (Nusa Tenggara Timur)",
-  "description": "Jembatan sepanjang 12 meter di jalur Trans Timor, perbatasan Kelurahan Naibonat (Kecamatan Kupang Timur) dan Desa Kuimasi (Kecamatan Fatuleu), Kabupaten Kupang, NTT, ambles sedalam 1,3 meter pada 26 Maret 2026. Akses darat dari Kota Kupang ke sejumlah kabupaten di Pulau Timor lumpuh total dengan antrean panjang kendaraan di kedua sisi. Selain jembatan, pipa air di lokasi juga patah sehingga berpotensi mengganggu distribusi air bersih.",
-  "source_name": "MetroTV News",
-  "source_url": "https://www.metrotvnews.com/read/bzGCe2Dx-jembatan-trans-timor-ambruk-akses-darat-pulau-timor-lumpuh-total",
-  "source_date": "2026-03-26",
-  "severity": "ambruk",
-  "infra_type": "jembatan",
-  "vital_status": [
-   "akses_ekonomi",
-   "akses_kesehatan",
-   "aset_utilitas"
-  ],
-  "geocode_query": "Kupang Timur, Kupang, Nusa Tenggara Timur",
-  "fallback_lat": -10.16,
-  "fallback_lng": 123.79
- },
- {
   "location_name": "Pulau Solor, Flores Timur (Nusa Tenggara Timur)",
   "description": "Gempa bumi magnitudo 4,7 yang mengguncang Flores Timur pada dini hari 9 April 2026 merusak dua sekolah di Pulau Solor. Gedung MAN 2 Flores Timur mengalami kerusakan berat pada plafon, atap dan plafon ruang kelas ambruk, sehingga siswa diliburkan. Total lima bangunan rusak di Desa Motonwutun, terdiri dari dua fasilitas umum dan tiga rumah warga, sementara 79 rumah rusak di Pulau Adonara.",
   "source_name": "MetroTV News",
@@ -1258,7 +1209,7 @@
  },
  {
   "location_name": "Tanggul irigasi Kalimalang, Desa Margakaya, Kecamatan Telukjambe Barat, Kabupaten Karawang, Jawa Barat",
-  "description": "Tanggul irigasi Kalimalang di Desa Margakaya, Telukjambe Barat, Karawang jebol pada Jumat 16 Januari 2026 sekitar pukul 09.30 WIB, menyebabkan ratusan rumah dan sawah siap panen terendam banjir; debit aliran air diturunkan dari 50 menjadi 20 meter kubik per detik selama penanganan darurat.",
+  "description": "Tanggul irigasi Kalimalang di Desa Margakaya, Telukjambe Barat, Karawang jebol pada Jumat 16 Januari 2026 sekitar pukul 09.30 WIB, menyebabkan ratusan rumah dan sawah siap panen terendam banjir; debit aliran air diturunkan dari 50 menjadi 20 meter kubik per detik selama penanganan darurat. Banjir ikut memperparah genangan di 12 kecamatan dan 23 desa Kabupaten Karawang dengan 3.932 kepala keluarga terdampak; Pemprov Jawa Barat mengirim bronjong untuk perbaikan tanggul.",
   "source_name": "Detik.com",
   "source_url": "https://www.detik.com/jabar/berita/d-8310754/tanggul-kalimalang-karawang-jebol-ratusan-rumah-dan-sawah-terendam",
   "source_date": "2026-01-16",
@@ -1482,8 +1433,8 @@
   "photo_url": "https://akcdn.detik.net.id/api/wm/2026/08/24/mendikdasmen-abdul-muti-saat-meninjau-sdk-rowa-kecamatan-boawae-kabupaten-nagekeo-ntt-senin-2482026-foto-yufengki-briadetikbal-1787564673664_169.jpeg?wid=54&w=1200&v=1&t=jpeg"
  },
  {
-  "location_name": "Reo, Kabupaten Manggarai, Nusa Tenggara Timur (1.378 sekolah terdampak di Pulau Flores)",
-  "description": "BNPB mencatat 1.378 sekolah di Pulau Flores, NTT, terdampak gempa magnitudo 7,7 pada 15 Agustus 2026; sebanyak 5.521 ruang kelas dan 502 unit bangunan sekolah rusak kategori berat, 923 sekolah masih libur sementara, serta 177.678 siswa terdampak.",
+  "location_name": "Sekolah terdampak gempa M7,7 Laut Flores, Kabupaten Manggarai & Pulau Flores (NTT)",
+  "description": "BNPB mencatat 1.378 sekolah di Pulau Flores, NTT, terdampak gempa magnitudo 7,7 (15/8/2026): 5.521 ruang kelas dan 502 unit bangunan sekolah rusak berat, 923 sekolah masih meliburkan siswa, serta 177.678 siswa terdampak. Kabupaten Manggarai menjadi wilayah terbanyak: 104 satuan pendidikan rusak dari total 253 di tujuh kabupaten Pulau Flores; ribuan ruang kelas di NTT rusak hingga pembelajaran dialihkan ke tenda darurat. Salah satu sekolah yang rusak adalah MIN 1 Manggarai di Reo (dilaporkan terpisah).",
   "source_name": "Kompas.com",
   "source_url": "https://nasional.kompas.com/read/2026/08/21/20411521/1378-sekolah-di-flores-rusak-akibat-gempa-923-masih-libur-sementara",
   "source_date": "2026-08-21",
@@ -1492,9 +1443,9 @@
   "vital_status": [
    "akses_sekolah"
   ],
-  "geocode_query": "Reo, Manggarai, Nusa Tenggara Timur",
-  "fallback_lat": -8.31,
-  "fallback_lng": 120.49,
+  "geocode_query": "Ruteng, Kabupaten Manggarai, Nusa Tenggara Timur",
+  "fallback_lat": -8.611,
+  "fallback_lng": 120.467,
   "photo_url": "https://asset.kompas.com/crops/e2YoIf1dgprxEjXbE7K8LN3NOl8=/12x0:6000x3992/1200x675/filters:watermark(data/photo/2026/01/30/697c815a5f0b9.png,0,-0,1)/data/photo/2026/08/21/6a8853a931660.jpg"
  },
  {

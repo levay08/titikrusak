@@ -64,6 +64,26 @@ async function fetchOgImage(url) {
 
 const VITAL = (arr) => JSON.stringify(arr || ['akses_antar_kampung']);
 const EXISTS = db.prepare('SELECT id FROM reports WHERE source_media_url = ?');
+// Cek tabrakan koordinat PERSIS dengan titik media lain (penyebab marker
+// tak bisa diklik: dua laporan di koordinat sama, yang di atas menutupi).
+const COORD_USED = db.prepare(
+  "SELECT id FROM reports WHERE source_type='media' AND abs(lat - ?) < 0.00005 AND abs(lng - ?) < 0.00005"
+);
+
+// Geser koordinat sedikit (≈1-2 km) bila sudah dipakai titik media lain,
+// agar tiap marker tetap bisa diklik & popup-nya terbuka.
+function avoidCoordCollision(lat, lng) {
+  let outLat = lat;
+  let outLng = lng;
+  let guard = 0;
+  while (COORD_USED.get(outLat, outLng) && guard < 8) {
+    outLat = outLat + (guard % 2 === 0 ? 0.02 : 0.01);
+    outLng = outLng + (guard % 2 === 1 ? 0.02 : 0.01);
+    guard += 1;
+  }
+  if (guard > 0) console.log(`  ~ koordinat digeser (anti-tumpuk): (${lat}, ${lng}) -> (${outLat.toFixed(4)}, ${outLng.toFixed(4)})`);
+  return { lat: outLat, lng: outLng };
+}
 
 async function main() {
   let inserted = 0;
@@ -93,6 +113,11 @@ async function main() {
       console.log(`  ~ geocode error (${err.message}), pakai fallback: ${item.geocode_query}`);
     }
     await sleep(1100); // hormati usage policy Nominatim
+
+    // Titik media TIDAK boleh menumpuk di koordinat yang sama persis.
+    const final = avoidCoordCollision(lat, lng);
+    lat = final.lat;
+    lng = final.lng;
 
     // Foto: prioritas photo_url dari JSON (hasil kurasi/riset, sudah
     // terverifikasi), fallback ambil og:image dari halaman artikel.

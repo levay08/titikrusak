@@ -211,10 +211,12 @@ describe('App: alur lapor kerusakan end-to-end', () => {
       screen.getByRole('button', { name: /notifikasi aktivitas laporan/i })
     ).toBeInTheDocument();
 
-    // Tentang -> modal.
+    // Tentang -> modal (desain & konten sama dengan modal welcome —
+    // logo transparan di background, tombol "Tutup" untuk menutup).
     await user.click(screen.getByRole('button', { name: /^tentang$/i }));
     expect(screen.getByText('Tentang titikrusak.id')).toBeInTheDocument();
-    await user.click(screen.getByRole('button', { name: /tutup tentang titikrusak\.id/i }));
+    expect(screen.getByText('Latar Belakang')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: /^tutup$/i }));
     expect(screen.queryByText('Tentang titikrusak.id')).not.toBeInTheDocument();
 
     // Statistik -> modal dengan data nyata dari fetch tanpa filter.

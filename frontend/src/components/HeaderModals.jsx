@@ -16,9 +16,8 @@ import {
   STATUS_COLORS,
 } from '../lib/labels.js';
 import { ISLAND_REGIONS, OTHER_ISLAND, detectIsland, detectProvince } from '../lib/regions.js';
-import Logo from './Logo.jsx';
 import useIsMobile from '../lib/useIsMobile.js';
-import { WelcomeBody } from './WelcomeModal.jsx';
+import WelcomeModal from './WelcomeModal.jsx';
 
 // ---- Utilitas kecil ----
 
@@ -196,13 +195,18 @@ function DonutChart({ segments, size = 150, thickness = 20 }) {
 
 // ---- Tentang (poin 9: about web app ini) ----
 export function AboutModal({ onClose }) {
+  // Konten & DESAIN menu "Tentang" SAMA dengan modal welcome (koreksi
+  // user): layout panel + logo transparan besar di latar belakang +
+  // WelcomeBody (latar belakang, solusi, fitur utama, ajakan — satu
+  // sumber konten). Cukup ganti heading/judul & tombol penutup.
   return (
-    // Konten menu "Tentang" MENYAMAKAN konten modal welcome (koreksi
-    // user): latar belakang, solusi, fitur utama, dan ajakan dipakai
-    // dari WelcomeBody (satu sumber — dua tempat selalu sinkron).
-    <ModalShell title="Tentang titikrusak.id" onClose={onClose} maxWidth={600}>
-      <WelcomeBody heading="titikrusak.id" />
-    </ModalShell>
+    <WelcomeModal
+      onClose={onClose}
+      heading="Tentang titikrusak.id"
+      subtitle="Laporkan & pantau infrastruktur publik yang rusak"
+      ariaLabel="Tentang titikrusak.id"
+      ctaLabel="Tutup"
+    />
   );
 }
 

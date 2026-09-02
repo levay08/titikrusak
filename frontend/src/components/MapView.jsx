@@ -741,12 +741,33 @@ export default function MapView({
       ringan: '',
     };
 
+    // Jaga-jaga runtime: dua laporan di koordinat PERSIS sama (mis. sisa
+    // data lama) membuat marker di atas menutupi yang bawah sehingga titik
+    // bercentang/merah terlihat "tidak bisa diklik". Geser marker duplikat
+    // sedikit (≈100 m) agar SEMUA titik tetap bisa diklik & popup terbuka.
+    const usedCoords = new Set();
+    const resolveCoords = (lat, lng) => {
+      let outLat = lat;
+      let outLng = lng;
+      let key = `${outLat.toFixed(5)},${outLng.toFixed(5)}`;
+      while (usedCoords.has(key)) {
+        outLat += 0.0012;
+        outLng += 0.0012;
+        key = `${outLat.toFixed(5)},${outLng.toFixed(5)}`;
+      }
+      usedCoords.add(key);
+      return { lat: outLat, lng: outLng };
+    };
+
     reports.forEach((report) => {
       // Warna titik: HIJAU khusus laporan selesai_diperbaiki; selain itu
       // warna tingkat kerusakan (ringan = biru muda) — reportMarkerColor.
       const color = reportMarkerColor(report);
       const approved = APPROVED_STATUSES.includes(report.status);
       const glowClass = GLOW_CLASS[report.severity] || '';
+      const pos = resolveCoords(report.lat, report.lng);
+      const lat = pos.lat;
+      const lng = pos.lng;
 
       let marker;
       if (approved) {
@@ -763,9 +784,9 @@ export default function MapView({
           // di atas marker agar popup tampil jelas seperti marker circle.
           popupAnchor: [0, -30],
         });
-        marker = L.marker([report.lat, report.lng], { icon, severity: report.severity });
+        marker = L.marker([lat, lng], { icon, severity: report.severity });
       } else {
-        marker = L.circleMarker([report.lat, report.lng], {
+        marker = L.circleMarker([lat, lng], {
           radius: 9,
           fillColor: color,
           fillOpacity: 0.85,
@@ -791,7 +812,7 @@ export default function MapView({
         if (!map) return;
         pushNav(map.getCenter(), map.getZoom());
         const targetZoom = Math.min(Math.max(map.getZoom() + 2, 14), 16);
-        map.setView([report.lat, report.lng], targetZoom, { animate: true });
+        map.setView([lat, lng], targetZoom, { animate: true });
         marker.openPopup();
       });
 
@@ -813,7 +834,7 @@ export default function MapView({
       // punya hover bubble berisi berapa titik rusak di provinsi mana).
       // sticky: tooltip mengikuti kursor dan HILANG saat kursor keluar
       // dari marker (perbaikan: sebelumnya tooltip "stay" setelah un-hover).
-      const prov = detectProvince(report.lat, report.lng);
+      const prov = detectProvince(lat, lng);
       marker.bindTooltip(
         `<b>1 titik rusak</b>${prov ? ` — ${prov}` : ''}`,
         { direction: 'top', offset: [0, -8], opacity: 0.95, sticky: true }

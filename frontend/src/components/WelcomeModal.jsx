@@ -79,14 +79,20 @@ export function WelcomeBody({
   );
 }
 
-export default function WelcomeModal({ onClose }) {
+export default function WelcomeModal({
+  onClose,
+  heading = 'Selamat Datang di titikrusak.id',
+  subtitle = 'Laporkan & pantau infrastruktur publik yang rusak',
+  ariaLabel = 'Selamat datang di titikrusak.id',
+  ctaLabel = 'Mengerti',
+}) {
   const isMobile = useIsMobile();
 
   return (
     <div
       role="dialog"
       aria-modal="true"
-      aria-label="Selamat datang di titikrusak.id"
+      aria-label={ariaLabel}
       style={{
         position: 'fixed',
         inset: 0,
@@ -97,6 +103,7 @@ export default function WelcomeModal({ onClose }) {
         justifyContent: 'center',
         padding: 16,
       }}
+      onClick={onClose}
     >
       <div
         style={{
@@ -110,6 +117,7 @@ export default function WelcomeModal({ onClose }) {
           padding: isMobile ? '22px 20px 26px' : '28px 32px 30px',
           boxShadow: '0 16px 60px rgba(0, 0, 0, 0.45)',
         }}
+        onClick={(e) => e.stopPropagation()}
       >
         {/* Logo transparan besar di latar belakang — dekorasi, tidak
             menghalangi klik (pointerEvents none) */}
@@ -126,9 +134,9 @@ export default function WelcomeModal({ onClose }) {
           <Logo size={isMobile ? 190 : 240} />
         </div>
 
-        <WelcomeBody />
+        <WelcomeBody heading={heading} subtitle={subtitle} />
 
-        {/* Tombol Mengerti */}
+        {/* Tombol utama (Mengerti / Tutup untuk menu Tentang) */}
         <button
           type="button"
           onClick={onClose}
@@ -146,7 +154,7 @@ export default function WelcomeModal({ onClose }) {
             boxShadow: '0 3px 10px rgba(250, 204, 21, 0.4)',
           }}
         >
-          Mengerti
+          {ctaLabel}
         </button>
       </div>
     </div>
