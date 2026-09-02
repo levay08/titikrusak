@@ -101,6 +101,29 @@ db.exec(`
     changed_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );
 
+  -- ============================================================
+  -- Tabel fix_claims: klaim warga "titik sudah diperbaiki" (fitur
+  -- 2 Sep 2026) — WAJIB lampirkan foto bukti; masuk antrean otoritas
+  -- untuk diverifikasi; otoritas 'terima' -> status selesai_diperbaiki
+  -- (hijau) / 'tolak' -> klaim ditolak, titik tetap.
+  -- ============================================================
+  CREATE TABLE IF NOT EXISTS fix_claims (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    report_id INTEGER NOT NULL REFERENCES reports(id) ON DELETE CASCADE,
+    claimed_by_did TEXT,
+    claimed_by_display_name TEXT,
+    photo_urls TEXT NOT NULL DEFAULT '[]',
+    note TEXT,
+    status TEXT NOT NULL DEFAULT 'menunggu' CHECK(
+      status IN ('menunggu','diterima','ditolak')),
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    decided_at DATETIME,
+    decided_by_did TEXT,
+    decided_by_display_name TEXT
+  );
+  CREATE INDEX IF NOT EXISTS idx_fix_claims_report ON fix_claims(report_id);
+  CREATE INDEX IF NOT EXISTS idx_fix_claims_status ON fix_claims(status);
+
   CREATE INDEX IF NOT EXISTS idx_status_history_report ON status_history(report_id);
 
   -- ============================================================

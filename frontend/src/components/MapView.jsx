@@ -250,8 +250,10 @@ function SeverityLegend({ onHide }) {
       </div>
 
       <p style={{ margin: '8px 0 0', fontSize: 11, lineHeight: 1.4, color: '#475569' }}>
-        ✓ di dalam titik = laporan sudah diverifikasi otoritas. Warna titik tetap
-        menunjukkan tingkat kerusakan — kecuali hijau: laporan sudah diperbaiki.
+        ✓ di dalam titik = laporan sudah diverifikasi otoritas. ✗ merah = ditandai
+        otoritas <em>tidak dapat diverifikasi keasliannya</em> (indikasi palsu).
+        Warna titik tetap menunjukkan tingkat kerusakan — kecuali hijau: laporan
+        sudah diperbaiki.
       </p>
 
       {open && (
@@ -770,7 +772,19 @@ export default function MapView({
       const lng = pos.lng;
 
       let marker;
-      if (approved) {
+      if (report.unverifiable) {
+        // Titik yang ditandai otoritas "tidak dapat diverifikasi keasliannya"
+        // (indikasi laporan palsu/meyakinkan): marker ✗ putih di lingkaran
+        // merah marun — otoritas bisa langsung mengenali dari peta.
+        const icon = L.divIcon({
+          className: '',
+          html: `<div style="width:26px;height:26px;border-radius:50%;background:#b91c1c;border:3px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:900;color:#fff;line-height:1">✗</div>`,
+          iconSize: [26, 26],
+          iconAnchor: [13, 13],
+          popupAnchor: [0, -30],
+        });
+        marker = L.marker([lat, lng], { icon, severity: report.severity });
+      } else if (approved) {
         // Marker terverifikasi: lingkaran warna severity + centang putih di
         // tengah. divIcon dipakai karena karakter ✓ tidak bisa dirender di
         // dalam path circleMarker (SVG).

@@ -90,8 +90,10 @@ export default function SeedNotice() {
           color: '#1c1917',
         }}
       >
-        Titik di peta adalah <strong>data nyata</strong> kerusakan infrastruktur
-        dari pemberitaan media (1 tahun terakhir), bukan laporan warga.
+        Beberapa titik di peta di antaranya adalah data aktual kerusakan
+        infrastruktur yang dikurasi dari pemberitaan media selama 1 tahun
+        terakhir. Silakan cek berkala untuk menandai titik rusak yang sudah
+        diperbaiki.
       </p>
       <button
         type="button"

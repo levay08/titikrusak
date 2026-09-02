@@ -211,11 +211,11 @@ export default function VerificationFlow({
 
   // ---- Langkah 5: kirim hasil ke pemanggil sesuai pilihan (File 1 3.5) ----
   const handleRealName = () => {
-    onComplete({ displayName: holderName, isVerified: true });
+    onComplete({ displayName: holderName, isVerified: true, session_id: sessionId });
   };
   const handleAlias = () => {
     const name = alias.trim() === '' ? 'Anonim' : alias.trim();
-    onComplete({ displayName: name, isVerified: true });
+    onComplete({ displayName: name, isVerified: true, session_id: sessionId });
   };
 
   // Indeks tahap aktif: -1 = gagal, 0 = starting, 1 = qr, 2 = approved.

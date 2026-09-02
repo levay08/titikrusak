@@ -21,6 +21,8 @@ import {
   STATUS_COLORS,
 } from '../lib/labels.js';
 import VerificationFlow from './VerificationFlow.jsx';
+import ReportManagePanel from './ReportManagePanel.jsx';
+import { setEidSession, eidSessionHeaders } from '../lib/eidSession.js';
 import useIsMobile from '../lib/useIsMobile.js';
 import useIsTouchDevice from '../lib/useIsTouchDevice.js';
 
@@ -281,7 +283,7 @@ export default function DetailModal({ report, onClose, otoritas = null, onReport
     try {
       const res = await fetch(`/api/reports/${report.id}/status`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...eidSessionHeaders() },
         body: JSON.stringify({
           status: nextStatus,
           changed_by_display_name: otoritas?.displayName || null,
@@ -312,7 +314,7 @@ export default function DetailModal({ report, onClose, otoritas = null, onReport
     try {
       const res = await fetch(`/api/reports/${report.id}/vote`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...eidSessionHeaders() },
         body: JSON.stringify({
           voter_display_name: displayName || null,
           voter_is_verified: true,
@@ -358,6 +360,7 @@ export default function DetailModal({ report, onClose, otoritas = null, onReport
     } catch (_e) {
       // abaikan bila localStorage tidak tersedia
     }
+    setEidSession({ session_id: result.session_id, role: 'warga' });
     setEidVerified(true);
     setVoteState('busy');
     castVote(result.displayName || null);
@@ -692,6 +695,16 @@ export default function DetailModal({ report, onClose, otoritas = null, onReport
             </div>
           )}
         </div>
+
+        {/* ---- Panel kelola laporan (fitur 2 Sep 2026): tanda ✗ otoritas,
+            edit/hapus milik sendiri (warga), klaim "sudah diperbaiki"
+            dengan foto + antrean klaim utk otoritas ---- */}
+        <ReportManagePanel
+          report={report}
+          otoritas={otoritas}
+          onReportUpdated={onReportUpdated}
+          onClose={onClose}
+        />
       </div>
 
       {/* ---- Foto dalam frame (lightbox dalam situs): tidak membuka tab

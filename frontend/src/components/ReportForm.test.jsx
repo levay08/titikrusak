@@ -277,7 +277,7 @@ describe('ReportForm', () => {
 
     // Sukses: POST terkirim sekali dengan payload persis, onSubmitted dipanggil.
     await waitFor(() => expect(onSubmitted).toHaveBeenCalledTimes(1));
-    expect(fetchMock).toHaveBeenCalledTimes(2); // 1x geocoding + 1x POST
+    expect(fetchMock).toHaveBeenCalledTimes(3); // 1x captcha + 1x geocoding + 1x POST
     const postCall = fetchMock.mock.calls.find(([, i]) => i?.method === 'POST');
     expect(postCall[0]).toBe('/api/reports');
     expect(JSON.parse(postCall[1].body)).toEqual({

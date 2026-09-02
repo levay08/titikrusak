@@ -19,10 +19,10 @@ describe('SeedNotice (keterangan data titik dari media)', () => {
   it('menampilkan pesan singkat bahwa titik di peta dari media (bukan laporan warga) + tombol tutup', () => {
     render(<SeedNotice />);
     expect(
-      screen.getByText((_c, el) => el.tagName === 'P' && el.textContent.includes('Titik di peta adalah'))
+      screen.getByText((_c, el) => el.tagName === 'P' && el.textContent.includes('Beberapa titik di peta'))
     ).toBeInTheDocument();
     expect(
-      screen.getByText((_c, el) => el.tagName === 'P' && el.textContent.includes('bukan laporan warga'))
+      screen.getByText((_c, el) => el.tagName === 'P' && el.textContent.includes('dikurasi dari pemberitaan media'))
     ).toBeInTheDocument();
     expect(
       screen.getByRole('button', { name: /tutup keterangan data titik/i })
@@ -36,7 +36,7 @@ describe('SeedNotice (keterangan data titik dari media)', () => {
     await user.click(screen.getByRole('button', { name: /tutup keterangan data titik/i }));
 
     expect(
-      screen.queryByText((_c, el) => el.tagName === 'P' && el.textContent.includes('Titik di peta adalah'))
+      screen.queryByText((_c, el) => el.tagName === 'P' && el.textContent.includes('Beberapa titik di peta'))
     ).not.toBeInTheDocument();
     expect(sessionStorage.getItem(FLAG)).toBe('1');
 
@@ -44,14 +44,14 @@ describe('SeedNotice (keterangan data titik dari media)', () => {
     unmount();
     render(<SeedNotice />);
     expect(
-      screen.queryByText((_c, el) => el.tagName === 'P' && el.textContent.includes('Titik di peta adalah'))
+      screen.queryByText((_c, el) => el.tagName === 'P' && el.textContent.includes('Beberapa titik di peta'))
     ).not.toBeInTheDocument();
   });
 
   it('tanpa flag tersimpan (sesi baru) keterangan tampil lagi', () => {
     render(<SeedNotice />);
     expect(
-      screen.getByText((_c, el) => el.tagName === 'P' && el.textContent.includes('Titik di peta adalah'))
+      screen.getByText((_c, el) => el.tagName === 'P' && el.textContent.includes('Beberapa titik di peta'))
     ).toBeInTheDocument();
   });
 });

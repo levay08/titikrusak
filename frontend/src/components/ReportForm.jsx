@@ -32,6 +32,7 @@ import {
 import VerificationFlow from './VerificationFlow.jsx';
 import Breadcrumb, { homeCrumb } from './Breadcrumb.jsx';
 import useIsTouchDevice from '../lib/useIsTouchDevice.js';
+import { setEidSession, eidSessionHeaders } from '../lib/eidSession.js';
 
 // ---- Konfigurasi geocoding & peta lokasi (File 1 Bagian 5.2) ----
 
@@ -224,6 +225,34 @@ export default function ReportForm({ onSubmitted, onClose }) {
     }
   });
 
+  // ---- Captcha anti-bot (fitur 2 Sep 2026): WAJIB bagi pelapor yang
+  // TIDAK verifikasi e.id. Soal diambil dari GET /api/captcha; jawaban
+  // diverifikasi SERVER saat submit (sekali pakai). ----
+  const [captcha, setCaptcha] = useState(null); // { id, question }
+  const [captchaAnswer, setCaptchaAnswer] = useState('');
+
+  const loadCaptcha = useCallback(() => {
+    let on = true;
+    setCaptcha(null);
+    setCaptchaAnswer('');
+    fetch('/api/captcha')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (on && d && d.id) setCaptcha(d);
+      })
+      .catch(() => {
+        /* offline/down: submit akan gagal dengan pesan dari server */
+      });
+    return () => {
+      on = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!initialVerified) return loadCaptcha();
+    return undefined;
+  }, [initialVerified, loadCaptcha]);
+
   // State lokasi: anchor = titik hasil geocoding (acuan radius), pin =
   // posisi pin saat ini, pinConfirmed = lokasi sudah ditentukan (hasil
   // geocoding atau pin pernah digeser pengguna).
@@ -387,6 +416,10 @@ export default function ReportForm({ onSubmitted, onClose }) {
     if (verification && verification.isVerified) {
       payload.reporter_display_name = verification.displayName || null;
       payload.reporter_is_verified = true;
+    } else if (captcha) {
+      // Pelapor tanpa verifikasi: wajib jawab captcha (dicek server).
+      payload.captcha_id = captcha.id;
+      payload.captcha_answer = captchaAnswer.trim();
     }
     if (photos.length > 0) {
       payload.photo_urls = photos;
@@ -395,7 +428,7 @@ export default function ReportForm({ onSubmitted, onClose }) {
     try {
       const res = await fetch('/api/reports', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...eidSessionHeaders() },
         body: JSON.stringify(payload),
       });
       if (!res.ok) {
@@ -414,6 +447,8 @@ export default function ReportForm({ onSubmitted, onClose }) {
     } catch (err) {
       setSubmitState('error');
       setServerError(err.message);
+      // Captcha sekali pakai: kalau jawaban salah/kedaluwarsa, muat soal baru.
+      if (/captcha/i.test(err.message)) loadCaptcha();
     }
   };
 
@@ -638,6 +673,7 @@ export default function ReportForm({ onSubmitted, onClose }) {
             // localStorage tidak tersedia — abaikan, verifikasi tetap berlaku
             // untuk form ini.
           }
+          setEidSession({ session_id: result.session_id, role: 'warga' });
           setVerification(result);
           setVerificationOpen(false);
         }}
@@ -1054,6 +1090,73 @@ export default function ReportForm({ onSubmitted, onClose }) {
           }}
         >
           Gagal mengirim laporan: {serverError}
+        </div>
+      )}
+
+      {/* Captcha anti-bot untuk pelapor TANPA verifikasi e.id (2 Sep 2026) */}
+      {!verification && !initialVerified && (
+        <div
+          style={{
+            padding: '10px 12px',
+            borderRadius: 8,
+            border: '1px solid #e2e8f0',
+            background: '#f8fafc',
+            marginBottom: 12,
+          }}
+        >
+          <span
+            style={{
+              display: 'block',
+              fontSize: 11,
+              fontWeight: 700,
+              textTransform: 'uppercase',
+              letterSpacing: 0.4,
+              color: '#64748b',
+              marginBottom: 4,
+            }}
+          >
+            Verifikasi anti-bot (wajib)
+          </span>
+          {captcha ? (
+            <>
+              <p style={{ margin: '0 0 6px', fontSize: 13, color: '#1c1917' }}>{captcha.question}</p>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <input
+                  aria-label="Jawaban captcha (angka)"
+                  value={captchaAnswer}
+                  onChange={(e) => setCaptchaAnswer(e.target.value)}
+                  placeholder="Jawaban (angka)"
+                  inputMode="numeric"
+                  style={{
+                    flex: 1,
+                    padding: '8px 10px',
+                    borderRadius: 8,
+                    border: '1px solid #cbd5e1',
+                    fontSize: 13,
+                    boxSizing: 'border-box',
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={loadCaptcha}
+                  aria-label="Muat ulang soal captcha"
+                  title="Muat ulang soal captcha"
+                  style={{
+                    padding: '6px 10px',
+                    borderRadius: 8,
+                    border: '1px solid #cbd5e1',
+                    background: '#fff',
+                    cursor: 'pointer',
+                    fontSize: 15,
+                  }}
+                >
+                  🔄
+                </button>
+              </div>
+            </>
+          ) : (
+            <p style={{ margin: 0, fontSize: 12.5, color: '#64748b' }}>Memuat soal captcha…</p>
+          )}
         </div>
       )}
 

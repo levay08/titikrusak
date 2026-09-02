@@ -79,7 +79,7 @@ describe('VerificationFlow', () => {
     await user.click(
       await screen.findByRole('button', { name: /tampilkan nama asli saya/i }, { timeout: 2000 })
     );
-    expect(onComplete).toHaveBeenCalledWith({ displayName: 'Budi Santoso', isVerified: true });
+    expect(onComplete).toHaveBeenCalledWith({ displayName: 'Budi Santoso', isVerified: true, session_id: 'sess-1' });
   });
 
   it('pilih alias -> onComplete dengan nama alias', async () => {
@@ -94,7 +94,7 @@ describe('VerificationFlow', () => {
     await user.type(screen.getByLabelText(/nama alias/i), 'Warga Garut');
     await user.click(screen.getByRole('button', { name: /lanjut dengan alias/i }));
 
-    expect(onComplete).toHaveBeenCalledWith({ displayName: 'Warga Garut', isVerified: true });
+    expect(onComplete).toHaveBeenCalledWith({ displayName: 'Warga Garut', isVerified: true, session_id: 'sess-1' });
   });
 
   it('status rejected -> pesan gagal + tombol Coba Lagi, polling berhenti', async () => {

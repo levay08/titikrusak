@@ -26,6 +26,7 @@ import {
 } from './components/HeaderModals.jsx';
 import useIsMobile from './lib/useIsMobile.js';
 import useIsTouchDevice from './lib/useIsTouchDevice.js';
+import { setEidSession, clearEidSession } from './lib/eidSession.js';
 import SearchModal from './components/SearchModal.jsx';
 import AdminView from './components/AdminView.jsx';
 import DetailModal from './components/DetailModal.jsx';
@@ -524,6 +525,7 @@ export default function App() {
     } catch (_e) {
       // abaikan bila localStorage tidak tersedia
     }
+    clearEidSession();
     setEidVerified(false);
   };
   const storedEid = getStoredEidVerification();
@@ -746,7 +748,7 @@ export default function App() {
               </span>
               <button
                 type="button"
-                onClick={() => setOtoritas(null)}
+                onClick={() => { setOtoritas(null); clearEidSession(); }}
                 style={{
                   background: 'none',
                   border: '1px solid rgba(255, 255, 255, 0.4)',
@@ -802,7 +804,7 @@ export default function App() {
           </span>
           <button
             type="button"
-            onClick={() => setOtoritas(null)}
+            onClick={() => { setOtoritas(null); clearEidSession(); }}
             style={{
               background: 'none',
               border: '1px solid rgba(255, 255, 255, 0.4)',
@@ -1279,6 +1281,7 @@ export default function App() {
                   role="otoritas"
                   walletMode={isTouchDevice}
                   onComplete={(result) => {
+                    setEidSession({ session_id: result.session_id, role: 'otoritas' });
                     setOtoritas({ displayName: result.displayName });
                     setOtoritasOpen(false);
                   }}
@@ -1332,6 +1335,7 @@ export default function App() {
                     } catch (_e) {
                       // abaikan bila localStorage tidak tersedia
                     }
+                    setEidSession({ session_id: result.session_id, role: 'warga' });
                     setEidVerified(true);
                     setEidFlowOpen(false);
                   }}

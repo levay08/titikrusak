@@ -216,4 +216,133 @@ router.patch('/:id/unverifiable', requireSession('otoritas'), (req, res) => {
   res.json(getRow(id));
 });
 
+// ---- DELETE /:id : HANYA pelapor (pemilik) bisa menghapus, dan hanya
+//      selama status masih 'dilaporkan'. Otoritas TIDAK punya akses
+//      hapus — otoritas hanya menandai (unverifiable) agar laporan tak
+//      bisa dihilangkan diam-diam. Laporan media/sumber lain tanpa
+//      reporter_verified_did tidak bisa dihapus siapa pun. ----
+router.delete('/:id', requireSession('warga'), (req, res) => {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id) || id <= 0) return res.status(404).json({ error: 'Laporan tidak ditemukan' });
+  const existing = db.prepare('SELECT * FROM reports WHERE id = ?').get(id);
+  if (!existing) return res.status(404).json({ error: 'Laporan tidak ditemukan' });
+  if (existing.reporter_verified_did !== req.eidSession.holder_did) {
+    return res.status(403).json({ error: 'Hanya pelapor laporan ini yang bisa menghapus' });
+  }
+  if (existing.status !== 'dilaporkan') {
+    return res.status(400).json({
+      error: 'Laporan sudah diproses (status bukan dilaporkan) — tidak bisa dihapus, hubungi otoritas',
+    });
+  }
+  db.prepare('DELETE FROM reports WHERE id = ?').run(id); // votes/status_history/fix_claims ikut CASCADE
+  res.json({ ok: true, deleted: true, id });
+});
+
+// ---- POST /:id/fix-claim : warga e.id terverifikasi menandai titik
+//      SUDAH DIPERBAIKI — wajib lampirkan minimal 1 foto bukti.
+//      Klaim masuk antrean otoritas (status 'menunggu'). ----
+router.post('/:id/fix-claim', requireSession('warga'), (req, res) => {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id) || id <= 0) return res.status(404).json({ error: 'Laporan tidak ditemukan' });
+  const report = db.prepare('SELECT id, status, unverifiable FROM reports WHERE id = ?').get(id);
+  if (!report) return res.status(404).json({ error: 'Laporan tidak ditemukan' });
+  if (report.status === 'selesai_diperbaiki') {
+    return res.status(400).json({ error: 'Titik ini sudah ditandai selesai diperbaiki' });
+  }
+
+  const body = req.body || {};
+  const photos = Array.isArray(body.photo_urls) ? body.photo_urls : [];
+  const cleanPhotos = photos
+    .filter((p) => typeof p === 'string' && p.trim() !== '' && p.length < 4_000_000)
+    .slice(0, 5);
+  if (cleanPhotos.length === 0) {
+    return res.status(400).json({ error: 'Klaim sudah diperbaiki wajib menyertakan minimal 1 foto bukti' });
+  }
+  const note =
+    body.note !== undefined && typeof body.note === 'string' ? body.note.trim().slice(0, 1000) : null;
+
+  const dup = db
+    .prepare("SELECT id FROM fix_claims WHERE report_id = ? AND status = 'menunggu'")
+    .get(id);
+  if (dup) return res.status(409).json({ error: 'Sudah ada klaim menunggu diverifikasi untuk titik ini' });
+
+  const info = db
+    .prepare(
+      `INSERT INTO fix_claims (report_id, claimed_by_did, claimed_by_display_name,
+        photo_urls, note, status) VALUES (?, ?, ?, ?, ?, 'menunggu')`
+    )
+    .run(id, req.eidSession.holder_did, req.eidSession.holder_name, JSON.stringify(cleanPhotos), note);
+
+  const claim = db.prepare('SELECT * FROM fix_claims WHERE id = ?').get(info.lastInsertRowid);
+  res.status(201).json(claim);
+});
+
+// ---- GET /fix-claims : antrean klaim perbaikan untuk OTORITAS.
+//      ?status=menunggu (default) | diterima | ditolak | semua ----
+router.get('/fix-claims', requireSession('otoritas'), (req, res) => {
+  const st = (req.query.status || 'menunggu').toString();
+  const allowed = ['menunggu', 'diterima', 'ditolak', 'semua'];
+  const where = allowed.includes(st) && st !== 'semua' ? 'WHERE fc.status = ?' : '';
+  const args = allowed.includes(st) && st !== 'semua' ? [st] : [];
+  const rows = db
+    .prepare(
+      `SELECT fc.*, r.location_name AS report_location, r.status AS report_status,
+              r.lat, r.lng, r.infra_type, r.severity, r.unverifiable
+       FROM fix_claims fc JOIN reports r ON r.id = fc.report_id ${where}
+       ORDER BY fc.created_at DESC LIMIT 200`
+    )
+    .all(...args);
+  rows.forEach((r) => {
+    try { r.photo_urls = JSON.parse(r.photo_urls); } catch { r.photo_urls = []; }
+  });
+  res.json(rows);
+});
+
+// ---- PATCH /:id/fix-claim/:claimId : keputusan OTORITAS.
+//      { decision: 'terima' } -> titik di-close (status
+//      selesai_diperbaiki = HIJAU di peta) & klaim diterima.
+//      { decision: 'tolak' }  -> klaim ditolak, titik tetap. ----
+router.patch('/:id/fix-claim/:claimId', requireSession('otoritas'), (req, res) => {
+  const id = Number(req.params.id);
+  const claimId = Number(req.params.claimId);
+  if (!Number.isInteger(id) || !Number.isInteger(claimId) || id <= 0 || claimId <= 0) {
+    return res.status(404).json({ error: 'Klaim tidak ditemukan' });
+  }
+  const claim = db
+    .prepare('SELECT * FROM fix_claims WHERE id = ? AND report_id = ?')
+    .get(claimId, id);
+  if (!claim) return res.status(404).json({ error: 'Klaim tidak ditemukan' });
+  if (claim.status !== 'menunggu') {
+    return res.status(400).json({ error: 'Klaim ini sudah diputuskan sebelumnya' });
+  }
+  const decision = (req.body || {}).decision;
+  if (decision !== 'terima' && decision !== 'tolak') {
+    return res.status(400).json({ error: 'decision harus "terima" atau "tolak"' });
+  }
+
+  db.transaction(() => {
+    const newStatus = decision === 'terima' ? 'diterima' : 'ditolak';
+    db.prepare(
+      `UPDATE fix_claims SET status = ?, decided_at = CURRENT_TIMESTAMP,
+       decided_by_did = ?, decided_by_display_name = ? WHERE id = ?`
+    ).run(newStatus, req.eidSession.holder_did, req.eidSession.holder_name, claimId);
+    if (decision === 'terima') {
+      const r = db.prepare('SELECT status FROM reports WHERE id = ?').get(id);
+      if (r.status !== 'selesai_diperbaiki') {
+        db.prepare(
+          `UPDATE reports SET status = 'selesai_diperbaiki', updated_at = CURRENT_TIMESTAMP WHERE id = ?`
+        ).run(id);
+        db.prepare(
+          `INSERT INTO status_history (report_id, new_status, changed_by_display_name, changed_by_did)
+           VALUES (?, 'selesai_diperbaiki', ?, ?)`
+        ).run(id, req.eidSession.holder_name, req.eidSession.holder_did);
+      }
+    }
+  })();
+
+  const updated = db.prepare('SELECT * FROM fix_claims WHERE id = ?').get(claimId);
+  try { updated.photo_urls = JSON.parse(updated.photo_urls); } catch { updated.photo_urls = []; }
+  res.json({ claim: updated, report: getRow(id) });
+});
+
 module.exports = router;
