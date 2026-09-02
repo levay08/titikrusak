@@ -1,18 +1,2 @@
-.env
-.env.local
-node_modules/
-dist/
-build/
-uploads/reports/*
-!uploads/reports/.gitkeep
-*.db
-*.db-journal
-*.db-shm
-*.db-wal
-.DS_Store
-
-# Dokumen referensi internal, tidak untuk publik
-01-PRD-Aplikasi.md
-02-Blueprint-Deployment.md
-03-AI-Standard.md
-docs-referensi/
+hits-*.jsonl
+tk-scp-test.txt
