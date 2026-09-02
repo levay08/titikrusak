@@ -101,6 +101,6 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Terjadi kesalahan internal server' });
 });
 
-app.listen(env.PORT, () => {
-  console.log(`Backend titikrusak.id berjalan di port ${env.PORT}`);
+app.listen(env.PORT, '127.0.0.1', () => {
+  console.log(`Backend titikrusak.id berjalan di port ${env.PORT} (127.0.0.1)`);
 });
