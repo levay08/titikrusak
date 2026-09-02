@@ -23,6 +23,7 @@ import {
 import VerificationFlow from './VerificationFlow.jsx';
 import ReportManagePanel from './ReportManagePanel.jsx';
 import { setEidSession, eidSessionHeaders } from '../lib/eidSession.js';
+import { beacon } from '../lib/interest.js';
 import useIsMobile from '../lib/useIsMobile.js';
 import useIsTouchDevice from '../lib/useIsTouchDevice.js';
 
@@ -236,6 +237,12 @@ export default function DetailModal({ report, onClose, otoritas = null, onReport
   // Foto yang sedang dibuka dalam frame (lightbox dalam situs — tidak
   // membuka tab baru / tidak menutup layar; bisa ditutup).
   const [photoView, setPhotoView] = useState(null);
+
+  // Sinyal minat: user membuka detail sebuah laporan (tanpa data tambahan).
+  useEffect(() => {
+    beacon('detail_open');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Enrichment BMKG yang dimuat ulang untuk laporan lama yang belum punya
   // data (File 2 Bagian 7.2): dipanggil saat detail dibuka, best-effort.

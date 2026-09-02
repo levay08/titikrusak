@@ -33,6 +33,7 @@ import VerificationFlow from './VerificationFlow.jsx';
 import Breadcrumb, { homeCrumb } from './Breadcrumb.jsx';
 import useIsTouchDevice from '../lib/useIsTouchDevice.js';
 import { setEidSession, eidSessionHeaders } from '../lib/eidSession.js';
+import { beacon } from '../lib/interest.js';
 
 // ---- Konfigurasi geocoding & peta lokasi (File 1 Bagian 5.2) ----
 
@@ -209,6 +210,12 @@ export default function ReportForm({ onSubmitted, onClose }) {
   // Perangkat sentuh (ponsel/tablet): alur wallet e.id (buka aplikasi via
   // deep link) TANPA scan QR — lihat VerificationFlow walletMode.
   const isTouchDevice = useIsTouchDevice();
+
+  // Sinyal minat: user membuka alur lapor (tanpa data tambahan).
+  useEffect(() => {
+    beacon('report_form_open');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Status verifikasi e.id yang TERSIMPAN (localStorage 'titikrusak_eid').
   // Kalau sudah terverifikasi, lapor berikutnya TIDAK perlu verifikasi

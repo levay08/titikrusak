@@ -16,8 +16,9 @@ import {
   STATUS_LABELS,
   STATUS_COLORS,
 } from '../lib/labels.js';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { ModalShell } from './HeaderModals.jsx';
+import { beacon } from '../lib/interest.js';
 
 const sectionTitle = {
   display: 'block',
@@ -275,11 +276,20 @@ const contactInput = {
 
 export function ContactModal({ onClose }) {
   const [form, setForm] = useState({ name: '', message: '' });
+  const typedSent = useRef(false);
   const [errors, setErrors] = useState({});
   const [state, setState] = useState('idle'); // idle | sent
   const [waUrl, setWaUrl] = useState('');
 
-  const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
+  const set = (key) => (e) => {
+    // Sinyal minat: user mulai mengetik di form kontak (sekali per bukaan,
+    // tanpa mengirim isi teks — privasi aman).
+    if (!typedSent.current) {
+      typedSent.current = true;
+      beacon('contact_typed');
+    }
+    setForm((f) => ({ ...f, [key]: e.target.value }));
+  };
 
   const validate = () => {
     const errs = {};
@@ -294,6 +304,7 @@ export function ContactModal({ onClose }) {
   const submit = (e) => {
     e.preventDefault();
     if (!validate()) return;
+    beacon('contact_wa_click'); // klik kirim via WhatsApp (tanpa isi pesan)
     const text =
       'Halo Admin titikrusak.id,\n' +
       'saya menghubungi melalui form Kontak di situs.\n' +

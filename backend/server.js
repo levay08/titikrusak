@@ -44,6 +44,9 @@ app.use(express.json({ limit: '12mb' }));
 // Captcha anti-bot untuk pelapor tanpa verifikasi e.id.
 app.use('/api/captcha', captchaRouter);
 
+// Event minat dari frontend (beacon kecil, tanpa isi teks).
+app.use('/api/track', require('./routes/track.js'));
+
 // Router keamanan DI DEPAN route laporan: otorisasi sesi e.id (fix
 // pentest K-1/S-1), captcha, edit-milik-sendiri, tanda "tidak dapat
 // diverifikasi" oleh otoritas. Request lain diteruskan ke reportsRouter.

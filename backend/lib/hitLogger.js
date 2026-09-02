@@ -16,41 +16,43 @@ const path = require('path');
 
 const DIR = process.env.TK_HITS_DIR || '/srv/tk/hits';
 const FLUSH_MS = 5000;
-// Cukup rekam AWAL sesi kunjungan: 3 menit pertama per IP per hari
-// (siapa + apa yang dia lakukan saat masuk). Setelah itu IP tsb tidak
-// dicatat lagi sampai hari berikutnya → file log tetap sangat kecil.
-const WINDOW_MS = Number(process.env.TK_HITS_WINDOW_MS || 3 * 60 * 1000);
-const MAX_IPS = 20000; // pelindung memori (map dibersihkan bila penuh)
+// Sesi berbasis IDLE (rekomendasi analitik): catat selama IP aktif, dan
+// hentikan bila DIAM 10 menit. Kembali lagi >10 menit kemudian = sesi
+// baru (boleh beberapa kali sehari). Batas aman per IP per hari agar
+// file tetap kecil.
+const IDLE_MS = Number(process.env.TK_HITS_IDLE_MS || 10 * 60 * 1000);
+const MAX_PER_IP_DAY = 400;
+const MAX_IPS = 50000; // pelindung memori
 
-// ip -> { day: 'YYYYMMDD', until: timestamp }
-const active = new Map();
+// ip -> { day: 'YYYYMMDD', last: ts, cnt }
+const sessions = new Map();
 
 function dayKey(d = new Date()) {
   const p = (n) => String(n).padStart(2, '0');
   return `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}`;
 }
 
-function shouldLog(ip, now) {
+// true = catat baris ini; state sesi di-update di sini.
+function trackDecision(ip, now) {
   const today = dayKey();
-  const e = active.get(ip);
-  if (!e || e.day !== today || now >= e.until) {
-    // IP baru / hari baru / jendela lewat -> buka jendela 3 menit baru
-    // (catat), TAPI hanya 1x per hari per IP.
-    if (!e || e.day !== today) {
-      if (active.size >= MAX_IPS) {
-        // bersihkan entri yang sudah lewat jendelanya
-        for (const [k, v] of active) {
-          if (now >= v.until) active.delete(k);
-          if (active.size < MAX_IPS) break;
-        }
+  let s = sessions.get(ip);
+  if (!s || s.day !== today) {
+    if (sessions.size >= MAX_IPS) {
+      // buang yang paling lama diam dulu
+      let oldestKey = null;
+      let oldest = Infinity;
+      for (const [k, v] of sessions) {
+        if (v.last < oldest) { oldest = v.last; oldestKey = k; }
       }
-      active.set(ip, { day: today, until: now + WINDOW_MS });
-    } else {
-      // jendela hari ini sudah lewat -> jangan catat lagi hari ini
-      return false;
+      if (oldestKey) sessions.delete(oldestKey);
     }
+    sessions.set(ip, { day: today, last: now, cnt: 1 });
+    return true;
   }
-  return now < active.get(ip).until;
+  if (s.cnt >= MAX_PER_IP_DAY) return false;
+  s.last = now;
+  s.cnt += 1;
+  return true;
 }
 
 // Path yang TIDAK dicatat (noise aset): /assets/*, gambar, favicon, dll.
@@ -105,7 +107,7 @@ function hitLogger(req, res, next) {
       const fwd = req.headers['x-forwarded-for'];
       const ip = (typeof fwd === 'string' ? fwd.split(',')[0].trim() : '') || req.socket?.remoteAddress || '';
       const ipClean = String(ip).replace('::ffff:', '');
-      if (!shouldLog(ipClean, Date.now())) return; // di luar jendela awal sesi
+      if (!trackDecision(ipClean, Date.now())) return; // di luar sesi/batas aman
       const ts = new Date().toISOString();
       const ua = String(req.headers['user-agent'] || '').slice(0, 90);
       queue.push(
@@ -125,4 +127,25 @@ function hitLogger(req, res, next) {
   next();
 }
 
-module.exports = { hitLogger, start, stop };
+// Catat event minat dari frontend (mis. mengetik di form kontak, klik
+// kirim WA, buka detail laporan) — TANPA isi teks (privasi), hanya jenis
+// aksi. Baris: { t, ip, ev, ua }.
+function recordEvent({ ip, ev, ua }) {
+  try {
+    const ipClean = String(ip || '').replace('::ffff:', '');
+    if (!ipClean) return;
+    if (!trackDecision(ipClean, Date.now())) return;
+    queue.push(
+      JSON.stringify({
+        t: new Date().toISOString(),
+        ip: ipClean,
+        ev,
+        ua: String(ua || '').slice(0, 90),
+      })
+    );
+  } catch (_e) {
+    // abaikan
+  }
+}
+
+module.exports = { hitLogger, start, stop, recordEvent };
