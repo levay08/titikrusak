@@ -68,6 +68,21 @@ app.use('/api/activity', activityRouter);
 app.use('/api/news', newsRouter);
 
 
+// ---- SPA (halaman web) ikut lewat backend agar tercatat di hitLogger ----
+// Sebelumnya nginx menyajikan index.html langsung (tidak lewat node),
+// sehingga bukaan halaman tidak pernah masuk log hit. Aset statis tetap
+// dilayani nginx; hanya fallback SPA yang diteruskan ke sini.
+const fs = require('fs');
+const pathMod = require('path');
+const DIST = pathMod.join(__dirname, '..', 'frontend', 'dist');
+const INDEX_HTML = pathMod.join(DIST, 'index.html');
+
+app.get('*', (req, res, next) => {
+  if (req.path.startsWith('/api/')) return next();
+  if (fs.existsSync(INDEX_HTML)) return res.sendFile(INDEX_HTML);
+  next();
+});
+
 // 404 JSON untuk endpoint yang tidak dikenal.
 app.use((req, res) => {
   res.status(404).json({ error: 'Endpoint tidak ditemukan' });
