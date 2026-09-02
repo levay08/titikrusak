@@ -1438,7 +1438,7 @@ export default function App() {
                 </span>
               </div>
               <div style={{ fontSize: 11, opacity: 0.7, color: '#e2e8f0', marginTop: 3 }}>
-                © 2026 titikrusak.id — Hak cipta dilindungi oleh Arfhacorp
+                © 2026 titikrusak.id oleh Arfhacorp — Hak cipta dilindungi
               </div>
             </div>
           </div>
