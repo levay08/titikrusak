@@ -1423,11 +1423,22 @@ export default function App() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, width: isMobile ? '100%' : 'auto' }}>
             <Logo size={26} />
             <div>
-              <div style={{ fontWeight: 700, color: '#fff', fontSize: 13 }}>
-                titikrusak.id
+              {/* Judul + tagline dalam SATU baris, dipisah "|"; hak cipta
+                  jadi baris kecil di bawahnya (koreksi user — tanpa baris
+                  copyright terpisah selebar footer). */}
+              <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'baseline', gap: '2px 7px' }}>
+                <span style={{ fontWeight: 700, color: '#fff', fontSize: 13 }}>
+                  titikrusak.id
+                </span>
+                <span aria-hidden="true" style={{ opacity: 0.45, fontSize: 12 }}>
+                  |
+                </span>
+                <span style={{ fontSize: 11.5, opacity: 0.75 }}>
+                  Laporkan &amp; pantau infrastruktur publik yang rusak
+                </span>
               </div>
-              <div style={{ fontSize: 11.5, opacity: 0.75 }}>
-                Laporkan &amp; pantau infrastruktur publik yang rusak
+              <div style={{ fontSize: 11, opacity: 0.7, color: '#e2e8f0', marginTop: 3 }}>
+                © 2026 titikrusak.id — All Rights Reserved.
               </div>
             </div>
           </div>
@@ -1446,22 +1457,6 @@ export default function App() {
               <SponsorLogo key={s.name} name={s.name} src={s.src} url={s.url} />
             ))}
           </div>
-        </div>
-
-        {/* Hak cipta (koreksi user: All Rights Reserved © 2026) */}
-        <div
-          style={{
-            width: '100%',
-            marginTop: 12,
-            paddingTop: 10,
-            borderTop: '1px solid rgba(255, 255, 255, 0.12)',
-            textAlign: 'center',
-            fontSize: 11,
-            opacity: 0.7,
-            color: '#e2e8f0',
-          }}
-        >
-          © 2026 titikrusak.id — All Rights Reserved.
         </div>
       </footer>
     </div>
