@@ -32,7 +32,8 @@ const DAMAGE_KEYWORDS = [
   'putus', 'terputus', 'ambruk', 'ambles', 'longsor', 'jebol', 'rusak',
   'runtuh', 'roboh', 'tertimpa', 'tertimbun', 'hanyut', 'tersapu', 'terendam',
   'rusak berat', 'rusak ringan', 'terbelah', 'melorot', 'banjir', 'bergeser',
-  'retak', 'diterjang', 'terdampak', 'porak-poranda', 'terisolir',
+  'retak', 'diterjang', 'terdampak', 'porak-poranda', 'terisolir', 'anjlok',
+  'miring', 'ambrol',
 ];
 // Kata yang menandakan BUKAN kejadian baru (berita lama/rencana/opini).
 const SKIP_IF = [
@@ -236,15 +237,86 @@ function classifySeverity(title) {
   return 'ringan';
 }
 
-// Jalur utama monitor. mode: 'dry' hanya melaporkan kandidat tanpa insert.
+// ---- Fase 2: UPDATE titik media yang sudah ada (3 Sep 2026) ----
+// Satu artikel TIDAK boleh jadi titik baru bila isinya tentang titik yang
+// sudah ada di peta -> cocokkan dulu (lokasi + kata spesifik + kemiripan),
+// lalu UPDATE deskripsi/sumber/severity. Hanya artikel yang benar-benar
+// belum punya titik induk yang di-insert sebagai titik BARU.
+
+const SEV_ORD = { ringan: 1, sedang: 2, berat: 3, ambruk: 4 };
+const COMPLETE_RE = /dibuka kembali|beroperasi kembali|kembali beroperasi|resmi dibuka|sudah difungsikan|berfungsi kembali|selesai diperbaiki|perbaikan selesai|difungsikan kembali|kembali difungsikan/;
+const AUTO_COMPLETE = process.env.TK_MONITOR_AUTO_COMPLETE === '1';
+
+// kata umum yang TIDAK dihitung sbg penanda spesifik sebuah objek
+const STOP_SPECIFIC = new Set(('jembatan gantung jalan rusak putus ambruk ambles jebol ' +
+  'banjir perbaikan diperbaiki bupati warga masyarakat akses pemulihan percepatan ' +
+  'pemerintah bangun baru tahun dibuka kembali beroperasi normal segera mulai ' +
+  'dikerjakan saat peresmian tni ad dandim penjelasan beri buka suara kami tak ' +
+  'kontrol beban viral untuk agar dan dari yang dengan korban jiwa satuan unit ' +
+  'kecamatan kabupaten kota desa nagari kelurahan gampong kampung provinsi wilayah ' +
+  'posko penanganan darurat tim rehab rekon dorong tinjau cek wali polres kapolres ' +
+  'bpjn pemprov kebut solusi imbas hujan galodo melanda terdampak fasilitas ' +
+  'sekolah madrasah pesantren rs puskesmas rumah sakit tanggul bendungan').split(' '));
+
+function specificTokens(text) {
+  return new Set(cleanTitle(text).split(' ').filter((w) => w.length >= 5 && !STOP_SPECIFIC.has(w)));
+}
+
+function placeName(s) {
+  return String(s || '').toLowerCase()
+    .replace(/kabupaten|kab\.|kota|kecamatan|kec\.|nagari|desa|kelurahan|gampong|kampung/g, ' ')
+    .replace(/[^a-z0-9 ]/g, ' ')
+    .replace(/\s+/g, ' ').trim();
+}
+
+function locContains(a, b) {
+  // apakah nama tempat a memuat kata tempat b (atau sebaliknya)?
+  const ta = placeName(a).split(' ').filter((w) => w.length >= 4);
+  const tb = placeName(b).split(' ').filter((w) => w.length >= 4);
+  if (ta.length === 0 || tb.length === 0) return false;
+  const sa = new Set(ta);
+  return tb.some((w) => sa.has(w));
+}
+
+// Kecocokan artikel dgn satu titik media: kembalikan skor atau null.
+function matchScore(row, title, locs) {
+  const hay = cleanTitle(`${row.description || ''} ${row.location_name || ''}`);
+  const over = tokenOverlap(hay, title);
+  if (over < 0.3) return null;
+  const iInfra = classifyInfra(title);
+  const infraOk = row.infra_type === iInfra || row.infra_type === 'prasarana_publik' || iInfra === 'prasarana_publik';
+  if (!infraOk) return null;
+  const nameMatch = locs ? locs.some((l) => locContains(row.location_name, l.name)) : false;
+  const shared = (() => {
+    const st = specificTokens(title);
+    const sr = specificTokens(hay);
+    for (const w of st) if (sr.has(w)) return true;
+    return false;
+  })();
+  if ((over >= 0.5 && nameMatch) || (over >= 0.42 && nameMatch && shared)) {
+    return { over, reason: nameMatch ? 'lokasi' : 'judul' };
+  }
+  return null;
+}
+
+// Jalur utama monitor. mode: 'dry' hanya melaporkan tanpa mengubah DB.
 async function runMonitor({ dry = false, log = console.log } = {}) {
   const seen = new Set();
-  const results = { scanned: 0, candidates: 0, inserted: 0, skipped: 0, errors: 0, items: [] };
+  const results = { scanned: 0, updated: 0, merged: 0, candidates: 0, inserted: 0, skipped: 0, errors: 0, items: [] };
 
-  // kumpulkan judul & URL yang sudah ada utk dedupe
-  const existing = db.prepare('SELECT source_media_url, description FROM reports WHERE source_type = ?').all('media');
+  if (!dry) {
+    const merged = mergeMediaDuplicates(log);
+    results.merged = merged;
+    if (merged > 0) log(`  ~ duplikat isi lama digabung: ${merged} baris dihapus`);
+  }
+
+  // kumpulkan titik media existing (termasuk yang di-update/insert run ini)
+  let existing = db.prepare(
+    `SELECT id, description, location_name, lat, lng, severity, status, infra_type,
+            source_media_url, source_media_name, source_media_date
+     FROM reports WHERE source_type = ?`
+  ).all('media');
   const existingUrls = new Set(existing.map((r) => r.source_media_url).filter(Boolean));
-  const existingTitles = existing.map((r) => String(r.description || '')).filter((s) => s.length > 20);
   const hasUrl = (u) => existingUrls.has(u) || seen.has(u);
 
   for (const query of QUERIES) {
@@ -256,6 +328,7 @@ async function runMonitor({ dry = false, log = console.log } = {}) {
       continue;
     }
     for (const item of items) {
+      if (results.inserted >= MAX_PER_RUN && results.updated >= MAX_UPDATES) break;
       results.scanned += 1;
       const title = item.title || '';
       const low = title.toLowerCase();
@@ -263,23 +336,55 @@ async function runMonitor({ dry = false, log = console.log } = {}) {
       if (hasAny(title, FOREIGN)) continue;
       if (hasAny(title, SKIP_IF) && !hasAny(title, ['putus', 'ambruk', 'ambles', 'jebol', 'runtuh', 'roboh', 'longsor'])) continue;
       if (!hasAny(low, INFRA_KEYWORDS)) continue;
-      if (!hasAny(low, DAMAGE_KEYWORDS)) continue;
-      if (hasUrl(item.link)) continue;
-      // kemiripan judul dgn titik yang sudah ada
-      const dupTitle = existingTitles.some((t) => tokenOverlap(t, title) > 0.6);
-      if (dupTitle) continue;
-      if (seen.has(item.link)) continue; // duplikat dalam satu run (beda query)
+      if (seen.has(item.link)) continue;
+      seen.add(item.link);
+
+      // ---- 1) COCOK DGN TITIK YANG SUDAH ADA (update, bukan insert) ----
       const locs = detectLocations(title);
-      if (!locs) continue; // tanpa lokasi jelas -> jangan menebak
+      let best = null;
+      let bestScore = 0;
+      for (const row of existing) {
+        const s = matchScore(row, title, locs);
+        if (s && s.over > bestScore) { bestScore = s.over; best = row; }
+      }
+      if (best) {
+        const isProgress = hasAny(low, DAMAGE_KEYWORDS) && COMPLETE_RE.test(low) === false
+          ? hasAny(low, ['mulai diperbaiki', 'mulai dikerjakan', 'segera diperbaiki', 'diperbaiki', 'perbaikan', 'bangun', 'darurat', 'normalisasi', 'dikerjakan', 'terpasang', 'bakal', 'permanen'])
+          : COMPLETE_RE.test(low);
+        const kind = isProgress ? 'progres' : 'sama';
+        if (dry) {
+          log(`  [${kind === 'progres' ? 'update' : 'cover'} -> #${best.id}] ${title} — ${item.source}`);
+        } else if (kind === 'progres') {
+          results.updated += 1;
+          applyUpdate(best, item, { kind, log });
+          existing = existing.map((r) => (r.id === best.id ? best : r));
+        } else {
+          // peristiwa SAMA (outlet lain): titik sudah mewakili -> jangan
+          // menumpuk deskripsi, jangan membuat titik baru.
+          results.skipped += 1;
+          log(`  ~ sudah terwakili #${best.id} (outlet lain): ${title} — ${item.source}`);
+        }
+        continue;
+      }
+
+      // ---- 2) tidak ada titik induk: berita PERBAIKAN saja = lewati ----
+      if (!hasAny(low, DAMAGE_KEYWORDS)) {
+        results.skipped += 1;
+        if (dry) log(`  - lewati (update tanpa titik induk): ${title}`);
+        continue;
+      }
+
+      // ---- 3) TITIK BARU ----
+      if (hasUrl(item.link)) continue;
+      if (!locs) { results.skipped += 1; continue; } // tanpa lokasi jelas -> jangan menebak
       results.candidates += 1;
       results.items.push({ item, locs });
-      seen.add(item.link);
       if (results.items.length >= MAX_PER_RUN) break;
     }
     if (results.items.length >= MAX_PER_RUN) break;
   }
 
-  // geocode + insert (hanya mode non-dry)
+  // geocode + insert titik baru (hanya mode non-dry)
   const geoCacheFile = require('path').join(__dirname, '..', 'data', 'monitor-geo-cache.json');
   let cache = {};
   try { cache = JSON.parse(require('fs').readFileSync(geoCacheFile, 'utf8')); } catch (_e) { /* kosong */ }
@@ -318,11 +423,19 @@ async function runMonitor({ dry = false, log = console.log } = {}) {
        VALUES (?, ?, 'tidak_diketahui', '["akses_ekonomi"]', ?, ?, ?, ?, 'media', ?, ?, ?, 'dilaporkan')`
     );
     stmt.run(
-      classifyInfra(entry.title), classifySeverity(entry.title),
+      entry.infra, entry.severity,
       entry.title, entry.locName, latFinal, lngFinal,
       entry.source, entry.url, entry.pubDate || null
     );
     results.inserted += 1;
+    const newRow = {
+      id: Number(stmt.lastInsertRowid), description: entry.title, location_name: entry.locName,
+      lat: latFinal, lng: lngFinal, severity: entry.severity, status: 'dilaporkan',
+      infra_type: entry.infra, source_media_url: entry.url,
+      source_media_name: entry.source, source_media_date: entry.pubDate,
+    };
+    existing.push(newRow);
+    existingUrls.add(entry.url);
     log(`  + masuk peta: ${entry.severity}/${entry.infra} @ ${entry.locName} — ${entry.title} (${entry.source})`);
   }
 
@@ -332,6 +445,77 @@ async function runMonitor({ dry = false, log = console.log } = {}) {
   } catch (_e) { /* cache best-effort */ }
 
   return results;
+}
+
+const MAX_UPDATES = 15;
+
+// Update satu titik media dari artikel baru. TIDAK mengubah status (verifikasi
+// & status selesai tetap domain otoritas) KECUALI env TK_MONITOR_AUTO_COMPLETE=1
+// dan artikel jelas menyatakan perbaikan selesai/dibuka kembali.
+function applyUpdate(row, item, { kind, log } = {}) {
+  const today = new Date().toISOString().slice(0, 10);
+  const note = `[Update ${today}: ${item.title} — ${item.source}]`;
+  const base = String(row.description || '').trim();
+  let desc = base ? `${base} ${note}` : `${item.title} ${note}`;
+  if (desc.length > 4500) desc = base.length > 4500 ? base.slice(0, 4500) : desc;
+  const sev = classifySeverity(item.title);
+  const sevUp = SEV_ORD[sev] > (SEV_ORD[row.severity] || 0);
+  let status = row.status;
+  if (AUTO_COMPLETE && kind !== 'sama' && COMPLETE_RE.test(item.title.toLowerCase()) && status === 'dilaporkan') {
+    status = 'selesai_diperbaiki';
+  }
+  db.prepare(
+    `UPDATE reports SET description = ?, severity = CASE WHEN ? > 0 THEN ? ELSE severity END,
+       source_media_name = ?, source_media_url = ?, source_media_date = ?,
+       status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`
+  ).run(desc, sevUp ? 1 : 0, sev, item.source || row.source_media_name, item.link, item.pubDate || row.source_media_date, status, row.id);
+  row.description = desc;
+  row.severity = sevUp ? sev : row.severity;
+  row.source_media_url = item.link;
+  row.source_media_name = item.source || row.source_media_name;
+  row.source_media_date = item.pubDate || row.source_media_date;
+  row.status = status;
+  log(`  ~ update #${row.id}: ${kind === 'progres' ? 'progres perbaikan' : 'peristiwa sama (sumber baru)'}${sevUp ? ' + severity naik' : ''}${status === 'selesai_diperbaiki' ? ' -> selesai_diperbaiki' : ''}: ${item.title} (${item.source})`);
+}
+
+// Gabung duplikat ISI yang terlanjur ada (aturan user: objek/peristiwa SAMA
+// lintas media = SATU titik). Panggil sekali di awal tiap run (idempotent).
+function mergeMediaDuplicates(log) {
+  const rows = db.prepare(
+    `SELECT id, description, location_name, lat, lng, severity, infra_type
+     FROM reports WHERE source_type = 'media' ORDER BY id`
+  ).all();
+  let removed = 0;
+  for (let i = 0; i < rows.length; i++) {
+    const a = rows[i];
+    if (!a) continue;
+    for (let j = i + 1; j < rows.length; j++) {
+      const b = rows[j];
+      if (!b) continue;
+      if (a.infra_type !== b.infra_type) continue;
+      const dLat = Math.abs((a.lat || 0) - (b.lat || 0));
+      const dLng = Math.abs((a.lng || 0) - (b.lng || 0));
+      if (dLat > 0.5 || dLng > 0.5) continue; // lokasi beda jauh
+      const over = tokenOverlap(a.description || '', b.description || '');
+      if (over < 0.35) continue;
+      const shared = (() => {
+        const st = specificTokens(a.description || '');
+        const sr = specificTokens(b.description || '');
+        for (const w of st) if (sr.has(w)) return true;
+        return false;
+      })();
+      const nameMatch = locContains(a.location_name, b.location_name) || locContains(b.location_name, a.location_name);
+      if (!(nameMatch && (over >= 0.38 || shared))) continue;
+      // keep: deskripsi paling panjang/spesifik (paling informatif)
+      const keep = String(b.description || '').length > String(a.description || '').length ? b : a;
+      const drop = keep.id === a.id ? b : a;
+      db.prepare('DELETE FROM reports WHERE id = ?').run(drop.id);
+      rows[rows.indexOf(drop)] = null;
+      removed += 1;
+      log(`  ~ gabung duplikat: #${drop.id} -> #${keep.id} (${keep.location_name})`);
+    }
+  }
+  return removed;
 }
 
 module.exports = { runMonitor, QUERIES };

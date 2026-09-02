@@ -18,9 +18,9 @@ const { runMonitor } = require('../services/newsMonitor.js');
   const res = await runMonitor({ dry, log: (s) => console.log(s) });
   const lines = [
     `[${new Date().toISOString()}] news-monitor ${dry ? '(DRY)' : ''}`,
-    `  pindai=${res.scanned} kandidat=${res.candidates} masuk=${res.inserted} lewati=${res.skipped} error=${res.errors} (${Date.now() - started}ms)`,
+    `  pindai=${res.scanned} kandidat=${res.candidates} masuk=${res.inserted} update=${res.updated} gabung=${res.merged} lewati=${res.skipped} error=${res.errors} (${Date.now() - started}ms)`,
   ];
-  if (!dry && res.inserted > 0) lines.push(`  => titik media baru sudah masuk peta.`);
+  if (!dry && (res.inserted > 0 || res.updated > 0 || res.merged > 0)) lines.push(`  => peta diperbarui: +${res.inserted} titik baru, ${res.updated} titik di-update, ${res.merged} duplikat digabung.`);
   console.log(lines.join('\n'));
   process.exit(0);
 })().catch((e) => {

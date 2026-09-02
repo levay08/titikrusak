@@ -8,3 +8,4 @@ backend/.env
 *.db-shm
 node_modules/
 frontend/dist/
+backend/data/
