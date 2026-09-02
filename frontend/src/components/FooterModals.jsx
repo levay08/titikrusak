@@ -254,8 +254,15 @@ export function TermsModal({ onClose }) {
   );
 }
 
-// ---- Kontak (form -> email hello@arfhacorp.com via backend /api/contact) ----
+// ---- Kontak (form -> email hello@arfhacorp.com) ----
+// Pengiriman LANGSUNG dari browser ke relay FormSubmit.co (bukan lewat
+// backend): Cloudflare FormSubmit menolak request server (Error 1010 /
+// "must be opened through a web server") — dari browser Origin
+// https://titikrusak.id diterima. Kode error/status body dicek sungguhan
+// (backend lama sempat menganggap sukses walau success:false — bug yang
+// bikin "tidak ada email masuk").
 const CONTACT_EMAIL = 'hello@arfhacorp.com';
+const CONTACT_ENDPOINT = `https://formsubmit.co/ajax/${CONTACT_EMAIL}`;
 
 const contactInput = {
   width: '100%',
@@ -291,18 +298,25 @@ export function ContactModal({ onClose }) {
     setState('sending');
     setServerError('');
     try {
-      const res = await fetch('/api/contact', {
+      const res = await fetch(CONTACT_ENDPOINT, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
         body: JSON.stringify({
           name: form.name.trim(),
           email: form.email.trim(),
           message: form.message.trim(),
+          _subject: `[titikrusak.id] Pesan kontak dari ${form.name.trim()}`,
+          _captcha: 'false',
         }),
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        throw new Error(data.error || `HTTP ${res.status}`);
+      // FormSubmit mengembalikan HTTP 200 dengan body.success "false" saat
+      // menolak — jangan dianggap sukses.
+      if (!res.ok || data.success === 'false' || data.success === false) {
+        throw new Error(data.message || `HTTP ${res.status}`);
       }
       setForm({ name: '', email: '', message: '' });
       setState('sent');

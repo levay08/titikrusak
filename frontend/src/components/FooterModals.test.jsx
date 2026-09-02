@@ -71,10 +71,10 @@ describe('FooterModals: Kontak (form kirim email hello@arfhacorp.com)', () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it('submit valid -> POST /api/contact + feedback sukses', async () => {
+  it('submit valid -> POST ke relay FormSubmit + feedback sukses', async () => {
     vi.unstubAllGlobals();
     const fetchMock = vi.fn(() =>
-      Promise.resolve({ ok: true, status: 200, json: async () => ({ ok: true }) })
+      Promise.resolve({ ok: true, status: 200, json: async () => ({ success: 'true' }) })
     );
     vi.stubGlobal('fetch', fetchMock);
     const user = (await import('@testing-library/user-event')).default;
@@ -90,8 +90,33 @@ describe('FooterModals: Kontak (form kirim email hello@arfhacorp.com)', () => {
 
     await screen.findByText(/pesan anda terkirim ke hello@arfhacorp\.com/i);
     expect(fetchMock).toHaveBeenCalledWith(
-      '/api/contact',
+      'https://formsubmit.co/ajax/hello@arfhacorp.com',
       expect.objectContaining({ method: 'POST' })
     );
+  });
+
+  it('FormSubmit menolak (success:false) -> feedback error, bukan sukses', async () => {
+    vi.unstubAllGlobals();
+    const fetchMock = vi.fn(() =>
+      Promise.resolve({
+        ok: true,
+        status: 200,
+        json: async () => ({ success: 'false', message: 'Relay menolak pesan.' }),
+      })
+    );
+    vi.stubGlobal('fetch', fetchMock);
+    const user = (await import('@testing-library/user-event')).default;
+    render(<ContactModal onClose={vi.fn()} />);
+
+    await user.type(screen.getByLabelText(/nama \*/i), 'Pahlevy');
+    await user.type(screen.getByLabelText(/email \*/i), 'pahlevy@example.com');
+    await user.type(
+      screen.getByLabelText(/pesan \*/i),
+      'Halo, ini pesan uji penolakan relay.'
+    );
+    await user.click(screen.getByRole('button', { name: /kirim ke hello@arfhacorp\.com/i }));
+
+    expect(await screen.findByText(/relay menolak pesan/i)).toBeInTheDocument();
+    expect(screen.queryByText(/pesan anda terkirim/i)).not.toBeInTheDocument();
   });
 });

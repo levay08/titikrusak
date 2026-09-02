@@ -31,6 +31,11 @@ const smtpCfg = {
   port: Number(process.env.CONTACT_SMTP_PORT || 25),
   secure: false, // port 25/587 biasa pakai STARTTLS, bukan TLS langsung
   ignoreTLS: true, // inbound tanpa kredensial: banyak server tidak minta TLS
+  // Gagal cepat: VPS IDCloudHost memblokir port 25 keluar — jangan
+  // biarkan request menggantung sampai timeout bawaan nodemailer.
+  connectionTimeout: 8000,
+  greetingTimeout: 8000,
+  socketTimeout: 15000,
   ...(process.env.CONTACT_SMTP_USER
     ? { auth: { user: process.env.CONTACT_SMTP_USER, pass: process.env.CONTACT_SMTP_PASS || '' } }
     : {}),
@@ -49,7 +54,7 @@ async function sendViaSmtp(payload) {
 
 async function sendViaRelay(payload) {
   const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), 15000);
+  const timer = setTimeout(() => ctrl.abort(), 12000);
   try {
     const res = await fetch(`https://formsubmit.co/ajax/${encodeURIComponent(CONTACT_TO)}`, {
       method: 'POST',
@@ -58,8 +63,10 @@ async function sendViaRelay(payload) {
       signal: ctrl.signal,
     });
     const data = await res.json().catch(() => ({}));
-    if (!res.ok) {
-      throw new Error(data.message || `HTTP ${res.status}`);
+    // FormSubmit: HTTP 200 + body.success "false" = DITOLAK (mis. request
+    // server tanpa Origin web). Jangan dianggap sukses.
+    if (!res.ok || data.success === 'false' || data.success === false) {
+      throw new Error(data.message || `Relay menolak (HTTP ${res.status})`);
     }
     return data;
   } finally {
