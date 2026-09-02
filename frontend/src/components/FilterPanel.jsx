@@ -14,7 +14,6 @@
 //   - tombol Reset Filter
 
 import { SEVERITIES, BRIDGE_AUTHORITIES, VITAL_STATUSES } from '../lib/labels.js';
-import { useState } from 'react';
 
 // Enam opsi sorting (File 1 Bagian 6.8.10), dipetakan ke pasangan
 // sort/order yang dipahami backend GET /api/reports.
@@ -122,9 +121,6 @@ export default function FilterPanel({
   onLogoutOtoritas = () => {},
   onRequestLogin = () => {}, // masuk sebagai OTORITAS (KYC e-KTP)
 }) {
-  // Grup Status Vital dilipat bawaan agar sidebar tidak perlu scroll
-  // (koreksi user — grup bisa dibuka lagi kalau perlu).
-  const [vitalOpen, setVitalOpen] = useState(false);
   // Toggle nilai multi-select (severity/authority/vital) -> onChange.
   const toggle = (key) => (value) => (e) => {
     const checked = e.target.checked;
@@ -260,38 +256,13 @@ export default function FilterPanel({
         onToggle={toggle('bridge_authority')}
       />
 
-      {/* Status vital — BISA DILIPAT (bawaan tertutup agar sidebar tidak
-          perlu di-scroll; buka saat diperlukan). */}
-      <div>
-        <button
-          type="button"
-          onClick={() => setVitalOpen((v) => !v)}
-          aria-expanded={vitalOpen}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 4,
-            width: '100%',
-            background: 'none',
-            border: 'none',
-            padding: 0,
-            cursor: 'pointer',
-          }}
-        >
-          <span style={sectionTitleStyle}>Status Vital</span>
-          <span style={{ fontSize: 10, color: '#64748b', lineHeight: 1 }}>
-            {vitalOpen ? '▾' : '▸'}
-          </span>
-        </button>
-        {vitalOpen && (
-          <CheckboxGroup
-            options={VITAL_STATUSES}
-            selected={filters.vital_status}
-            onToggle={toggle('vital_status')}
-            showTitle={false}
-          />
-        )}
-      </div>
+      {/* Status vital — tetap tampil polos tanpa opsi lipat (koreksi user) */}
+      <CheckboxGroup
+        title="Status Vital"
+        options={VITAL_STATUSES}
+        selected={filters.vital_status}
+        onToggle={toggle('vital_status')}
+      />
 
       {/* Filter verifikasi titik oleh otoritas (File 1 6.2): tampilkan
           hanya titik yang SUDAH diverifikasi (bercentang ✓ di peta:
