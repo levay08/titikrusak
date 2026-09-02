@@ -345,11 +345,15 @@ export default function App() {
   // warga dari sidebar FilterPanel.
   const [eidVerified, setEidVerified] = useState(() => Boolean(getStoredEidVerification()));
   const [eidFlowOpen, setEidFlowOpen] = useState(false);
+  // Mode internal "preview": dipakai utk screenshot OG (peta bersih tanpa
+  // modal welcome/sidebar/tooltip) — tidak berpengaruh ke pengguna biasa.
+  const previewMode = typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('preview');
   // Modal selamat datang: SESI per tab — muncul saat kunjungan pertama
   // tab/window (tab baru setelah tab ditutup => muncul lagi). Selama tab
   // masih terbuka, flag sessionStorage membuat modal tidak muncul kembali
   // walau kembali ke halaman pertama.
   const [welcomeOpen, setWelcomeOpen] = useState(() => {
+    if (previewMode) return false;
     try {
       return !sessionStorage.getItem('titikrusak_welcome_seen');
     } catch (_e) {
@@ -372,7 +376,9 @@ export default function App() {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   // Sidebar filter desktop bisa disembunyikan (poin: sidebar bisa di-hide).
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() =>
+    typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('preview')
+  );
   // Pencarian header (poin: tagline -> search bar): modal hasil pencarian
   // + kata kunci awal dari input header.
   const [searchOpen, setSearchOpen] = useState(false);

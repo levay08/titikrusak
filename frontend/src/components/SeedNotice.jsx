@@ -19,6 +19,9 @@ export default function SeedNotice() {
   const isMobile = useIsMobile();
   const [open, setOpen] = useState(() => {
     try {
+      if (typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('preview')) {
+        return false; // mode screenshot OG: tooltip disembunyikan
+      }
       return !sessionStorage.getItem(CLOSED_FLAG);
     } catch (_e) {
       return true;
