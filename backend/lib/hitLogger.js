@@ -14,7 +14,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const DIR = process.env.TK_HITS_DIR || '/srv/tk-hits';
+const DIR = process.env.TK_HITS_DIR || '/srv/tk/hits';
 const FLUSH_MS = 5000;
 
 // Path yang TIDAK dicatat (noise aset): /assets/*, gambar, favicon, dll.
