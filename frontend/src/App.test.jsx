@@ -259,9 +259,10 @@ describe('App: alur lapor kerusakan end-to-end', () => {
     render(<App />);
     await waitFor(() => expect(fetchMock).toHaveBeenCalled());
 
-    // Sidebar tampil -> sembunyikan.
+    // Sidebar tampil -> sembunyikan (dua kontrol: header ⏴ + tab tepi —
+    // klik yang pertama cukup).
     expect(screen.getByRole('heading', { name: /filter laporan/i })).toBeInTheDocument();
-    await user.click(screen.getByRole('button', { name: /sembunyikan panel filter/i }));
+    await user.click(screen.getAllByRole('button', { name: /sembunyikan panel filter/i })[0]);
     expect(screen.queryByRole('heading', { name: /filter laporan/i })).not.toBeInTheDocument();
 
     // Tab tipis muncul -> klik untuk memunculkan kembali.

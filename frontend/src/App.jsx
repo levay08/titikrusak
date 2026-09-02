@@ -839,6 +839,35 @@ export default function App() {
             }}
           />
         )}
+        {/* Tombol HIDE yang jelas di tepi sidebar (desktop): klik untuk
+            menyembunyikan panel filter — lebih mudah terlihat daripada
+            tombol ⏴ kecil di header sidebar. */}
+        {!isMobile && !sidebarCollapsed && (
+          <button
+            type="button"
+            aria-label="Sembunyikan panel filter"
+            title="Sembunyikan panel filter"
+            onClick={() => setSidebarCollapsed(true)}
+            style={{
+              flexShrink: 0,
+              width: 22,
+              background: 'linear-gradient(90deg, #fefce8, #fff)',
+              border: 'none',
+              borderLeft: '1px solid #e2e8f0',
+              borderRight: '1px solid #e2e8f0',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#a16207',
+              fontSize: 16,
+              fontWeight: 800,
+              padding: 0,
+            }}
+          >
+            ⏴
+          </button>
+        )}
         {/* Tab tipis untuk memunculkan kembali sidebar yang disembunyikan */}
         {!isMobile && sidebarCollapsed && (
           <button

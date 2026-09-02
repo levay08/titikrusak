@@ -14,6 +14,7 @@
 //   - tombol Reset Filter
 
 import { SEVERITIES, BRIDGE_AUTHORITIES, VITAL_STATUSES } from '../lib/labels.js';
+import { useState } from 'react';
 
 // Enam opsi sorting (File 1 Bagian 6.8.10), dipetakan ke pasangan
 // sort/order yang dipahami backend GET /api/reports.
@@ -28,63 +29,79 @@ const SORT_OPTIONS = [
 
 const sectionTitleStyle = {
   display: 'block',
-  fontSize: 11.5,
+  fontSize: 10.5,
   fontWeight: 700,
   textTransform: 'uppercase',
-  letterSpacing: 0.4,
+  letterSpacing: 0.3,
   color: '#64748b',
-  marginBottom: 6,
+  marginBottom: 3,
 };
 
 const inputStyle = {
   width: '100%',
-  padding: '7px 9px',
+  padding: '6px 8px',
   borderRadius: 8,
   border: '1px solid #cbd5e1',
-  fontSize: 13,
+  fontSize: 12.5,
   boxSizing: 'border-box',
   background: '#fff',
   color: '#1c1917',
 };
 
 // Grup checkbox kecil dengan warna dot opsional (untuk severity).
-function CheckboxGroup({ title, options, selected, onToggle }) {
+// `cols > 1` = susun dua kolom (hemat tinggi sidebar agar tidak perlu
+// scroll — koreksi user). `showTitle=false` untuk grup yang judulnya
+// dirender sendiri (mis. Status Vital yang bisa dilipat).
+function CheckboxGroup({ title, options, selected, onToggle, cols = 1, showTitle = true }) {
+  const rowStyle = {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 6,
+    fontSize: 12.5,
+    padding: '2px 0',
+    cursor: 'pointer',
+    color: '#1c1917',
+    minWidth: 0,
+  };
   return (
     <div>
-      <span style={sectionTitleStyle}>{title}</span>
-      {options.map((o) => (
-        <label
-          key={o.value}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 7,
-            fontSize: 13,
-            padding: '3px 0',
-            cursor: 'pointer',
-            color: '#1c1917',
-          }}
-        >
-          <input
-            type="checkbox"
-            checked={selected.includes(o.value)}
-            onChange={onToggle(o.value)}
-          />
-          {o.color && (
-            <span
-              style={{
-                width: 10,
-                height: 10,
-                borderRadius: '50%',
-                background: o.color,
-                border: '1px solid #1f2937',
-                flexShrink: 0,
-              }}
+      {showTitle && <span style={sectionTitleStyle}>{title}</span>}
+      <div
+        style={
+          cols > 1
+            ? {
+                display: 'grid',
+                gridTemplateColumns: `repeat(${cols}, 1fr)`,
+                columnGap: 8,
+                alignItems: 'start',
+              }
+            : undefined
+        }
+      >
+        {options.map((o) => (
+          <label key={o.value} style={rowStyle}>
+            <input
+              type="checkbox"
+              checked={selected.includes(o.value)}
+              onChange={onToggle(o.value)}
+              style={{ margin: 0, flexShrink: 0 }}
             />
-          )}
-          <span>{o.label}</span>
-        </label>
-      ))}
+            {o.color && (
+              <span
+                style={{
+                  width: 9,
+                  height: 9,
+                  borderRadius: '50%',
+                  background: o.color,
+                  border: '1px solid #1f2937',
+                  flexShrink: 0,
+                }}
+              />
+            )}
+            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{o.label}</span>
+          </label>
+        ))}
+      </div>
     </div>
   );
 }
@@ -105,6 +122,9 @@ export default function FilterPanel({
   onLogoutOtoritas = () => {},
   onRequestLogin = () => {}, // masuk sebagai OTORITAS (KYC e-KTP)
 }) {
+  // Grup Status Vital dilipat bawaan agar sidebar tidak perlu scroll
+  // (koreksi user — grup bisa dibuka lagi kalau perlu).
+  const [vitalOpen, setVitalOpen] = useState(false);
   // Toggle nilai multi-select (severity/authority/vital) -> onChange.
   const toggle = (key) => (value) => (e) => {
     const checked = e.target.checked;
@@ -127,27 +147,27 @@ export default function FilterPanel({
         background: '#fff',
         borderRight: '1px solid #e2e8f0',
         overflowY: 'auto',
-        padding: '14px 14px 18px',
+        padding: '9px 12px 12px',
         display: 'flex',
         flexDirection: 'column',
-        gap: 15,
+        gap: 9,
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6 }}>
-        <h2 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: '#1c1917' }}>
+        <h2 style={{ margin: 0, fontSize: 14, fontWeight: 700, color: '#1c1917' }}>
           Filter Laporan
         </h2>
-        <div style={{ display: 'flex', gap: 6 }}>
+        <div style={{ display: 'flex', gap: 5 }}>
           <button
             type="button"
             onClick={onReset}
             style={{
-              padding: '5px 10px',
+              padding: '4px 8px',
               borderRadius: 6,
               border: '1px solid #cbd5e1',
               background: '#fff',
               color: '#1c1917',
-              fontSize: 12,
+              fontSize: 11.5,
               fontWeight: 600,
               cursor: 'pointer',
             }}
@@ -161,7 +181,7 @@ export default function FilterPanel({
               aria-label="Sembunyikan panel filter"
               title="Sembunyikan panel filter"
               style={{
-                padding: '5px 9px',
+                padding: '4px 8px',
                 borderRadius: 6,
                 border: '1px solid #cbd5e1',
                 background: '#fff',
@@ -180,7 +200,7 @@ export default function FilterPanel({
               onClick={onClose}
               aria-label="Tutup panel filter"
               style={{
-                padding: '5px 9px',
+                padding: '4px 8px',
                 borderRadius: 6,
                 border: '1px solid #cbd5e1',
                 background: '#fff',
@@ -214,7 +234,7 @@ export default function FilterPanel({
         <label htmlFor="sort" style={sectionTitleStyle}>
           Urutkan
         </label>
-        <select id="sort" value={filters.sort} onChange={setSort} style={{ ...inputStyle, height: 34 }}>
+        <select id="sort" value={filters.sort} onChange={setSort} style={{ ...inputStyle, height: 30 }}>
           {SORT_OPTIONS.map((o) => (
             <option key={o.value} value={o.value}>
               {o.label}
@@ -223,12 +243,13 @@ export default function FilterPanel({
         </select>
       </div>
 
-      {/* Tingkat kerusakan */}
+      {/* Tingkat kerusakan — 2 kolom agar hemat tinggi (tanpa scroll) */}
       <CheckboxGroup
         title="Tingkat Kerusakan"
         options={SEVERITIES}
         selected={filters.severity}
         onToggle={toggle('severity')}
+        cols={2}
       />
 
       {/* Kategori kewenangan */}
@@ -239,13 +260,38 @@ export default function FilterPanel({
         onToggle={toggle('bridge_authority')}
       />
 
-      {/* Status vital */}
-      <CheckboxGroup
-        title="Status Vital"
-        options={VITAL_STATUSES}
-        selected={filters.vital_status}
-        onToggle={toggle('vital_status')}
-      />
+      {/* Status vital — BISA DILIPAT (bawaan tertutup agar sidebar tidak
+          perlu di-scroll; buka saat diperlukan). */}
+      <div>
+        <button
+          type="button"
+          onClick={() => setVitalOpen((v) => !v)}
+          aria-expanded={vitalOpen}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 4,
+            width: '100%',
+            background: 'none',
+            border: 'none',
+            padding: 0,
+            cursor: 'pointer',
+          }}
+        >
+          <span style={sectionTitleStyle}>Status Vital</span>
+          <span style={{ fontSize: 10, color: '#64748b', lineHeight: 1 }}>
+            {vitalOpen ? '▾' : '▸'}
+          </span>
+        </button>
+        {vitalOpen && (
+          <CheckboxGroup
+            options={VITAL_STATUSES}
+            selected={filters.vital_status}
+            onToggle={toggle('vital_status')}
+            showTitle={false}
+          />
+        )}
+      </div>
 
       {/* Filter verifikasi titik oleh otoritas (File 1 6.2): tampilkan
           hanya titik yang SUDAH diverifikasi (bercentang ✓ di peta:
@@ -258,14 +304,14 @@ export default function FilterPanel({
           id="verified"
           value={filters.verified || 'semua'}
           onChange={(e) => onChange({ ...filters, verified: e.target.value })}
-          style={{ ...inputStyle, height: 34 }}
+          style={{ ...inputStyle, height: 30 }}
         >
           <option value="semua">Semua titik</option>
           <option value="verified">✓ Sudah diverifikasi otoritas</option>
           <option value="belum">Belum diverifikasi</option>
         </select>
-        <p style={{ margin: '5px 0 0', fontSize: 11, lineHeight: 1.4, color: '#64748b' }}>
-          ✓ = laporan sudah diverifikasi/ditindak otoritas (hijau = selesai diperbaiki).
+        <p style={{ margin: '3px 0 0', fontSize: 10.5, lineHeight: 1.4, color: '#64748b' }}>
+          ✓ = sudah diverifikasi/ditindak otoritas (hijau = selesai diperbaiki).
         </p>
       </div>
 

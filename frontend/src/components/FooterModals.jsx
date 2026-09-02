@@ -329,7 +329,8 @@ export function ContactModal({ onClose }) {
     <ModalShell title="Kontak" onClose={onClose} maxWidth={520}>
       <p style={{ margin: '0 0 14px', fontSize: 13, lineHeight: 1.55, color: '#334155' }}>
         Ada masukan, pertanyaan, atau kerja sama? Isi form lalu tekan kirim — WhatsApp
-        terbuka dengan pesan Anda ke <strong>+62 818-1019-90 (62818101990)</strong>.
+        terbuka dengan pesan Anda ke <strong>62818101990</strong>. Kami membalas
+        secepatnya.
       </p>
 
       {state === 'sent' && (
@@ -433,7 +434,7 @@ export function ContactModal({ onClose }) {
               cursor: 'pointer',
             }}
           >
-            💬 Kirim via WhatsApp (62818101990)
+            💬 Kirim via WhatsApp
           </button>
         </form>
       )}
