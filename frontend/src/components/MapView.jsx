@@ -250,8 +250,7 @@ function SeverityLegend({ onHide }) {
       </div>
 
       <p style={{ margin: '8px 0 0', fontSize: 11, lineHeight: 1.4, color: '#475569' }}>
-        Warna titik menunjukkan tingkat kerusakan — kecuali hijau: laporan sudah
-        diperbaiki.
+        ✓ = sudah diverifikasi otoritas · ✗ = laporan tidak benar
       </p>
 
       {open && (
