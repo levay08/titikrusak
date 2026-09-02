@@ -79,6 +79,24 @@ export default function ReportManagePanel({ report, otoritas, onReportUpdated, o
     return body;
   };
 
+  // Keputusan otoritas atas klaim perbaikan dari media (monitor berita):
+  // terima => selesai_diperbaiki (hijau ✓ otoritas), tolak => klaim dihapus.
+  const mediaFix = async (decision) => {
+    setBusy('mf');
+    setErr('');
+    try {
+      const updated = await api(`/api/reports/${report.id}/media-fix`, {
+        method: 'PATCH',
+        body: JSON.stringify({ decision }),
+      });
+      onReportUpdated(updated);
+    } catch (e) {
+      setErr(e.message);
+    } finally {
+      setBusy('');
+    }
+  };
+
   useEffect(() => {
     if (!isOtoritas) return undefined;
     let on = true;
@@ -334,6 +352,50 @@ export default function ReportManagePanel({ report, otoritas, onReportUpdated, o
             >
               ✗ Tolak laporan (wajib alasan)
             </button>
+          )}
+
+          {report.media_repair_url && report.status === 'dilaporkan' && !report.unverifiable && (
+            <div
+              style={{
+                marginTop: 12,
+                border: '1px solid #bbf7d0',
+                borderRadius: 8,
+                padding: 10,
+                background: '#f0fdf4',
+              }}
+            >
+              <span style={sectionTitle}>Perbaikan menurut media (menunggu)</span>
+              <div style={{ fontSize: 12.5, color: '#334155', marginBottom: 8, lineHeight: 1.5 }}>
+                Berita/media menyatakan titik ini sudah diperbaiki.{' '}
+                <a
+                  href={report.media_repair_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ color: '#15803d', fontWeight: 700 }}
+                >
+                  Baca berita sumber
+                </a>
+                . Cocokkan dengan data Anda, lalu tutup titik (hijau ✓) atau tolak klaimnya.
+              </div>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button
+                  type="button"
+                  style={{ ...btnBase, background: '#15803d', border: 'none', color: '#fff' }}
+                  disabled={busy === 'mf'}
+                  onClick={() => mediaFix('terima')}
+                >
+                  {busy === 'mf' ? 'Menyimpan…' : '✓ Setujui & tutup titik (hijau)'}
+                </button>
+                <button
+                  type="button"
+                  style={{ ...btnBase, background: '#fff', color: '#b91c1c', borderColor: '#fecaca' }}
+                  disabled={busy === 'mf'}
+                  onClick={() => mediaFix('tolak')}
+                >
+                  Tolak klaim media
+                </button>
+              </div>
+            </div>
           )}
 
           {claimsLoaded && claims.length > 0 && (

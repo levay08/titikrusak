@@ -64,6 +64,8 @@ const PUBLIC_COLUMNS = [
   'vote_count',
   'unverifiable',
   'unverifiable_reason',
+  'media_repair_url',
+  'media_repair_at',
 ];
 
 const PUBLIC_SELECT = PUBLIC_COLUMNS.join(', ');

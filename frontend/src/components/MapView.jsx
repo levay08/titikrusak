@@ -296,6 +296,21 @@ function SeverityLegend({ onHide }) {
         </span>
         <span>Ditolak otoritas</span>
       </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6, whiteSpace: 'nowrap' }}>
+        <span
+          style={{
+            width: 14,
+            height: 14,
+            borderRadius: '50%',
+            background: '#22c55e',
+            border: '2px solid #fff',
+            boxShadow: '0 0 0 1px #1f2937',
+            flexShrink: 0,
+            display: 'inline-block',
+          }}
+        />
+        <span>Perbaikan dari media — menunggu otoritas</span>
+      </div>
 
       {open && (
         <div style={{ marginTop: 8, borderTop: '1px solid #e2e8f0', paddingTop: 8 }}>
@@ -805,8 +820,11 @@ export default function MapView({
     reports.forEach((report) => {
       // Warna titik: HIJAU khusus laporan selesai_diperbaiki; selain itu
       // warna tingkat kerusakan (ringan = biru muda) — reportMarkerColor.
-      const color = reportMarkerColor(report);
+      // Hijau TANPA ✓ = perbaikan menurut berita/media, masih menunggu
+      // verifikasi otoritas (media_repair_url terisi, status masih dilaporkan).
       const approved = APPROVED_STATUSES.includes(report.status);
+      const mediaRepairPending = !approved && !report.unverifiable && Boolean(report.media_repair_url);
+      const color = mediaRepairPending ? '#22c55e' : reportMarkerColor(report);
       const glowClass = GLOW_CLASS[report.severity] || '';
       const pos = resolveCoords(report.lat, report.lng);
       const lat = pos.lat;

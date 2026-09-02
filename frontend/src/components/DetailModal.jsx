@@ -469,6 +469,33 @@ export default function DetailModal({ report, onClose, otoritas = null, onReport
           </button>
         </div>
 
+        {/* Klaim perbaikan dari media (monitor berita) — publik */}
+        {report.media_repair_url && (
+          <div
+            style={{
+              background: '#f0fdf4',
+              border: '1px solid #bbf7d0',
+              color: '#166534',
+              borderRadius: 8,
+              padding: '10px 12px',
+              fontSize: 12.5,
+              lineHeight: 1.5,
+              marginBottom: 12,
+            }}
+          >
+            <strong>● Menurut media sudah diperbaiki</strong> — menunggu
+            verifikasi otoritas.{' '}
+            <a
+              href={report.media_repair_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ color: '#15803d', fontWeight: 700 }}
+            >
+              Baca beritanya
+            </a>
+          </div>
+        )}
+
         <div>
           {FIELD_ORDER.filter(([key]) => report[key] !== undefined).map(([key, label]) => (
             <div

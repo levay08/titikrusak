@@ -23,6 +23,12 @@ function ensureUnverifiableColumn() {
   if (!cols.includes('unverifiable_reason')) {
     db.exec('ALTER TABLE reports ADD COLUMN unverifiable_reason TEXT');
   }
+  if (!cols.includes('media_repair_url')) {
+    db.exec('ALTER TABLE reports ADD COLUMN media_repair_url TEXT');
+  }
+  if (!cols.includes('media_repair_at')) {
+    db.exec('ALTER TABLE reports ADD COLUMN media_repair_at TEXT');
+  }
 }
 ensureUnverifiableColumn();
 

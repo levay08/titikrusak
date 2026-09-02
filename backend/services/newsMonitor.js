@@ -245,7 +245,11 @@ function classifySeverity(title) {
 
 const SEV_ORD = { ringan: 1, sedang: 2, berat: 3, ambruk: 4 };
 const COMPLETE_RE = /dibuka kembali|beroperasi kembali|kembali beroperasi|resmi dibuka|sudah difungsikan|berfungsi kembali|selesai diperbaiki|perbaikan selesai|difungsikan kembali|kembali difungsikan/;
-const AUTO_COMPLETE = process.env.TK_MONITOR_AUTO_COMPLETE === '1';
+// Kebijakan (3 Sep 2026): monitor TIDAK PERNAH mengubah status ke
+// selesai_diperbaiki (hijau ✓ = domain otoritas). Bila berita menyatakan
+// titik yang SUDAH ADA di peta sudah diperbaiki, monitor hanya mencatat
+// klaim media (media_repair_url/at) — titik tampil hijau TANPA ✓ dan tetap
+// menunggu keputusan otoritas (PATCH /:id/media-fix).
 
 // kata umum yang TIDAK dihitung sbg penanda spesifik sebuah objek
 const STOP_SPECIFIC = new Set(('jembatan gantung jalan rusak putus ambruk ambles jebol ' +
@@ -449,9 +453,12 @@ async function runMonitor({ dry = false, log = console.log } = {}) {
 
 const MAX_UPDATES = 15;
 
-// Update satu titik media dari artikel baru. TIDAK mengubah status (verifikasi
-// & status selesai tetap domain otoritas) KECUALI env TK_MONITOR_AUTO_COMPLETE=1
-// dan artikel jelas menyatakan perbaikan selesai/dibuka kembali.
+// Update satu titik media dari artikel baru. Berlaku HANYA untuk titik yang
+// SUDAH ADA di peta (sudah pernah masuk sbg titik rusak) — titik yang baru
+// di-seed/di-insert tetap murni laporan kerusakan. Status TIDAK diubah oleh
+// monitor; bila artikel jelas menyatakan perbaikan selesai/dibuka kembali,
+// monitor mencatat klaim media (media_repair_url/at) -> titik hijau tanpa ✓
+// menunggu verifikasi otoritas.
 function applyUpdate(row, item, { kind, log } = {}) {
   const today = new Date().toISOString().slice(0, 10);
   const note = `[Update ${today}: ${item.title} — ${item.source}]`;
@@ -460,22 +467,36 @@ function applyUpdate(row, item, { kind, log } = {}) {
   if (desc.length > 4500) desc = base.length > 4500 ? base.slice(0, 4500) : desc;
   const sev = classifySeverity(item.title);
   const sevUp = SEV_ORD[sev] > (SEV_ORD[row.severity] || 0);
-  let status = row.status;
-  if (AUTO_COMPLETE && kind !== 'sama' && COMPLETE_RE.test(item.title.toLowerCase()) && status === 'dilaporkan') {
-    status = 'selesai_diperbaiki';
-  }
-  db.prepare(
-    `UPDATE reports SET description = ?, severity = CASE WHEN ? > 0 THEN ? ELSE severity END,
+  const low = String(item.title || '').toLowerCase();
+  const complete = COMPLETE_RE.test(low);
+  const setMediaClaim = complete && row.status === 'dilaporkan';
+  const nowIso = new Date().toISOString();
+  if (setMediaClaim) {
+    db.prepare(
+      `UPDATE reports SET description = ?, severity = CASE WHEN ? > 0 THEN ? ELSE severity END,
        source_media_name = ?, source_media_url = ?, source_media_date = ?,
-       status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`
-  ).run(desc, sevUp ? 1 : 0, sev, item.source || row.source_media_name, item.link, item.pubDate || row.source_media_date, status, row.id);
+       media_repair_url = ?, media_repair_at = ?,
+       updated_at = CURRENT_TIMESTAMP WHERE id = ?`
+    ).run(desc, sevUp ? 1 : 0, sev, item.source || row.source_media_name, item.link,
+      item.pubDate || row.source_media_date, item.link, nowIso, row.id);
+    row.media_repair_url = item.link;
+    row.media_repair_at = nowIso;
+  } else {
+    db.prepare(
+      `UPDATE reports SET description = ?, severity = CASE WHEN ? > 0 THEN ? ELSE severity END,
+       source_media_name = ?, source_media_url = ?, source_media_date = ?,
+       updated_at = CURRENT_TIMESTAMP WHERE id = ?`
+    ).run(desc, sevUp ? 1 : 0, sev, item.source || row.source_media_name, item.link,
+      item.pubDate || row.source_media_date, row.id);
+  }
   row.description = desc;
   row.severity = sevUp ? sev : row.severity;
   row.source_media_url = item.link;
   row.source_media_name = item.source || row.source_media_name;
   row.source_media_date = item.pubDate || row.source_media_date;
-  row.status = status;
-  log(`  ~ update #${row.id}: ${kind === 'progres' ? 'progres perbaikan' : 'peristiwa sama (sumber baru)'}${sevUp ? ' + severity naik' : ''}${status === 'selesai_diperbaiki' ? ' -> selesai_diperbaiki' : ''}: ${item.title} (${item.source})`);
+  const extra = sevUp ? ' + severity naik' : '';
+  const claim = setMediaClaim ? ' => klaim media: sudah diperbaiki (menunggu otoritas, hijau tanpa ✓)' : '';
+  log(`  ~ update #${row.id}: ${kind === 'progres' ? 'progres perbaikan' : 'peristiwa sama (sumber baru)'}${extra}${claim}: ${item.title} (${item.source})`);
 }
 
 // Gabung duplikat ISI yang terlanjur ada (aturan user: objek/peristiwa SAMA

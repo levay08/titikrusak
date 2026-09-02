@@ -40,7 +40,7 @@ const PUBLIC_COLUMNS = [
   'reporter_is_verified', 'validated_by_display_name', 'validated_by_did',
   'validated_at', 'status', 'source_type', 'source_media_name', 'source_media_url',
   'source_media_date', 'related_earthquake', 'related_weather', 'vote_count',
- 'unverifiable', 'unverifiable_reason',
+ 'unverifiable', 'unverifiable_reason', 'media_repair_url', 'media_repair_at',
  ];
  const PS = PUBLIC_COLUMNS.join(', ');
 
@@ -232,6 +232,46 @@ router.patch('/:id/unverifiable', requireSession('otoritas'), (req, res) => {
     'UPDATE reports SET unverifiable = ?, unverifiable_reason = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?'
   ).run(flag, flag === 1 ? rawReason : null, id);
 
+  res.json(getRow(id));
+});
+
+// ---- PATCH /:id/media-fix : otoritas memutuskan klaim perbaikan yang
+//      berasal dari monitor berita (hijau tanpa ✓ = menunggu otoritas).
+//      { decision: 'terima' | 'tolak' } — terima => status
+//      selesai_diperbaiki (hijau ✓ otoritas), tolak => klaim dihapus.
+router.patch('/:id/media-fix', requireSession('otoritas'), (req, res) => {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id) || id <= 0) return res.status(404).json({ error: 'Laporan tidak ditemukan' });
+  const existing = db.prepare('SELECT * FROM reports WHERE id = ?').get(id);
+  if (!existing) return res.status(404).json({ error: 'Laporan tidak ditemukan' });
+  if (!existing.media_repair_url) {
+    return res.status(400).json({ error: 'Titik ini tidak punya klaim perbaikan dari media' });
+  }
+  if (existing.status !== 'dilaporkan') {
+    return res.status(400).json({ error: 'Klaim media hanya bisa diputuskan selama titik masih dilaporkan' });
+  }
+  const decision = (req.body || {}).decision;
+  if (decision !== 'terima' && decision !== 'tolak') {
+    return res.status(400).json({ error: "decision harus 'terima' atau 'tolak'" });
+  }
+  if (decision === 'terima') {
+    db.transaction(() => {
+      db.prepare(
+        `UPDATE reports SET status = 'selesai_diperbaiki',
+         validated_by_display_name = ?, validated_by_did = ?,
+         validated_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
+         WHERE id = ?`
+      ).run(req.eidSession.holder_name, req.eidSession.holder_did, id);
+      db.prepare(
+        'INSERT INTO status_history (report_id, new_status, changed_by_display_name) VALUES (?, ?, ?)'
+      ).run(id, 'selesai_diperbaiki', req.eidSession.holder_name);
+    })();
+  } else {
+    // tolak: klaim media dihapus, titik kembali normal (status tetap dilaporkan).
+    db.prepare(
+      'UPDATE reports SET media_repair_url = NULL, media_repair_at = NULL, updated_at = CURRENT_TIMESTAMP WHERE id = ?'
+    ).run(id);
+  }
   res.json(getRow(id));
 });
 
