@@ -4,21 +4,48 @@
 // POST /api/contact — form Kontak footer. Mengirim pesan ke email tujuan
 // (default hello@arfhacorp.com, bisa diganti via env CONTACT_EMAIL).
 //
-// Pengiriman via relay FormSubmit.co (AJAX) — tanpa kredensial SMTP; cukup
-// sekali aktivasi: pemilik inbox tujuan menerima email aktivasi dari
-// FormSubmit lalu mengonfirmasi (email berikutnya terkirim normal).
-// Opsi lain: set env CONTACT_SMTP_URL (contoh smtp://user:pass@host:587)
-// dan backend beralih mengirim lewat SMTP tsb.
+// Jalur pengiriman (urutan prioritas):
+//   1. SMTP LANGSUNG ke server email penerima (nodemailer) — tanpa
+//      kredensial cukup untuk inbound: kirim ke MX domain tujuan di
+//      port 25. Konfigurasi via env (default mengarah ke MX arfhacorp.com
+//      yang port 25-nya terbuka & menerima).
+//        CONTACT_SMTP_HOST (default 'arfhacorp.com')
+//        CONTACT_SMTP_PORT (default 25)
+//        CONTACT_SMTP_USER / CONTACT_SMTP_PASS (opsional, utk 587)
+//   2. Fallback: relay FormSubmit.co AJAX bila SMTP gagal.
 
 const express = require('express');
-const env = require('../config/env.js');
+const nodemailer = require('nodemailer');
 
 const router = express.Router();
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-// Tujuan pesan kontak (boleh di-override lewat .env).
-const CONTACT_TO = env.CONTACT_EMAIL || 'hello@arfhacorp.com';
+// Tujuan pesan kontak.
+const CONTACT_TO = process.env.CONTACT_EMAIL || 'hello@arfhacorp.com';
+// Pengirim (domain titikrusak.id — sesuaikan SPF/DKIM bila domain punya MX).
+const CONTACT_FROM = process.env.CONTACT_FROM || 'noreply@titikrusak.id';
+
+const smtpCfg = {
+  host: process.env.CONTACT_SMTP_HOST || 'arfhacorp.com',
+  port: Number(process.env.CONTACT_SMTP_PORT || 25),
+  secure: false, // port 25/587 biasa pakai STARTTLS, bukan TLS langsung
+  ignoreTLS: true, // inbound tanpa kredensial: banyak server tidak minta TLS
+  ...(process.env.CONTACT_SMTP_USER
+    ? { auth: { user: process.env.CONTACT_SMTP_USER, pass: process.env.CONTACT_SMTP_PASS || '' } }
+    : {}),
+};
+
+async function sendViaSmtp(payload) {
+  const transporter = nodemailer.createTransport(smtpCfg);
+  const info = await transporter.sendMail({
+    from: `"titikrusak.id" <${CONTACT_FROM}>`,
+    to: CONTACT_TO,
+    subject: payload._subject,
+    text: `Nama: ${payload.name}\nEmail pengirim: ${payload.email}\n\n${payload.message}`,
+  });
+  return { smtpId: info.messageId || info.response || 'OK' };
+}
 
 async function sendViaRelay(payload) {
   const ctrl = new AbortController();
@@ -51,19 +78,31 @@ router.post('/', async (req, res) => {
     return res.status(400).json({ error: errors.join(' ') });
   }
 
+  const payload = {
+    name: String(name).trim(),
+    email: String(email).trim(),
+    message: String(message).trim(),
+    _subject: `[titikrusak.id] Pesan kontak dari ${String(name).trim()}`,
+    _captcha: 'false',
+  };
+
+  // 1) Coba SMTP langsung ke server email penerima.
   try {
-    const result = await sendViaRelay({
-      name: String(name).trim(),
-      email: String(email).trim(),
-      message: String(message).trim(),
-      _subject: `[titikrusak.id] Pesan kontak dari ${String(name).trim()}`,
-      _captcha: 'false',
-    });
-    console.log(`contact: pesan dari ${String(email).trim()} diteruskan ke ${CONTACT_TO} (${JSON.stringify(result).slice(0, 120)})`);
+    const result = await sendViaSmtp(payload);
+    console.log(`contact: pesan dari ${payload.email} terkirim via SMTP -> ${CONTACT_TO} (${JSON.stringify(result).slice(0, 160)})`);
+    return res.json({ ok: true, message: `Pesan terkirim ke ${CONTACT_TO}.` });
+  } catch (err) {
+    console.error(`contact: SMTP gagal (${err.message}) — coba relay FormSubmit`);
+  }
+
+  // 2) Fallback relay.
+  try {
+    const result = await sendViaRelay(payload);
+    console.log(`contact: pesan dari ${payload.email} diteruskan via relay -> ${CONTACT_TO} (${JSON.stringify(result).slice(0, 160)})`);
     res.json({ ok: true, message: `Pesan terkirim ke ${CONTACT_TO}.` });
   } catch (err) {
-    console.error(`contact: gagal meneruskan pesan ke ${CONTACT_TO}: ${err.message}`);
-    res.status(502).json({ error: `Gagal mengirim pesan (${err.message}). Coba lagi beberapa saat lagi.` });
+    console.error(`contact: relay gagal -> ${CONTACT_TO}: ${err.message}`);
+    res.status(502).json({ error: `Gagal mengirim pesan (${err.message}). Coba lagi beberapa saat.` });
   }
 });
 
