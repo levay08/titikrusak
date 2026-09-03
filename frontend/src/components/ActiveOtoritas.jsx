@@ -69,7 +69,7 @@ export default function ActiveOtoritas() {
       </span>
       {loaded && rows.length === 0 ? (
         <span style={{ ...label, background: '#f8fafc', color: '#64748b' }}>
-          Belum ada instansi yang tercatat bekerja.
+          Belum ada otoritas yang melakukan verifikasi.
         </span>
       ) : (
         rows.map((r) => (
