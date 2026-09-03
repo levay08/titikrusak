@@ -8,8 +8,9 @@
 // antar request, kolom diisi sekali; Overpass diakses jarang).
 
 const HOSTS = [
-  'https://overpass-api.de/api/interpreter',
+  // kumi lebih cepat & jarang rate-limit; overpass-api.de sebagai cadangan
   'https://overpass.kumi.systems/api/interpreter',
+  'https://overpass-api.de/api/interpreter',
 ];
 const UA = 'titikrusak-id-osm-enrich/1.0 (portal kerusakan infrastruktur Indonesia; kontak wa.me/62818101990)';
 const RADIUS_M = 800;
@@ -39,11 +40,11 @@ async function queryNear(lat, lng) {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'User-Agent': UA },
         body: 'data=' + encodeURIComponent(q),
-        signal: AbortSignal.timeout(30000),
+        signal: AbortSignal.timeout(20000),
       });
       if (res.status === 429 || res.status >= 500) {
         lastErr = new Error(`Overpass HTTP ${res.status} (${host})`);
-        await new Promise((ok) => setTimeout(ok, 3000 * (attempt + 1)));
+        await new Promise((ok) => setTimeout(ok, 2500 * (attempt + 1)));
         continue;
       }
       if (!res.ok) throw new Error(`Overpass HTTP ${res.status} (${host})`);
