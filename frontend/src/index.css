@@ -206,8 +206,14 @@ body {
 .tk-logo:hover {
   transform: scale(1.06);
 }
-/* Link "Arfhacorp" di footer: teks menyatu dengan teks lain; hanya saat
-   mouse hover warnanya berubah menjadi kuning aksen (tanpa underline). */
+/* Link "Arfhacorp" di footer: teks menyatu dengan teks lain (warna
+   diwarisi, tanpa underline). Hanya saat mouse hover warnanya berubah
+   menjadi kuning aksen. INLINE color tidak boleh dipakai di <a> ini,
+   karena gaya inline selalu menang atas :hover. */
+.tk-footer-arfha {
+  color: inherit;
+  text-decoration: none;
+}
 .tk-footer-arfha:hover {
   color: #facc15;
 }
@@ -242,9 +248,9 @@ body {
   }
 }
 
-/* Logo header: crosshair koordinat TERBELAH DUA (masking dua belahan),
-   esensi "rusak". Belahan menjauh membentuk celah retak, lalu perlahan
-   tersambung kembali, jeda lama, lalu berulang. */
+/* Logo header: PIN POINT (lingkaran titik di dalam pin) TERBELAH DUA
+   (masking dua belahan), esensi "rusak". Belahan menjauh membentuk celah
+   retak, lalu perlahan tersambung kembali, jeda lama, lalu berulang. */
 .tk-logo-crack .tk-crack-piece {
   will-change: transform;
 }

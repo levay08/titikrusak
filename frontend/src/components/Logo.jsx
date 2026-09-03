@@ -6,9 +6,10 @@
 // bergantung asset file; dipakai di header, footer, dan favicon
 // (public/favicon.svg memakai desain yang sama).
 //
-// Prop `crack` (header): crosshair koordinat terbelah DUA memakai efek
-// masking (clipPath dua belahan) - menampilkan esensi "rusak": belahan
-// menjauh membentuk celah, lalu perlahan tersambung kembali, jeda, ulang.
+// Prop `crack` (header): PIN POINT (lingkaran titik di dalam pin) terbelah
+// DUA memakai efek masking (clipPath dua belahan) - menampilkan esensi
+// "rusak": belahan menjauh membentuk celah, lalu perlahan tersambung
+// kembali, jeda, ulang. Crosshair koordinat tetap utuh.
 
 export default function Logo({ size = 30, title = 'Logo titikrusak.id', animated = false, crack = false }) {
   const cls = `tk-logo${animated ? ' tk-logo-animated' : ''}${crack ? ' tk-logo-crack' : ''}`;
@@ -29,42 +30,39 @@ export default function Logo({ size = 30, title = 'Logo titikrusak.id', animated
         d="M32 10 C 23 10 16.5 17.5 16.5 26.5 C 16.5 39 32 54 32 54 C 32 54 47.5 39 47.5 26.5 C 47.5 17.5 41 10 32 10 Z"
         fill="#facc15"
       />
-      {/* Lingkaran dalam putih = koordinat titik */}
-      <circle cx="32" cy="27" r="9" fill="#ffffff" />
+      {/* Lingkaran dalam putih = koordinat titik (pin point) */}
       {crack ? (
         <>
-          {/* Crosshair koordinat terbelah DUA. Tiap belahan di-mask
-              (clipPath segitiga diagonal melalui pusat 32,27 dengan
-              tumpang-tindih tipis agar tanpa jahitan saat tersambung).
-              Saat belahan digeser diagonal menjauh, muncul celah
-              seperti retak; digeser kembali perlahan = tersambung. */}
+          {/* PIN POINT terbelah dua memakai masking (clipPath diagonal
+              melalui pusat 32,27; overlap tipis agar tanpa jahitan saat
+              tersambung). Belahan lingkaran digeser diagonal menjauh =
+              titik retak/terbelah, lalu perlahan menyambung lagi.
+              Crosshair koordinat DI BAWAH ini tetap utuh (tidak ikut
+              terbelah). */}
           <g clipPath="url(#tk-crack-a)">
             <g className="tk-crack-piece tk-crack-a">
-              <line x1="32" y1="14" x2="32" y2="20" stroke="#a16207" strokeWidth="3" strokeLinecap="round" />
-              <line x1="23" y1="27" x2="29" y2="27" stroke="#a16207" strokeWidth="3" strokeLinecap="round" />
-              <line x1="27.5" y1="27" x2="30.5" y2="27" stroke="#a16207" strokeWidth="3.5" strokeLinecap="round" />
+              <circle cx="32" cy="27" r="9" fill="#ffffff" />
             </g>
           </g>
           <g clipPath="url(#tk-crack-b)">
             <g className="tk-crack-piece tk-crack-b">
-              <line x1="32" y1="34" x2="32" y2="40" stroke="#a16207" strokeWidth="3" strokeLinecap="round" />
-              <line x1="35" y1="27" x2="41" y2="27" stroke="#a16207" strokeWidth="3" strokeLinecap="round" />
-              <line x1="33.5" y1="27" x2="36.5" y2="27" stroke="#a16207" strokeWidth="3.5" strokeLinecap="round" />
+              <circle cx="32" cy="27" r="9" fill="#ffffff" />
             </g>
           </g>
         </>
       ) : (
-        <>
-          {/* Versi statis (footer/favicon): crosshair utuh apa adanya. */}
-          <line x1="32" y1="14" x2="32" y2="20" stroke="#a16207" strokeWidth="3" strokeLinecap="round" />
-          <line x1="32" y1="34" x2="32" y2="40" stroke="#a16207" strokeWidth="3" strokeLinecap="round" />
-          <line x1="23" y1="27" x2="29" y2="27" stroke="#a16207" strokeWidth="3" strokeLinecap="round" />
-          <line x1="35" y1="27" x2="41" y2="27" stroke="#a16207" strokeWidth="3" strokeLinecap="round" />
-          {/* Garis tengah TERPUTUS = kerusakan/putus */}
-          <line x1="27.5" y1="27" x2="30.5" y2="27" stroke="#a16207" strokeWidth="3.5" strokeLinecap="round" />
-          <line x1="33.5" y1="27" x2="36.5" y2="27" stroke="#a16207" strokeWidth="3.5" strokeLinecap="round" />
-        </>
+        <circle cx="32" cy="27" r="9" fill="#ffffff" />
       )}
+      {/* Crosshair koordinat (garis bidik N/E/S/W) - KUNING GELAP agar
+          kontras di atas pin kuning; frame tetap kuning #eab308. Di versi
+          crack crosshair TETAP UTUH (yang terbelah hanya pin point). */}
+      <line x1="32" y1="14" x2="32" y2="20" stroke="#a16207" strokeWidth="3" strokeLinecap="round" />
+      <line x1="32" y1="34" x2="32" y2="40" stroke="#a16207" strokeWidth="3" strokeLinecap="round" />
+      <line x1="23" y1="27" x2="29" y2="27" stroke="#a16207" strokeWidth="3" strokeLinecap="round" />
+      <line x1="35" y1="27" x2="41" y2="27" stroke="#a16207" strokeWidth="3" strokeLinecap="round" />
+      {/* Garis tengah TERPUTUS = kerusakan/putus */}
+      <line x1="27.5" y1="27" x2="30.5" y2="27" stroke="#a16207" strokeWidth="3.5" strokeLinecap="round" />
+      <line x1="33.5" y1="27" x2="36.5" y2="27" stroke="#a16207" strokeWidth="3.5" strokeLinecap="round" />
 
       {/* Efek kilau (pantulan cahaya) menyapu dari KANAN ke KIRI - logo
           TETAP (statis), hanya kilau yang bergerak. Clip ke tile badge

@@ -1782,7 +1782,6 @@ export default function App() {
                   target="_blank"
                   rel="noopener noreferrer"
                   className="tk-footer-arfha"
-                  style={{ color: 'inherit', textDecoration: 'none' }}
                 >
                   Arfhacorp
                 </a>{' '}
