@@ -550,6 +550,32 @@ export default function App() {
     totalCount !== 0 &&
     !(totalCount === null && reports.length === 0 && !dataError);
 
+  // ---- Footer tengah: tanggal hari ini + kebaruan data + jumlah titik ----
+  const footerToday = new Date().toLocaleDateString('id-ID', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  });
+  const dataLastUpdated = (() => {
+    let latest = '';
+    for (const r of allReports) {
+      for (const ts of [r.updated_at, r.created_at]) {
+        if (ts && String(ts) > latest) latest = String(ts);
+      }
+    }
+    return latest;
+  })();
+  const footerUpdatedLabel = dataLastUpdated
+    ? new Date(dataLastUpdated.replace(' ', 'T') + 'Z').toLocaleString('id-ID', {
+        day: '2-digit',
+        month: 'short',
+        hour: '2-digit',
+        minute: '2-digit',
+      })
+    : 'belum ada pembaruan';
+  const footerTotalLabel = totalCount === null ? '...' : String(totalCount);
+
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       {/* Pita merah-putih tipis - aksen tema Indonesia (poin 15) */}
@@ -1478,6 +1504,32 @@ export default function App() {
               </div>
               <div style={{ fontSize: 11, opacity: 0.7, color: '#e2e8f0', marginTop: 3 }}>
                 © 2026 titikrusak.id oleh Arfhacorp - Hak cipta dilindungi
+              </div>
+            </div>
+          </div>
+          {/* Footer TENGAH: tanggal hari ini + kebaruan data + jumlah titik */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 22,
+              flexWrap: 'wrap',
+              width: isMobile ? '100%' : 'auto',
+              justifyContent: isMobile ? 'flex-start' : 'center',
+            }}
+          >
+            <div>
+              <div style={{ fontSize: 11.5, fontWeight: 700, color: '#fff' }}>{footerToday}</div>
+              <div style={{ fontSize: 11, opacity: 0.75, marginTop: 2 }}>
+                Data titik diperbaharui: {footerUpdatedLabel}
+              </div>
+            </div>
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ fontSize: 20, fontWeight: 800, color: '#facc15', lineHeight: 1 }}>
+                {footerTotalLabel}
+              </div>
+              <div style={{ fontSize: 10.5, opacity: 0.75, marginTop: 3, maxWidth: 90, lineHeight: 1.25 }}>
+                titik rusak terdata
               </div>
             </div>
           </div>

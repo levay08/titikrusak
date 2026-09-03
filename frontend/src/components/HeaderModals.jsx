@@ -106,7 +106,7 @@ export function ModalShell({ title, onClose, children, maxWidth = 640 }) {
 }
 
 // ---- Grafik batang sederhana (tanpa dependensi library chart) ----
-function BarRow({ label, count, color, max }) {
+function BarRow({ label, count, color, max, delay = 0 }) {
   const pct = max > 0 ? Math.round((count / max) * 100) : 0;
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
@@ -125,11 +125,13 @@ function BarRow({ label, count, color, max }) {
       </span>
       <div style={{ flex: 1, background: '#f1f5f9', borderRadius: 5, height: 14, overflow: 'hidden' }}>
         <div
+          className="tk-grow-x"
           style={{
             width: `${count > 0 ? Math.max(pct, 4) : 0}%`,
             height: 14,
             borderRadius: 5,
             background: `linear-gradient(90deg, ${color}, ${color}99)`,
+            animationDelay: `${delay}ms`,
           }}
         />
       </div>
@@ -242,6 +244,31 @@ export function StatistikModal({ reports = [], onClose }) {
   const maxIsland = Math.max(1, ...islandCounts.map((i) => i.count));
   const maxProvince = Math.max(1, ...topProvinces.map((p) => p.count));
 
+  // ---- Detail tambahan: tren bulanan (6 bulan terakhir) & rinci status ----
+  const now = new Date();
+  const monthTrend = [];
+  for (let i = 5; i >= 0; i -= 1) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    monthTrend.push({
+      label: d.toLocaleDateString('id-ID', { month: 'short', year: '2-digit' }),
+      count: reports.filter((r) => String(r.created_at || '').startsWith(key)).length,
+    });
+  }
+  const maxMonth = Math.max(1, ...monthTrend.map((m) => m.count));
+  const STATUS_BARS = [
+    ['dilaporkan', 'Dilaporkan', '#64748b'],
+    ['terverifikasi', 'Terverifikasi', '#2563eb'],
+    ['dalam_perbaikan', 'Dalam Perbaikan', '#f59e0b'],
+    ['selesai_diperbaiki', 'Selesai', '#22c55e'],
+  ];
+  const statusRows = STATUS_BARS.map(([value, label, color]) => ({
+    label,
+    color,
+    count: reports.filter((r) => r.status === value).length,
+  }));
+  const maxStatus = Math.max(1, ...statusRows.map((s) => s.count));
+
   const cardStyle = (color) => ({
     flex: 1,
     background: '#f8fafc',
@@ -272,6 +299,50 @@ export function StatistikModal({ reports = [], onClose }) {
         <div style={cardStyle('#22c55e')}>
           <div style={{ fontSize: 20, fontWeight: 800, color: '#15803d' }}>{selesai}</div>
           <div style={{ fontSize: 11, color: '#64748b' }}>Selesai Diperbaiki</div>
+        </div>
+      </div>
+
+      {/* Rinci status laporan (bar animasi) */}
+      <div style={{ marginBottom: 16 }}>
+        <div
+          style={{
+            fontSize: 13,
+            fontWeight: 700,
+            color: '#1c1917',
+            marginBottom: 10,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+          }}
+        >
+          <span aria-hidden="true">📋</span> Rinci Status Laporan
+        </div>
+        <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 10, padding: '10px 12px' }}>
+          {statusRows.map((s, i) => (
+            <BarRow key={s.label} {...s} max={maxStatus} delay={i * 90} />
+          ))}
+        </div>
+      </div>
+
+      {/* Tren bulanan 6 bulan terakhir */}
+      <div style={{ marginBottom: 16 }}>
+        <div
+          style={{
+            fontSize: 13,
+            fontWeight: 700,
+            color: '#1c1917',
+            marginBottom: 10,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+          }}
+        >
+          <span aria-hidden="true">📈</span> Tren Pelaporan (6 Bulan Terakhir)
+        </div>
+        <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 10, padding: '10px 12px' }}>
+          {monthTrend.map((m, i) => (
+            <BarRow key={m.label} label={m.label} count={m.count} color="#f59e0b" max={maxMonth} delay={i * 80} />
+          ))}
         </div>
       </div>
 

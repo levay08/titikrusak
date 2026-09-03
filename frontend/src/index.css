@@ -279,3 +279,18 @@ textarea:focus-visible {
     opacity: 0;
   }
 }
+
+/* Bar statistik tumbuh dari kiri saat modal statistik dibuka */
+.tk-grow-x {
+  transform-origin: left center;
+  animation: tkGrowX 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes tkGrowX {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tk-grow-x {
+    animation: none;
+  }
+}
