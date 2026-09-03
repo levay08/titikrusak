@@ -21,6 +21,7 @@ export function setEidSession({ session_id, role }) {
   if (!session_id) return;
   try {
     localStorage.setItem(KEY, JSON.stringify({ session_id, role: role || 'warga' }));
+    notifyEidChanged();
   } catch (_e) {
     // abaikan bila localStorage tidak tersedia
   }
@@ -29,6 +30,17 @@ export function setEidSession({ session_id, role }) {
 export function clearEidSession() {
   try {
     localStorage.removeItem(KEY);
+    notifyEidChanged();
+  } catch (_e) {
+    // abaikan
+  }
+}
+
+// Beri tahu komponen lain (App, header) bahwa sesi berubah - dipakai utk
+// memunculkan/menyembunyikan menu Keluar & Login tanpa perlu reload.
+function notifyEidChanged() {
+  try {
+    window.dispatchEvent(new CustomEvent('tk:eid-changed'));
   } catch (_e) {
     // abaikan
   }

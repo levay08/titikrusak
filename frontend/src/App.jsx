@@ -27,7 +27,7 @@ import {
 } from './components/HeaderModals.jsx';
 import useIsMobile from './lib/useIsMobile.js';
 import useIsTouchDevice from './lib/useIsTouchDevice.js';
-import { setEidSession, clearEidSession } from './lib/eidSession.js';
+import { setEidSession, clearEidSession, getEidSession } from './lib/eidSession.js';
 import SearchModal from './components/SearchModal.jsx';
 import AdminView from './components/AdminView.jsx';
 import DetailModal from './components/DetailModal.jsx';
@@ -491,9 +491,45 @@ export default function App() {
 
   // Buka halaman Administrator (menu tampil sebelum login; isi digate).
   const openAdmin = () => {
+    // Warga verified tidak boleh langsung masuk area otoritas: sesi warga
+    // dihapus dulu (setara logout) baru bisa verifikasi sebagai otoritas.
+    if (eidVerified) {
+      setEidVerified(false);
+      clearEidSession();
+      try {
+        localStorage.removeItem('titikrusak_eid');
+      } catch (_e) {
+        // abaikan
+      }
+    }
     closeAllModals();
     setActiveView('admin');
   };
+
+  // Keluar dari e.id (warga ATAU otoritas): hapus sesi + data verifikasi,
+  // kembali ke tampilan peta. Setelah keluar baru bisa ganti peran.
+  const logoutEid = () => {
+    closeAllModals();
+    setActiveView('peta');
+    setOtoritas(null);
+    setEidVerified(false);
+    clearEidSession();
+    try {
+      localStorage.removeItem('titikrusak_eid');
+    } catch (_e) {
+      // abaikan
+    }
+  };
+
+  // Sesi e.id bisa berubah dari komponen lain (verifikasi diskusi/vote) -
+  // sinkronkan status agar menu Keluar / Login Otoritas ikut berubah.
+  useEffect(() => {
+    const sync = () => {
+      setEidVerified(Boolean(getStoredEidVerification() || getEidSession()));
+    };
+    window.addEventListener('tk:eid-changed', sync);
+    return () => window.removeEventListener('tk:eid-changed', sync);
+  }, []);
 
   // Buka detail laporan dari popup peta - lewat App agar hanya satu modal
   // aktif (MapView menyerahkan ke sini via prop onOpenDetail).
@@ -551,7 +587,9 @@ export default function App() {
   // muncul agar pengguna tidak kehilangan akses melapor.
   const showFloatingLapor =
     totalCount !== 0 &&
-    !(totalCount === null && reports.length === 0 && !dataError);
+    !(totalCount === null && reports.length === 0 && !dataError) &&
+    // Otoritas tidak bisa lapor kerusakan (harus keluar dulu dari e.id).
+    !otoritas;
 
   // ---- Footer tengah: tanggal hari ini + kebaruan data + jumlah titik ----
   const footerToday = new Date().toLocaleDateString('id-ID', {
@@ -694,9 +732,13 @@ export default function App() {
             >
               🔔
             </button>
-            {/* Login Otoritas (gabungan menu login + Admin): buka halaman
-                Administrator; isinya digate otoritas bila belum masuk. */}
-            <HeaderNavItem icon="🔒" label="Login Otoritas" onClick={openAdmin} framed />
+            {/* Login Otoritas / Keluar: warga verified tidak melihat menu
+                otoritas (dan sebaliknya); keduanya melihat Keluar. */}
+            {eidVerified || otoritas ? (
+              <HeaderNavItem icon="🔓" label="Keluar e.id" onClick={logoutEid} />
+            ) : (
+              <HeaderNavItem icon="🔒" label="Login Otoritas" onClick={openAdmin} framed />
+            )}
           </nav>
         )}
 
@@ -784,7 +826,7 @@ export default function App() {
               </span>
               <button
                 type="button"
-                onClick={() => { setOtoritas(null); clearEidSession(); }}
+                onClick={logoutEid}
                 style={{
                   background: 'none',
                   border: '1px solid rgba(255, 255, 255, 0.4)',
@@ -1141,7 +1183,9 @@ export default function App() {
                   { icon: '🚧', label: 'Pantau', open: openHeaderModal(setPantauOpen) },
                   { icon: '📍', label: 'Bookmark', open: openHeaderModal(setBookmarkOpen) },
                   { icon: '🔔', label: 'Notifikasi', open: openHeaderModal(setNotifOpen) },
-                  { icon: '🔒', label: 'Login Otoritas', open: openAdmin },
+                  ...(eidVerified || otoritas
+                    ? [{ icon: '🔓', label: 'Keluar e.id', open: logoutEid }]
+                    : [{ icon: '🔒', label: 'Login Otoritas', open: openAdmin }]),
                 ].map((item) => (
                   <button
                     key={item.label}
