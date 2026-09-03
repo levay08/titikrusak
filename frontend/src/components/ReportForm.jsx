@@ -316,28 +316,55 @@ export default function ReportForm({ onSubmitted, onClose }) {
   // lokasi user saat ini. Field nama lokasi TETAP KOSONG - nama titik baru
   // muncul sebagai teks kecil di bawah field (dari balik-arah koordinat).
   // Tanpa izin GPS cukup diabaikan senyap (tanpa teks aktif/tidak aktif).
+  // Catatan desktop: sebagian browser baru memunculkan prompt izin lokasi
+  // hanya setelah ada interaksi pengguna - karena itu lokasi dicoba saat
+  // form dibuka DAN sekali lagi saat pengguna menyentuh/mengetik di form
+  // (bila hasil sebelumnya gagal karena timeout/tidak tersedia, bukan
+  // karena ditolak permanen).
   useEffect(() => {
     if (typeof navigator === 'undefined' || !('geolocation' in navigator)) return undefined;
     let on = true;
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        if (!on) return;
-        const here = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-        setAnchor(here);
-        setPin(here);
-        setPinConfirmed(true);
-        reverseName(here).then((n) => {
-          if (on && n) setPinLabel(n);
-        });
-      },
-      () => {
-        /* izin ditolak / GPS tidak tersedia: biarkan pin di tengah */
-      },
-      { timeout: 8000, maximumAge: 60000 }
-    );
-    return () => {
-      on = false;
+    let denied = false;
+    let done = false;
+
+    const apply = (pos) => {
+      if (!on || done) return;
+      done = true;
+      cleanup();
+      const here = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+      setAnchor(here);
+      setPin(here);
+      setPinConfirmed(true);
+      reverseName(here).then((n) => {
+        if (on && n) setPinLabel(n);
+      });
     };
+
+    const fail = (err) => {
+      // 1 = ditolak permanen (jangan ganggu lagi); 2/3 = sementara, biarkan
+      // percobaan ulang lewat interaksi pengguna di bawah.
+      if (err && err.code === 1) denied = true;
+    };
+
+    const attempt = () => {
+      if (denied || done) return;
+      navigator.geolocation.getCurrentPosition(apply, fail, {
+        timeout: 10000,
+        maximumAge: 30000,
+      });
+    };
+
+    const onGesture = () => attempt();
+    const cleanup = () => {
+      on = false;
+      document.removeEventListener('pointerdown', onGesture);
+      document.removeEventListener('keydown', onGesture);
+    };
+
+    document.addEventListener('pointerdown', onGesture);
+    document.addEventListener('keydown', onGesture);
+    attempt();
+    return cleanup;
   }, [reverseName]);
 
   // ---- Geocoding via Nominatim (File 1 Bagian 5.2 langkah kelima) ----
