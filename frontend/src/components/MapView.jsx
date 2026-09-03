@@ -814,24 +814,46 @@ export default function MapView({
     });
 
     // Hover cluster -> tooltip: jumlah titik rusak + provinsi di area itu.
-    // Manual openTooltip (bindTooltip pada clusterGroup TIDAK memicu untuk
-    // ikon cluster). Ditutup otomatis saat kursor keluar / zoom berubah.
+    // Ditutup otomatis saat kursor keluar / zoom berubah / pointer bergerak
+    // jauh dari titik cluster (pengaman bila event mouseout tidak terpantik).
+    const mapHandlers = [];
+    let tipAnchor = null;
+    let tipOpen = false;
     clusterGroup.on('clustermouseover', (e) => {
       const map = mapRef.current;
       if (!map || !e.layer || typeof e.layer.getChildCount !== 'function') return;
       const count = e.layer.getChildCount();
       const ll = e.layer.getLatLng();
       const prov = detectProvince(ll.lat, ll.lng);
+      tipAnchor = ll;
+      tipOpen = true;
       map.openTooltip(
         `<b>${count} titik rusak</b>${prov ? ` - ${prov}` : ''}`,
         ll,
         { direction: 'top', offset: [0, -10], opacity: 0.95 }
       );
     });
-    const closeClusterTip = () => mapRef.current?.closeTooltip();
+    const closeClusterTip = () => {
+      tipOpen = false;
+      tipAnchor = null;
+      mapRef.current?.closeTooltip();
+    };
     clusterGroup.on('clustermouseout', closeClusterTip);
-    // Pengaman: tooltip ikut hilang saat zoom berubah (scroll/petik).
+    // Pengaman 1: tooltip hilang saat zoom berubah (scroll/petik).
     map.on('zoomstart', closeClusterTip);
+    // Pengaman 2: begitu kursor bergerak lebih dari ~70px dari pusat
+    // cluster, tooltip ditutup - meski event mouseout tidak sempat
+    // terpantik (mis. kursor pindah ke atas tooltip lalu keluar).
+    const onMove = (e) => {
+      if (!tipOpen || !tipAnchor) return;
+      const map = mapRef.current;
+      if (!map) return;
+      const a = map.latLngToContainerPoint(tipAnchor);
+      const d = Math.hypot(e.containerPoint.x - a.x, e.containerPoint.y - a.y);
+      if (d > 70) closeClusterTip();
+    };
+    map.on('mousemove', onMove);
+    mapHandlers.push(['zoomstart', closeClusterTip], ['mousemove', onMove]);
 
     // Status yang berarti laporan sudah di-approve/verified oleh otoritas
     // (File 1 Bagian 6.2): marker menampilkan centang DI DALAM lingkaran,
@@ -970,6 +992,10 @@ export default function MapView({
     });
 
     clusterGroup.addTo(map);
+
+    return () => {
+      for (const [evt, fn] of mapHandlers) map.off(evt, fn);
+    };
   }, [reports]);
 
   return (
