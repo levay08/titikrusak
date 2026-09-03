@@ -25,11 +25,15 @@ function normalize(desc) {
   }
   if (segs.length === 0) return s;
   const base = s.slice(0, baseEnd).trim();
+  const baseKey = base.toLowerCase();
   const seen = new Set();
   const uniq = [];
   for (const seg of segs) {
     const key = seg.inner.toLowerCase();
     if (seen.has(key)) continue;
+    // catatan yang isinya sama persis dengan teks dasar = artikel itu
+    // meng-update dirinya sendiri — buang (redundan).
+    if (key === baseKey) continue;
     seen.add(key);
     uniq.push(seg.full);
   }
