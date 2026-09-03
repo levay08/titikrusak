@@ -84,15 +84,16 @@ export function ModalShell({ title, onClose, children, maxWidth = 640 }) {
             onClick={onClose}
             aria-label={`Tutup ${title}`}
             style={{
-              border: '1px solid #cbd5e1',
-              background: '#fff',
+              border: '1px solid #fecaca',
+              background: '#fef2f2',
               borderRadius: 6,
               width: 30,
               height: 30,
               fontSize: 16,
               lineHeight: 1,
               cursor: 'pointer',
-              color: '#475569',
+              color: '#dc2626',
+              fontWeight: 700,
               flexShrink: 0,
             }}
           >

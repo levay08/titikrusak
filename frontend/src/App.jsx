@@ -1423,15 +1423,16 @@ export default function App() {
                     aria-label="Tutup alur verifikasi e.id"
                     onClick={() => setOtoritasOpen(false)}
                     style={{
-                      border: '1px solid #cbd5e1',
-                      background: '#fff',
+                      border: '1px solid #fecaca',
+                      background: '#fef2f2',
                       borderRadius: 6,
                       width: 28,
                       height: 28,
                       fontSize: 14,
                       lineHeight: 1,
                       cursor: 'pointer',
-                      color: '#475569',
+                      color: '#dc2626',
+                      fontWeight: 700,
                     }}
                   >
                     ✕
@@ -1501,15 +1502,16 @@ export default function App() {
                     aria-label="Tutup alur verifikasi e.id"
                     onClick={() => setEidFlowOpen(false)}
                     style={{
-                      border: '1px solid #cbd5e1',
-                      background: '#fff',
+                      border: '1px solid #fecaca',
+                      background: '#fef2f2',
                       borderRadius: 6,
                       width: 28,
                       height: 28,
                       fontSize: 14,
                       lineHeight: 1,
                       cursor: 'pointer',
-                      color: '#475569',
+                      color: '#dc2626',
+                      fontWeight: 700,
                     }}
                   >
                     ✕

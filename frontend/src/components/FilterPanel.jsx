@@ -171,26 +171,6 @@ export default function FilterPanel({
           >
             Reset Filter
           </button>
-          {onCollapse && (
-            <button
-              type="button"
-              onClick={onCollapse}
-              aria-label="Sembunyikan panel filter"
-              title="Sembunyikan panel filter"
-              style={{
-                padding: '4px 8px',
-                borderRadius: 6,
-                border: '1px solid #cbd5e1',
-                background: '#fff',
-                color: '#475569',
-                fontSize: 12,
-                fontWeight: 600,
-                cursor: 'pointer',
-              }}
-            >
-              ⏴
-            </button>
-          )}
           {onClose && (
             <button
               type="button"
@@ -199,11 +179,11 @@ export default function FilterPanel({
               style={{
                 padding: '4px 8px',
                 borderRadius: 6,
-                border: '1px solid #cbd5e1',
-                background: '#fff',
-                color: '#475569',
+                border: '1px solid #fecaca',
+                background: '#fef2f2',
+                color: '#dc2626',
                 fontSize: 12,
-                fontWeight: 600,
+                fontWeight: 700,
                 cursor: 'pointer',
               }}
             >

@@ -592,15 +592,16 @@ export default function DetailModal({ report, onClose, otoritas = null, onReport
             onClick={onClose}
             aria-label="Tutup detail laporan"
             style={{
-              border: '1px solid #cbd5e1',
-              background: '#fff',
+              border: '1px solid #fecaca',
+              background: '#fef2f2',
               borderRadius: 6,
               width: 30,
               height: 30,
               fontSize: 16,
               lineHeight: 1,
               cursor: 'pointer',
-              color: '#475569',
+              color: '#dc2626',
+              fontWeight: 700,
               flexShrink: 0,
             }}
           >
