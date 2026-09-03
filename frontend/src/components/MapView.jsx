@@ -309,7 +309,7 @@ function SeverityLegend({ onHide }) {
             display: 'inline-block',
           }}
         />
-        <span>Perbaikan dari media - menunggu otoritas</span>
+        <span>Perbaikan menurut media (butuh validasi)</span>
       </div>
 
       {open && (

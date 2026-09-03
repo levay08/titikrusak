@@ -18,15 +18,28 @@ const btn = {
   width: 40,
   height: 40,
   borderRadius: '50%',
-  border: '1px solid #e2e8f0',
-  background: '#fff',
-  fontSize: 18,
+  border: 'none',
   cursor: 'pointer',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
   textDecoration: 'none',
 };
+
+const brandBtn = (bg) => ({ ...btn, background: bg });
+
+function BrandIcon({ slug, color = 'ffffff', label }) {
+  return (
+    <img
+      src={`https://cdn.simpleicons.org/${slug}/${color}`}
+      alt=""
+      width={20}
+      height={20}
+      style={{ display: 'block' }}
+      title={label}
+    />
+  );
+}
 
 export default function ShareButtons({ report }) {
   const { text, url } = buildMessage(report);
@@ -52,61 +65,61 @@ export default function ShareButtons({ report }) {
       </div>
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
         <a
-          style={btn}
+          style={brandBtn('#1877F2')}
           aria-label="Bagikan ke Facebook"
           title="Facebook"
           target="_blank"
           rel="noopener noreferrer"
           href={`https://www.facebook.com/sharer/sharer.php?u=${encUrl}&quote=${enc}`}
         >
-          f
+          <BrandIcon slug="facebook" label="Facebook" />
         </a>
         <a
-          style={btn}
+          style={brandBtn('linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888)')}
           aria-label="Bagikan ke Instagram"
           title="Instagram (salin pesan lalu tempel di unggahan Anda)"
           target="_blank"
           rel="noopener noreferrer"
           href={`https://www.instagram.com/`}
         >
-          📷
+          <BrandIcon slug="instagram" label="Instagram" />
         </a>
         <a
-          style={btn}
+          style={brandBtn('#000000')}
           aria-label="Bagikan ke X"
           title="X (Twitter)"
           target="_blank"
           rel="noopener noreferrer"
           href={`https://twitter.com/intent/tweet?text=${enc}&url=${encUrl}`}
         >
-          𝕏
+          <BrandIcon slug="x" label="X" />
         </a>
         <a
-          style={btn}
+          style={brandBtn('#25D366')}
           aria-label="Bagikan ke WhatsApp"
           title="WhatsApp"
           target="_blank"
           rel="noopener noreferrer"
           href={`https://api.whatsapp.com/send?text=${enc}%20${encUrl}`}
         >
-          🟢
+          <BrandIcon slug="whatsapp" label="WhatsApp" />
         </a>
         <a
-          style={btn}
+          style={brandBtn('#229ED9')}
           aria-label="Bagikan ke Telegram"
           title="Telegram"
           target="_blank"
           rel="noopener noreferrer"
           href={`https://t.me/share/url?url=${encUrl}&text=${enc}`}
         >
-          ✈️
+          <BrandIcon slug="telegram" label="Telegram" />
         </a>
         <button
           type="button"
           aria-label="Salin tautan laporan"
           title={copied ? 'Tautan tersalin' : 'Salin tautan'}
           onClick={copy}
-          style={btn}
+          style={{ ...btn, border: '1px solid #e2e8f0', background: '#fff', fontSize: 17 }}
         >
           {copied ? '✅' : '🔗'}
         </button>

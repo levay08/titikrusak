@@ -65,11 +65,11 @@ export default function ActiveOtoritas() {
           marginBottom: 8,
         }}
       >
-        Instansi yang bekerja (24 jam)
+        Instansi yang bekerja
       </span>
       {loaded && rows.length === 0 ? (
         <span style={{ ...label, background: '#f8fafc', color: '#64748b' }}>
-          Belum ada instansi yang tercatat bekerja dalam 24 jam terakhir.
+          Belum ada instansi yang tercatat bekerja.
         </span>
       ) : (
         rows.map((r) => (
@@ -81,9 +81,6 @@ export default function ActiveOtoritas() {
           </span>
         ))
       )}
-      <span style={{ display: 'block', fontSize: 10.5, color: '#94a3b8', marginTop: 6, lineHeight: 1.4 }}>
-        Asal instansi diklaim sendiri oleh pengguna. Nama pribadi tidak ditampilkan.
-      </span>
     </div>
   );
 }
