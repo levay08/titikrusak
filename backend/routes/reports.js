@@ -62,6 +62,7 @@ const PUBLIC_COLUMNS = [
   'related_earthquake',
   'related_weather',
   'vote_count',
+  'enriched_osm',
   'unverifiable',
   'unverifiable_reason',
   'media_repair_url',

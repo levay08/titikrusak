@@ -75,6 +75,7 @@ const FIELD_ORDER = [
   ['source_media_name', 'Nama Media'],
   ['source_media_url', 'URL Media'],
   ['source_media_date', 'Tanggal Media'],
+  ['enriched_osm', 'Konteks OpenStreetMap'],
   ['related_earthquake', 'Gempa Terkait'],
   ['related_weather', 'Cuaca Terkait'],
 ];

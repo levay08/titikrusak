@@ -40,6 +40,7 @@ const PUBLIC_COLUMNS = [
   'reporter_is_verified', 'validated_by_display_name', 'validated_by_did',
   'validated_at', 'status', 'source_type', 'source_media_name', 'source_media_url',
   'source_media_date', 'related_earthquake', 'related_weather', 'vote_count',
+  'enriched_osm',
  'unverifiable', 'unverifiable_reason', 'media_repair_url', 'media_repair_at',
  ];
  const PS = PUBLIC_COLUMNS.join(', ');
