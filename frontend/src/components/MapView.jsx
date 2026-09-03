@@ -628,6 +628,9 @@ export default function MapView({
   const isMobile = useIsMobile();
   // Laporan yang sedang dibuka detailnya (fallback internal MapView).
   const [selected, setSelected] = useState(null);
+  // Tooltip hover cluster: bubble DOM React (bukan pane Leaflet) - tidak
+  // pernah memblokir klik & dijamin hilang saat kursor keluar.
+  const [clusterTip, setClusterTip] = useState(null);
   // Peta sudah diinisialisasi (untuk merender kontrol yang butuh instance).
   const [mapReady, setMapReady] = useState(false);
   // Referensi data/aksi terkini untuk delegasi klik tombol "Lihat Detail"
@@ -813,47 +816,58 @@ export default function MapView({
       if (map) pushNav(map.getCenter(), map.getZoom());
     });
 
-    // Hover cluster -> tooltip: jumlah titik rusak + provinsi di area itu.
-    // Ditutup otomatis saat kursor keluar / zoom berubah / pointer bergerak
-    // jauh dari titik cluster (pengaman bila event mouseout tidak terpantik).
-    const mapHandlers = [];
-    let tipAnchor = null;
-    let tipOpen = false;
+    // Hover cluster -> tooltip DOM React: jumlah titik + provinsi.
+    // Bubble pointer-events:none sehingga TIDAK pernah memblokir klik
+    // cluster; hilang otomatis saat mouseout / zoom / geser peta.
+    const anchorRef = { ll: null };
+    const placeTip = (ll) => {
+      const m = mapRef.current;
+      if (!m) return;
+      const anchor = ll || anchorRef.ll;
+      if (!anchor) return;
+      anchorRef.ll = anchor;
+      const count = lastCountRef.current || 1;
+      const prov = detectProvince(anchor.lat, anchor.lng);
+      const p =
+        typeof m.latLngToContainerPoint === 'function'
+          ? m.latLngToContainerPoint(anchor)
+          : { x: 0, y: 0 };
+      setClusterTip({
+        x: p.x,
+        y: p.y,
+        text: `${count} titik rusak${prov ? ` - ${prov}` : ''}`,
+      });
+    };
+    const lastCountRef = { current: 1 };
+    const clearTip = () => setClusterTip(null);
     clusterGroup.on('clustermouseover', (e) => {
-      const map = mapRef.current;
-      if (!map || !e.layer || typeof e.layer.getChildCount !== 'function') return;
-      const count = e.layer.getChildCount();
-      const ll = e.layer.getLatLng();
-      const prov = detectProvince(ll.lat, ll.lng);
-      tipAnchor = ll;
-      tipOpen = true;
-      map.openTooltip(
-        `<b>${count} titik rusak</b>${prov ? ` - ${prov}` : ''}`,
-        ll,
-        { direction: 'top', offset: [0, -10], opacity: 0.95 }
-      );
+      if (!e.layer || typeof e.layer.getChildCount !== 'function') return;
+      lastCountRef.current = e.layer.getChildCount();
+      placeTip(e.layer.getLatLng());
     });
-    const closeClusterTip = () => {
-      tipOpen = false;
-      tipAnchor = null;
-      mapRef.current?.closeTooltip();
+    clusterGroup.on('clustermouseout', clearTip);
+    map.on('mouseout', clearTip);
+    map.on('zoomstart', clearTip);
+    map.on('dragstart', clearTip);
+    const onTipMove = () => {
+      if (!anchorRef.ll) return;
+      const m = mapRef.current;
+      if (!m) return;
+      const p =
+        typeof m.latLngToContainerPoint === 'function'
+          ? m.latLngToContainerPoint(anchorRef.ll)
+          : null;
+      if (p) setClusterTip((t) => (t ? { ...t, x: p.x, y: p.y } : t));
     };
-    clusterGroup.on('clustermouseout', closeClusterTip);
-    // Pengaman 1: tooltip hilang saat zoom berubah (scroll/petik).
-    map.on('zoomstart', closeClusterTip);
-    // Pengaman 2: begitu kursor bergerak lebih dari ~70px dari pusat
-    // cluster, tooltip ditutup - meski event mouseout tidak sempat
-    // terpantik (mis. kursor pindah ke atas tooltip lalu keluar).
-    const onMove = (e) => {
-      if (!tipOpen || !tipAnchor) return;
-      const map = mapRef.current;
-      if (!map) return;
-      const a = map.latLngToContainerPoint(tipAnchor);
-      const d = Math.hypot(e.containerPoint.x - a.x, e.containerPoint.y - a.y);
-      if (d > 70) closeClusterTip();
-    };
-    map.on('mousemove', onMove);
-    mapHandlers.push(['zoomstart', closeClusterTip], ['mousemove', onMove]);
+    map.on('move', onTipMove);
+    map.on('zoom', onTipMove);
+    const mapHandlers = [
+      ['mouseout', clearTip],
+      ['zoomstart', clearTip],
+      ['dragstart', clearTip],
+      ['move', onTipMove],
+      ['zoom', onTipMove],
+    ];
 
     // Status yang berarti laporan sudah di-approve/verified oleh otoritas
     // (File 1 Bagian 6.2): marker menampilkan centang DI DALAM lingkaran,
@@ -1001,6 +1015,30 @@ export default function MapView({
   return (
     <div style={{ position: 'relative', height: '100%', width: '100%' }}>
       <div ref={containerRef} style={{ height: '100%', width: '100%' }} />
+      {/* Bubble hover cluster (DOM React, pointer-events none - tidak
+          memblokir klik & pasti hilang). */}
+      {clusterTip && (
+        <div
+          style={{
+            position: 'absolute',
+            left: clusterTip.x,
+            top: clusterTip.y,
+            transform: 'translate(-50%, -118%)',
+            pointerEvents: 'none',
+            zIndex: 1001,
+            background: '#1c1917',
+            color: '#fff',
+            fontSize: 12,
+            fontWeight: 700,
+            padding: '5px 10px',
+            borderRadius: 8,
+            whiteSpace: 'nowrap',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+          }}
+        >
+          {clusterTip.text}
+        </div>
+      )}
       <NavButtons canGoBack={navHistory.length > 0} onBack={goBack} onHome={goHome} isMobile={isMobile} />
       {/* Legend hanya di tampilan negara/region - saat zoom in ke titik
           disembunyikan agar tidak mengganggu view; DI MOBILE TIDAK

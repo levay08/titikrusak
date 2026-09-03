@@ -303,7 +303,7 @@ describe('MapView: hover tooltip jumlah titik + provinsi', () => {
     expect(marker.bindTooltip.mock.calls[0][0]).toContain('Jawa Barat');
   });
 
-  it('hover cluster membuka tooltip jumlah titik + provinsi dan menutup saat keluar/zoom', () => {
+  it('hover cluster memunculkan bubble jumlah titik + provinsi dan hilang saat keluar', () => {
     render(<MapView reports={[REPORT]} />);
 
     const clusterGroup = L.markerClusterGroup.mock.results[0].value;
@@ -316,16 +316,11 @@ describe('MapView: hover tooltip jumlah titik + provinsi', () => {
       over({ layer: { getChildCount: () => 5, getLatLng: () => ({ lat: -7.2, lng: 107.8 }) } })
     );
 
-    const map = L.map.mock.results[0].value;
-    expect(map.openTooltip).toHaveBeenCalledWith(
-      expect.stringContaining('5 titik rusak'),
-      { lat: -7.2, lng: 107.8 },
-      expect.objectContaining({ direction: 'top' })
-    );
-    expect(map.openTooltip.mock.calls[0][0]).toContain('Jawa Barat');
+    // Bubble DOM React (bukan pane Leaflet) - tidak memblokir klik.
+    expect(screen.getByText(/5 titik rusak - Jawa Barat/)).toBeInTheDocument();
 
     act(() => out());
-    expect(map.closeTooltip).toHaveBeenCalled();
+    expect(screen.queryByText(/5 titik rusak/)).not.toBeInTheDocument();
   });
 
   it('cluster memakai warna biru tua, bukan warna severity di legend', () => {
