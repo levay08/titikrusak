@@ -1,8 +1,8 @@
 'use strict';
 
-// backend/scripts/cleanup-media-notes.js — merapikan deskripsi titik media
+// backend/scripts/cleanup-media-notes.js - merapikan deskripsi titik media
 // yang terlanjur menumpuk catatan [Update ...] duplikat (bug 2-3 Sep 2026:
-// artikel sama di-append berulang lintas run). Idempotent — aman dijalankan
+// artikel sama di-append berulang lintas run). Idempotent - aman dijalankan
 // ulang kapan saja.
 //
 // Aturan: pecah deskripsi jadi bagian-bagian "[Update YYYY-MM-DD: ...]";
@@ -30,11 +30,11 @@ function normalize(desc) {
   const uniq = [];
   for (const seg of segs) {
     const inner = seg.inner.trim();
-    // buang embel-embel "— nama outlet" utk pembandingan isi
-    const innerKey = inner.replace(/\s*—\s*[^—\]]*$/u, '').toLowerCase();
+    // buang embel-embel "- nama outlet" utk pembandingan isi
+    const innerKey = inner.replace(/\s*-\s*[^-\]]*$/u, '').toLowerCase();
     if (seen.has(innerKey)) continue;
     // catatan yang isinya sama persis dengan teks dasar = artikel itu
-    // meng-update dirinya sendiri — buang (redundan).
+    // meng-update dirinya sendiri - buang (redundan).
     if (innerKey === baseKey) continue;
     seen.add(innerKey);
     uniq.push(seg.full);

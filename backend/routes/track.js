@@ -1,7 +1,7 @@
 'use strict';
 
 // backend/routes/track.js
-// POST /api/track — event minat dari frontend (tanpa isi teks, privasi):
+// POST /api/track - event minat dari frontend (tanpa isi teks, privasi):
 //   { e: 'detail_open' | 'report_form_open' | 'contact_open' |
 //        'contact_typed' | 'contact_wa_click' }
 // Dicatat ke hitLogger seperti hit biasa (sesi idle + batas harian per IP).

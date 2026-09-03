@@ -1,7 +1,7 @@
 'use strict';
 
 // backend/services/eidClient.js
-// Klien e.id Gateway — langkah pertama Authentication (File 2 Bagian 7.1
+// Klien e.id Gateway - langkah pertama Authentication (File 2 Bagian 7.1
 // langkah pertama; File 1 Bagian 8.3 & 8.4).
 //
 // Format request/response mengikuti dokumentasi resmi e.id Verifier API:
@@ -26,7 +26,7 @@
 // masih tersimpan, me-refresh sebelum kedaluwarsa, atau meminta token
 // baru. Permintaan bersamaan (concurrent) didedupe menjadi satu request.
 //
-// Belum ada endpoint lain (Document Schema, Verification Schema, dst) —
+// Belum ada endpoint lain (Document Schema, Verification Schema, dst) -
 // itu langkah berikutnya.
 
 const env = require('../config/env.js');
@@ -186,7 +186,7 @@ function createEidClient({ baseUrl, clientId, clientSecret, fetchImpl = fetch })
 }
 
 // Singleton default: membaca konfigurasi dari env (config/env.js).
-// EID_CLIENT_ID / EID_CLIENT_SECRET boleh kosong — getAccessToken akan
+// EID_CLIENT_ID / EID_CLIENT_SECRET boleh kosong - getAccessToken akan
 // melempar error yang jelas sampai kredensial diisi.
 const defaultClient = createEidClient({
   baseUrl: env.EID_BASE_URL,

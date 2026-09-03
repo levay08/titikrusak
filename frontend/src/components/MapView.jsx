@@ -6,7 +6,7 @@
 // berat=oranye, ambruk=merah; HIJAU khusus laporan sudah diperbaiki
 // (lihat reportMarkerColor di labels.js).
 //
-// Mode tampilan "Peta": data laporan TIDAK di-fetch di sini — diterima
+// Mode tampilan "Peta": data laporan TIDAK di-fetch di sini - diterima
 // sebagai props dari App (satu sumber data yang sama dengan ListView,
 // hasil filter/sorting aktif). Lihat ListView.jsx untuk mode "Daftar".
 
@@ -36,9 +36,9 @@ import DetailModal from './DetailModal.jsx';
 // toleransi di tepi agar peta tidak bisa digeser jauh keluar wilayah.
 const VIEW_LIMITS = L.latLngBounds([-12, 94], [7, 142]);
 
-// Tampilan awal (File 1 Bagian 5.1) — dipakai kembali oleh tombol
+// Tampilan awal (File 1 Bagian 5.1) - dipakai kembali oleh tombol
 // "Kembali ke Tampilan Awal". fitBounds dengan bounds PERSIS Indonesia
-// (tanpa margin berlebih) agar peta terisi 100% layar — Sumatra & Papua
+// (tanpa margin berlebih) agar peta terisi 100% layar - Sumatra & Papua
 // tetap utuh, space kosong di samping/atas-bawah diminimalkan.
 const HOME_BOUNDS = L.latLngBounds([-11, 95], [6, 141]);
 const HOME_PADDING = [6, 6];
@@ -75,7 +75,7 @@ function escapeHtml(value) {
 // Tombol navigasi peta (File 1 Bagian 9.1/9.4, poin Alur Inti 17):
 // muncul hanya saat ADA riwayat navigasi (sudah masuk cluster/titik),
 // diposisikan di TENGAH-ATAS (di bawah toggle Peta/Daftar) agar terlihat
-// jelas namun tidak mengganggu. zIndex 1150 — di atas popup Leaflet
+// jelas namun tidak mengganggu. zIndex 1150 - di atas popup Leaflet
 // (z ~700), sehingga tombol tetap terlihat & bisa diklik walau popup
 // titik laporan sedang terbuka (tidak perlu menutup popup dulu).
 function NavButtons({ canGoBack, onBack, onHome, isMobile }) {
@@ -140,7 +140,7 @@ function NavButtons({ canGoBack, onBack, onHome, isMobile }) {
   );
 }
 
-// Legend warna titik di peta (File 1 Bagian 9.3) — koreksi user:
+// Legend warna titik di peta (File 1 Bagian 9.3) - koreksi user:
 // - RINGAN = biru muda (hijau tidak lagi dipakai tingkat kerusakan);
 // - HIJAU khusus untuk laporan yang SUDAH DIPERBAIKI;
 // - centang ✓ = laporan sudah diverifikasi otoritas;
@@ -249,7 +249,7 @@ function SeverityLegend({ onHide }) {
         <span>Selesai Diperbaiki</span>
       </div>
 
-      {/* ✓ / ✗ — dua baris pendek tanpa wrap (koreksi user) */}
+      {/* ✓ / ✗ - dua baris pendek tanpa wrap (koreksi user) */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6, whiteSpace: 'nowrap' }}>
         <span
           style={{
@@ -309,7 +309,7 @@ function SeverityLegend({ onHide }) {
             display: 'inline-block',
           }}
         />
-        <span>Perbaikan dari media — menunggu otoritas</span>
+        <span>Perbaikan dari media - menunggu otoritas</span>
       </div>
 
       {open && (
@@ -457,7 +457,7 @@ function ZoomSlider({ map }) {
         left: '50%',
         transform: 'translateX(-50%)',
         zIndex: 1100,
-        background: 'rgba(255, 255, 255, 0.8)', // 80% opacity — transparan tapi tetap terbaca
+        background: 'rgba(255, 255, 255, 0.8)', // 80% opacity - transparan tapi tetap terbaca
         borderRadius: 12,
         boxShadow: '0 1px 6px rgba(0, 0, 0, 0.3)',
         padding: isMobile ? '6px 8px' : '8px 12px',
@@ -588,12 +588,12 @@ export default function MapView({
   reportsRef.current = reports;
   const onOpenDetailRef = useRef(onOpenDetail);
   onOpenDetailRef.current = onOpenDetail;
-  // Zoom aktif — legend disembunyikan saat zoom in (mengganggu pandangan
+  // Zoom aktif - legend disembunyikan saat zoom in (mengganggu pandangan
   // titik); tampil lagi di tampilan negara/region (<= LEGEND_MAX_ZOOM).
   const [zoomLevel, setZoomLevel] = useState(6);
   const LEGEND_MAX_ZOOM = 7;
   // Legenda juga bisa di-hide manual oleh user (tombol ✕); tersimpan per
-  // sesi komponen — tombol "ℹ️ Legenda" memunculkannya kembali.
+  // sesi komponen - tombol "ℹ️ Legenda" memunculkannya kembali.
   const [legendHidden, setLegendHidden] = useState(false);
   // Riwayat navigasi zoom (File 1 Bagian 9.1): array {center, zoom} yang
   // didorong setiap kali pengguna zoom in ke cluster/marker; tombol
@@ -657,7 +657,7 @@ export default function MapView({
       zoom: 5,             // sementara; disesuaikan fitBounds di bawah
       minZoom,
       maxZoom: 18,
-      // Kontrol zoom default Leaflet menempel di pojok KIRI-ATAS — tepat di
+      // Kontrol zoom default Leaflet menempel di pojok KIRI-ATAS - tepat di
       // bawah/sekitar tombol navigasi NavButtons (File 1 Bagian 9.1), sehingga
       // di layar sempit tombol +/− terlihat "tumpang tindih" dengan ← dan ⟲.
       // Matikan bawaan lalu pasang ulang di pojok kanan-atas (area kosong).
@@ -673,7 +673,7 @@ export default function MapView({
     map.on('zoomend', syncZoom);
     map.on('zoom', syncZoom);
 
-    // Kontrol zoom in/out standar — dipindah ke kanan-atas agar tidak pernah
+    // Kontrol zoom in/out standar - dipindah ke kanan-atas agar tidak pernah
     // bertabrakan dengan NavButtons (kiri-atas) maupun toggle Peta/Daftar
     // (tengah-atas) di semua ukuran layar.
     L.control.zoom({ position: 'topright' }).addTo(map);
@@ -684,13 +684,13 @@ export default function MapView({
         '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
     }).addTo(map);
 
-    // Tampilan awal: seluruh Indonesia utuh (Sumatera–Papua) — fitBounds,
+    // Tampilan awal: seluruh Indonesia utuh (Sumatera–Papua) - fitBounds,
     // bukan setView zoom tetap, agar tidak terpotong di layar sempit.
     map.fitBounds(HOME_BOUNDS, { padding: HOME_PADDING, maxZoom: HOME_MAX_ZOOM });
 
     // Delegasi klik DOM di container peta untuk tombol "Lihat Detail" di
     // popup. Dipasang SEKALI di init (bukan via event popupopen Leaflet
-    // yang tidak andal — event klik DOM selalu sampai ke container, apapun
+    // yang tidak andal - event klik DOM selalu sampai ke container, apapun
     // cara popup dibuka). Buka DetailModal penuh untuk laporan itu.
     const onPopupDetailClick = (ev) => {
       const target = ev.target;
@@ -720,7 +720,7 @@ export default function MapView({
 
   // Render marker dari props reports (satu sumber data dengan ListView).
   // Effect berjalan ulang setiap data baru (filter berubah, laporan baru,
-  // dll.) — tanpa reload manual.
+  // dll.) - tanpa reload manual.
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
@@ -736,7 +736,7 @@ export default function MapView({
     // -> zoom in halus (animated) ke area cluster tersebut.
     const clusterGroup = L.markerClusterGroup({
       zoomToBoundsOnClick: true,
-      // Warna cluster BIRU TUA — sengaja BUKAN warna severity di legend
+      // Warna cluster BIRU TUA - sengaja BUKAN warna severity di legend
       // (hijau/kuning/oranye/merah) agar titik cluster tidak tertukar dengan
       // marker tingkat kerusakan.
       iconCreateFunction: (cluster) => {
@@ -775,7 +775,7 @@ export default function MapView({
       const ll = e.layer.getLatLng();
       const prov = detectProvince(ll.lat, ll.lng);
       map.openTooltip(
-        `<b>${count} titik rusak</b>${prov ? ` — ${prov}` : ''}`,
+        `<b>${count} titik rusak</b>${prov ? ` - ${prov}` : ''}`,
         ll,
         { direction: 'top', offset: [0, -10], opacity: 0.95 }
       );
@@ -819,7 +819,7 @@ export default function MapView({
 
     reports.forEach((report) => {
       // Warna titik: HIJAU khusus laporan selesai_diperbaiki; selain itu
-      // warna tingkat kerusakan (ringan = biru muda) — reportMarkerColor.
+      // warna tingkat kerusakan (ringan = biru muda) - reportMarkerColor.
       // Hijau TANPA ✓ = perbaikan menurut berita/media, masih menunggu
       // verifikasi otoritas (media_repair_url terisi, status masih dilaporkan).
       const approved = APPROVED_STATUSES.includes(report.status);
@@ -834,7 +834,7 @@ export default function MapView({
       if (report.unverifiable) {
         // Titik yang ditandai otoritas "tidak dapat diverifikasi keasliannya"
         // (indikasi laporan palsu/meyakinkan): marker ✗ putih di lingkaran
-        // merah marun — otoritas bisa langsung mengenali dari peta.
+        // merah marun - otoritas bisa langsung mengenali dari peta.
         const icon = L.divIcon({
           className: '',
           html: `<div style="width:26px;height:26px;border-radius:50%;background:#b91c1c;border:3px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:900;color:#fff;line-height:1">✗</div>`,
@@ -865,7 +865,7 @@ export default function MapView({
           fillOpacity: 0.85,
           // Outline putih tebal agar warna severity tetap kontras di atas
           // tile peta berwarna serupa (hijau vegetasi, kuning/krem area
-          // terbangun) — File 1 Bagian 9.3.
+          // terbangun) - File 1 Bagian 9.3.
           color: '#ffffff',
           weight: 3,
           // Glow severity via CSS class pada path SVG (Leaflet Path option).
@@ -877,7 +877,7 @@ export default function MapView({
       }
 
       // Klik marker individual: catat posisi sebelum zoom, lalu zoom in
-      // BERTAHAP — naik 2 level dari zoom saat ini (minimal level jalan
+      // BERTAHAP - naik 2 level dari zoom saat ini (minimal level jalan
       // 14, maksimal 16) agar lokasi persis titik terlihat bersama konteks
       // area sekitarnya, tanpa lompatan zoom yang terasa "terpental".
       marker.on('click', () => {
@@ -909,7 +909,7 @@ export default function MapView({
       // dari marker (perbaikan: sebelumnya tooltip "stay" setelah un-hover).
       const prov = detectProvince(lat, lng);
       marker.bindTooltip(
-        `<b>1 titik rusak</b>${prov ? ` — ${prov}` : ''}`,
+        `<b>1 titik rusak</b>${prov ? ` - ${prov}` : ''}`,
         { direction: 'top', offset: [0, -8], opacity: 0.95, sticky: true }
       );
 
@@ -927,7 +927,7 @@ export default function MapView({
     <div style={{ position: 'relative', height: '100%', width: '100%' }}>
       <div ref={containerRef} style={{ height: '100%', width: '100%' }} />
       <NavButtons canGoBack={navHistory.length > 0} onBack={goBack} onHome={goHome} isMobile={isMobile} />
-      {/* Legend hanya di tampilan negara/region — saat zoom in ke titik
+      {/* Legend hanya di tampilan negara/region - saat zoom in ke titik
           disembunyikan agar tidak mengganggu view; DI MOBILE TIDAK
           DITAMPILKAN sama sekali (menghindari tumpukan dengan tombol
           Lapor & slider zoom; informasinya ada di menu Dokumentasi).
@@ -941,7 +941,7 @@ export default function MapView({
       )}
       {mapReady && <ZoomSlider map={mapRef.current} />}
 
-      {/* Kondisi hasil kosong (File 1 Bagian 9.1/9.2) — sama dengan
+      {/* Kondisi hasil kosong (File 1 Bagian 9.1/9.2) - sama dengan
           ListView; hasAnyData membedakan DB kosong vs filter tak cocok */}
       {!error && reports.length === 0 && hasAnyData !== null && (
         <EmptyResults

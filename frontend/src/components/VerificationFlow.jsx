@@ -46,12 +46,12 @@ export default function VerificationFlow({
   onComplete,
   onCancel,
   // Alur perangkat sentuh (ponsel/tablet): buka wallet e.id lewat deep
-  // link (eid_oauth_url) — TANPA pindai QR. Desktop (false) = QR biasa.
+  // link (eid_oauth_url) - TANPA pindai QR. Desktop (false) = QR biasa.
   walletMode = false,
   pollIntervalMs = 4000,
   maxWaitMs = 5 * 60 * 1000,
 }) {
-  const [phase, setPhase] = useState('starting'); // starting | qr | approved | failed
+  const [phase, setPhase] = useState(() => (role === 'otoritas' ? 'agency' : 'starting')); // starting | agency | qr | approved | failed
   const [qrData, setQrData] = useState(null);
   const [qrUrl, setQrUrl] = useState(null);
   const [sessionId, setSessionId] = useState(null);
@@ -61,9 +61,14 @@ export default function VerificationFlow({
   const [alias, setAlias] = useState('');
   // Sisa waktu sesi (display countdown, 1 detik).
   const [remainingMs, setRemainingMs] = useState(maxWaitMs);
-  // Alur wallet (mobile): QR disembunyikan — bisa dimunculkan sebagai
+  // Alur wallet (mobile): QR disembunyikan - bisa dimunculkan sebagai
   // opsi cadangan lewat tautan "Atau pindai QR di perangkat lain".
   const [showQr, setShowQr] = useState(false);
+  // Otoritas wajib memilih asal instansi ("bertindak sebagai") SEBELUM QR
+  // ditampilkan - label inilah yang tampil publik (tanpa nama pribadi).
+  const isOtoritasFlow = role === 'otoritas';
+  const [agency, setAgency] = useState('');
+  const agencyReady = !isOtoritasFlow || agency.trim().length >= 3;
 
   const deadlineRef = useRef(0);
   const sessionRef = useRef(null);
@@ -71,11 +76,11 @@ export default function VerificationFlow({
   const roleLabel = role === 'otoritas' ? 'Otoritas Lokal' : 'Warga';
   // Penjelasan skema verifikasi (File 1/File 2, alur yang dikoreksi):
   // otoritas = KYC e-KTP (identitas penuh/detail KTP); warga = Member
-  // level 1 (email, nama, alamat, nomor telepon — tanpa KTP).
+  // level 1 (email, nama, alamat, nomor telepon - tanpa KTP).
   const roleSchemaNote =
     role === 'otoritas'
       ? 'Verifikasi KYC e-KTP: identitas penuh dengan detail KTP untuk otoritas lokal.'
-      : 'Verifikasi Member level 1: email, nama, alamat, dan nomor telepon — tanpa KTP.';
+      : 'Verifikasi Member level 1: email, nama, alamat, dan nomor telepon - tanpa KTP.';
 
   // ---- Langkah 1: buat VP Request ----
   const startVerification = useCallback(async () => {
@@ -88,7 +93,10 @@ export default function VerificationFlow({
       const res = await fetch('/api/verify/start', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ role }),
+        body: JSON.stringify({
+          role,
+          ...(role === 'otoritas' && agency.trim() ? { agency_label: agency.trim().slice(0, 120) } : {}),
+        }),
       });
       if (!res.ok) {
         let msg = `HTTP ${res.status}`;
@@ -111,12 +119,15 @@ export default function VerificationFlow({
       setErrorMsg(err.message);
       setPhase('failed');
     }
-  }, [role]);
+  }, [role, agency]);
 
-  // ---- Mulai verifikasi segera saat komponen dipasang ----
+  // ---- Mulai verifikasi (warga: langsung; otoritas: lewat tombol setelah
+  //      memilih instansi - start eksplisit di tombol "Lanjutkan") ----
   useEffect(() => {
-    startVerification();
-  }, [startVerification]);
+    if (!isOtoritasFlow && phase === 'starting') {
+      startVerification();
+    }
+  }, [startVerification, isOtoritasFlow, phase]);
 
   // ---- Langkah 4-7: polling status sampai selesai ----
   useEffect(() => {
@@ -180,7 +191,7 @@ export default function VerificationFlow({
     tick();
     const interval = setInterval(tick, pollIntervalMs);
     // Begitu pengguna kembali ke tab ini (mis. selesai menyetujui di
-    // wallet e.id), langsung periksa status — tidak perlu menunggu
+    // wallet e.id), langsung periksa status - tidak perlu menunggu
     // interval polling berikutnya.
     const onVisible = () => {
       if (document.visibilityState === 'visible') tick();
@@ -201,7 +212,7 @@ export default function VerificationFlow({
     return () => clearInterval(interval);
   }, [phase]);
 
-  // mm:ss — angka tabular agar tidak berkedip saat berdetak.
+  // mm:ss - angka tabular agar tidak berkedip saat berdetak.
   const fmtTime = (ms) => {
     const total = Math.max(0, Math.ceil(ms / 1000));
     const m = Math.floor(total / 60);
@@ -272,7 +283,7 @@ export default function VerificationFlow({
   return (
     <div>
       <h2 style={{ margin: '0 0 4px', fontSize: 18, color: '#1c1917' }}>
-        Verifikasi e.id — {roleLabel}
+        Verifikasi e.id - {roleLabel}
       </h2>
       <p style={{ margin: '0 0 14px', fontSize: 12, lineHeight: 1.5, color: '#64748b' }}>
         {roleSchemaNote}
@@ -324,6 +335,82 @@ export default function VerificationFlow({
         })}
       </ol>
 
+      {/* ---- Tahap agency (otoritas): pilih asal instansi dulu ---- */}
+      {phase === 'agency' && (
+        <div>
+          <p style={{ margin: '0 0 10px', fontSize: 13.5, lineHeight: 1.5, color: '#475569' }}>
+            Pilih atau tulis <strong>instansi/asal tempat Anda bertindak</strong>. Label ini
+            yang tampil ke publik sebagai identitas otoritas - nama pribadi Anda tidak
+            ditampilkan. Asal instansi diklaim sendiri oleh pengguna.
+          </p>
+          <input
+            type="text"
+            aria-label="Asal instansi otoritas"
+            list="tk-agency-suggest"
+            value={agency}
+            onChange={(e) => setAgency(e.target.value)}
+            placeholder="Contoh: BPBD Aceh Utara, Dinas PUPR Kota X, atau Warga KYC pemeriksa mandiri"
+            style={{
+              width: '100%',
+              boxSizing: 'border-box',
+              padding: '10px 12px',
+              borderRadius: 8,
+              border: '1px solid #cbd5e1',
+              fontSize: 13.5,
+              marginBottom: 8,
+            }}
+          />
+          <datalist id="tk-agency-suggest">
+            {['Dinas PUPR', 'Dinas Pendidikan', 'BPBD', 'BPJN / Bina Marga', 'Kementerian PUPR', 'BUMN / BUMD', 'Pemerintah Kabupaten/Kota', 'Pemerintah Provinsi', 'TNI/Polri', 'Warga KYC (pemeriksa mandiri)'].map(
+              (o) => (
+                <option key={o} value={o} />
+              )
+            )}
+          </datalist>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <button
+              type="button"
+              disabled={!agencyReady}
+              onClick={startVerification}
+              style={{
+                padding: '10px 14px',
+                borderRadius: 8,
+                border: 'none',
+                background: agencyReady ? '#facc15' : '#e2e8f0',
+                color: agencyReady ? '#1c1917' : '#94a3b8',
+                fontSize: 13.5,
+                fontWeight: 700,
+                cursor: agencyReady ? 'pointer' : 'not-allowed',
+              }}
+            >
+              Lanjutkan & tampilkan QR
+            </button>
+            {onCancel && (
+              <button
+                type="button"
+                onClick={onCancel}
+                style={{
+                  padding: '9px 12px',
+                  borderRadius: 8,
+                  border: '1px solid #cbd5e1',
+                  background: '#fff',
+                  color: '#1c1917',
+                  fontSize: 13,
+                  cursor: 'pointer',
+                }}
+              >
+                Batal
+              </button>
+            )}
+          </div>
+          {!agencyReady && (
+            <p style={{ margin: '8px 0 0', fontSize: 12, color: '#64748b' }}>
+              Tulis minimal 3 karakter (mis. nama instansi atau unit).
+            </p>
+          )}
+        </div>
+      )}
+
       {/* ---- Tahap starting ---- */}
       {phase === 'starting' && (
         <p style={{ fontSize: 14, color: '#334155' }}>Mengirim permintaan verifikasi…</p>
@@ -352,7 +439,7 @@ export default function VerificationFlow({
                   fontWeight: 600,
                 }}
               >
-                Verifikasi langsung dari perangkat ini — tanpa pindai QR.
+                Verifikasi langsung dari perangkat ini - tanpa pindai QR.
               </p>
               <a
                 href={qrValue}
@@ -377,7 +464,7 @@ export default function VerificationFlow({
             </div>
             <p style={{ margin: '0 0 10px', fontSize: 12.5, lineHeight: 1.55, color: '#475569' }}>
               Aplikasi e.id akan terbuka untuk menyetujui verifikasi. Jika aplikasi
-              belum terpasang, halaman wallet e.id terbuka di browser — masuk ke akun
+              belum terpasang, halaman wallet e.id terbuka di browser - masuk ke akun
               e.id lalu setujui. Setelah menyetujui, kembali ke halaman ini; status
               diperbarui otomatis.
             </p>

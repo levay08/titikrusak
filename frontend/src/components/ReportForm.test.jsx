@@ -71,7 +71,7 @@ describe('ReportForm', () => {
     // otoritas + fitur dukungan warga yang menaikkan prioritas laporan.
     expect(screen.getByText(/Dengan e\.id, laporan Anda:/i)).toBeInTheDocument();
     expect(
-      screen.getByText(/langsung bertanda terverifikasi — mudah diverifikasi dan diproses otoritas/i)
+      screen.getByText(/langsung bertanda terverifikasi - mudah diverifikasi dan diproses otoritas/i)
     ).toBeInTheDocument();
     expect(
       screen.getByText(/dukungan menaikkan prioritas penanganan laporan/i)
@@ -83,7 +83,7 @@ describe('ReportForm', () => {
     ).toBeInTheDocument();
   });
 
-  it('sudah terverifikasi e.id: tidak perlu verifikasi ulang — opsi nama/anonim, "tanpa verifikasi" nonaktif', async () => {
+  it('sudah terverifikasi e.id: tidak perlu verifikasi ulang - opsi nama/anonim, "tanpa verifikasi" nonaktif', async () => {
     localStorage.setItem(
       'titikrusak_eid',
       JSON.stringify({ displayName: 'Warga Garut', isVerified: true })
@@ -93,7 +93,7 @@ describe('ReportForm', () => {
     render(<ReportForm onSubmitted={onSubmitted} onClose={vi.fn()} />);
 
     // Layar konfirmasi identitas, bukan layar verifikasi ulang.
-    expect(screen.getByText(/Terverifikasi e\.id — Role:/)).toBeInTheDocument();
+    expect(screen.getByText(/Terverifikasi e\.id - Role:/)).toBeInTheDocument();
     expect(screen.getByText('Warga')).toBeInTheDocument();
     expect(screen.getByText(/Member Lv1/)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /melapor sebagai Warga Garut/i })).toBeInTheDocument();

@@ -1,6 +1,6 @@
 // frontend/src/components/AdminView.jsx
 // Halaman Administrator (poin: "page administrator yang juga ada menunya
-// sebelum login") — untuk otoritas mengorganize laporan, memverifikasi, dan
+// sebelum login") - untuk otoritas mengorganize laporan, memverifikasi, dan
 // mengeset tracking status tiap laporan yang masuk.
 //
 // Menu Admin tampil untuk SEMUA pengguna (sebelum login). Saat belum masuk
@@ -105,9 +105,9 @@ export default function AdminView({
             Panel Administrator
           </h2>
           <p style={{ margin: 0, fontSize: 13.5, lineHeight: 1.55, color: '#475569' }}>
-            Halaman ini khusus <strong>Otoritas</strong> — untuk mengorganize
-            laporan, memverifikasi laporan, dan mengeset tracking status tiap
-            laporan yang masuk. Masuk terlebih dahulu dengan e.id Anda.
+            Halaman ini khusus <strong>Otoritas</strong>: untuk menata laporan,
+            memverifikasi laporan, dan mengatur status tiap laporan yang masuk.
+            Masuk terlebih dahulu dengan e.id Anda.
           </p>
           <div
             style={{
@@ -123,7 +123,7 @@ export default function AdminView({
             }}
           >
             <strong style={{ color: '#334155' }}>Siapa yang dimaksud otoritas:</strong>{' '}
-            perwakilan resmi lembaga yang bertanggung jawab atas infrastruktur publik —
+            perwakilan resmi lembaga yang bertanggung jawab atas infrastruktur publik -
             misalnya dinas PUPR, BPBD, BPJN/Bina Marga, kementerian, BUMN/BUMD, atau
             TNI/Polri di wilayah laporan.
             <br />

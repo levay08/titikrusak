@@ -1,12 +1,12 @@
 // frontend/src/components/ListView.jsx
 // Mode tampilan kedua "Daftar" (File 1 Bagian 9.2), alternatif MapView.
-// ListView dan MapView menampilkan data yang SAMA — keduanya menerima
+// ListView dan MapView menampilkan data yang SAMA - keduanya menerima
 // props `reports` dari App (satu fetch, hasil filter/sorting aktif yang
 // sama; lihat App.jsx). FilterPanel di sidebar tetap dipakai bersama.
 //
 // Setiap baris: badge warna severity, nama/lokasi singkat, jenis
 // infrastruktur, status laporan. Klik baris membuka modal detail berisi
-// seluruh field laporan dari database (DetailModal.jsx — dipakai juga oleh
+// seluruh field laporan dari database (DetailModal.jsx - dipakai juga oleh
 // MapView, modal pencarian, dan halaman Admin).
 
 import Breadcrumb, { homeCrumb } from './Breadcrumb.jsx';
@@ -30,7 +30,7 @@ import DetailModal from './DetailModal.jsx';
 
 // Satu baris ringkas laporan: severity badge, nama lokasi, jenis, status.
 // Saat mode otoritas (otoritasMode), ditambah chip validasi e.id dan
-// tingkat kelengkapan — bahan penilaian prioritas (File 1 Bagian 6.2/6.3).
+// tingkat kelengkapan - bahan penilaian prioritas (File 1 Bagian 6.2/6.3).
 // Diexport untuk dipakai bersama halaman Admin (AdminView.jsx).
 export function ReportRow({ report, onClick, otoritasMode = false }) {
   const sev = SEVERITIES.find((s) => s.value === report.severity);
@@ -158,7 +158,7 @@ export default function ListView({
   const otoritasMode = Boolean(otoritas);
 
   // Mode otoritas (File 1 Bagian 6.2/6.3): laporan dikelompokkan berdasarkan
-  // prioritas — gabungan severity + validasi e.id + kelengkapan laporan
+  // prioritas - gabungan severity + validasi e.id + kelengkapan laporan
   // (lihat src/lib/priority.js). Grup diurutkan tier tertinggi dulu;
   // di dalam grup, skor prioritas turun lalu created_at terbaru.
   const groups = otoritasMode
@@ -188,7 +188,7 @@ export default function ListView({
         boxSizing: 'border-box',
       }}
     >
-      {/* Kondisi hasil kosong (File 1 Bagian 9.1/9.2) — sama dengan
+      {/* Kondisi hasil kosong (File 1 Bagian 9.1/9.2) - sama dengan
           MapView; hasAnyData membedakan DB kosong vs filter tak cocok */}
       {!error && reports.length === 0 && hasAnyData !== null && (
         <EmptyResults

@@ -1,10 +1,10 @@
 // frontend/src/components/SeedNotice.jsx
 // Keterangan singkat (tooltip kecil yang bisa ditutup) bahwa seluruh titik
 // di peta saat ini adalah DATA NYATA kerusakan infrastruktur yang dihimpun
-// dari pemberitaan media (1 tahun terakhir) — BUKAN laporan warga.
+// dari pemberitaan media (1 tahun terakhir) - BUKAN laporan warga.
 // Muncul sebagai bubble di atas tombol floating "Lapor Kerusakan" (desktop
 // & mobile), hilang permanen per sesi tab setelah tombol ✕ diklik
-// (sessionStorage 'titikrusak_seed_note_closed' — pola sama seperti
+// (sessionStorage 'titikrusak_seed_note_closed' - pola sama seperti
 // WelcomeModal: kunjungan baru di tab baru menampilkannya lagi).
 //
 // Diresponsif: posisi naik di atas kontrol zoom saat mobile agar tidak

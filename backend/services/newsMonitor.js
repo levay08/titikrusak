@@ -248,7 +248,7 @@ const COMPLETE_RE = /dibuka kembali|beroperasi kembali|kembali beroperasi|resmi 
 // Kebijakan (3 Sep 2026): monitor TIDAK PERNAH mengubah status ke
 // selesai_diperbaiki (hijau ✓ = domain otoritas). Bila berita menyatakan
 // titik yang SUDAH ADA di peta sudah diperbaiki, monitor hanya mencatat
-// klaim media (media_repair_url/at) — titik tampil hijau TANPA ✓ dan tetap
+// klaim media (media_repair_url/at) - titik tampil hijau TANPA ✓ dan tetap
 // menunggu keputusan otoritas (PATCH /:id/media-fix).
 
 // kata umum yang TIDAK dihitung sbg penanda spesifik sebuah objek
@@ -357,7 +357,7 @@ async function runMonitor({ dry = false, log = console.log } = {}) {
         // catatan [Update] identik berulang).
         if (item.link && item.link === best.source_media_url) {
           results.skipped += 1;
-          log(`  ~ sudah tercatat #${best.id} (sumber sama): ${title} — ${item.source}`);
+          log(`  ~ sudah tercatat #${best.id} (sumber sama): ${title} - ${item.source}`);
           continue;
         }
         const isProgress = hasAny(low, DAMAGE_KEYWORDS) && COMPLETE_RE.test(low) === false
@@ -365,7 +365,7 @@ async function runMonitor({ dry = false, log = console.log } = {}) {
           : COMPLETE_RE.test(low);
         const kind = isProgress ? 'progres' : 'sama';
         if (dry) {
-          log(`  [${kind === 'progres' ? 'update' : 'cover'} -> #${best.id}] ${title} — ${item.source}`);
+          log(`  [${kind === 'progres' ? 'update' : 'cover'} -> #${best.id}] ${title} - ${item.source}`);
         } else if (kind === 'progres') {
           const applied = applyUpdate(best, item, { kind, log });
           if (applied !== false) {
@@ -376,7 +376,7 @@ async function runMonitor({ dry = false, log = console.log } = {}) {
           // peristiwa SAMA (outlet lain): titik sudah mewakili -> jangan
           // menumpuk deskripsi, jangan membuat titik baru.
           results.skipped += 1;
-          log(`  ~ sudah terwakili #${best.id} (outlet lain): ${title} — ${item.source}`);
+          log(`  ~ sudah terwakili #${best.id} (outlet lain): ${title} - ${item.source}`);
         }
         continue;
       }
@@ -407,7 +407,7 @@ async function runMonitor({ dry = false, log = console.log } = {}) {
     const best = await geocodeBest(locs, cache);
     if (!best) {
       results.skipped += 1;
-      log(`  - lewati (gagal geocode): ${locs.map((l) => l.name).join(' / ')} — ${item.title}`);
+      log(`  - lewati (gagal geocode): ${locs.map((l) => l.name).join(' / ')} - ${item.title}`);
       continue;
     }
     const { geo, cand } = best;
@@ -423,7 +423,7 @@ async function runMonitor({ dry = false, log = console.log } = {}) {
       severity: classifySeverity(item.title),
     };
     if (dry) {
-      log(`  [kandidat] ${entry.severity}/${entry.infra} @ ${entry.locName} (${entry.lat.toFixed(3)}, ${entry.lng.toFixed(3)}): ${entry.title} — ${entry.source}`);
+      log(`  [kandidat] ${entry.severity}/${entry.infra} @ ${entry.locName} (${entry.lat.toFixed(3)}, ${entry.lng.toFixed(3)}): ${entry.title} - ${entry.source}`);
       continue;
     }
     // geser sedikit bila bertabrakan dgn titik yang ada di koordinat itu
@@ -450,7 +450,7 @@ async function runMonitor({ dry = false, log = console.log } = {}) {
     };
     existing.push(newRow);
     existingUrls.add(entry.url);
-    log(`  + masuk peta: ${entry.severity}/${entry.infra} @ ${entry.locName} — ${entry.title} (${entry.source})`);
+    log(`  + masuk peta: ${entry.severity}/${entry.infra} @ ${entry.locName} - ${entry.title} (${entry.source})`);
   }
 
   try {
@@ -464,18 +464,18 @@ async function runMonitor({ dry = false, log = console.log } = {}) {
 const MAX_UPDATES = 15;
 
 // Update satu titik media dari artikel baru. Berlaku HANYA untuk titik yang
-// SUDAH ADA di peta (sudah pernah masuk sbg titik rusak) — titik yang baru
+// SUDAH ADA di peta (sudah pernah masuk sbg titik rusak) - titik yang baru
 // di-seed/di-insert tetap murni laporan kerusakan. Status TIDAK diubah oleh
 // monitor; bila artikel jelas menyatakan perbaikan selesai/dibuka kembali,
 // monitor mencatat klaim media (media_repair_url/at) -> titik hijau tanpa ✓
 // menunggu verifikasi otoritas.
 function applyUpdate(row, item, { kind, log } = {}) {
   const today = new Date().toISOString().slice(0, 10);
-  const note = `[Update ${today}: ${item.title} — ${item.source}]`;
+  const note = `[Update ${today}: ${item.title} - ${item.source}]`;
   const base = String(row.description || '').trim();
   // catatan identik sudah pernah ditulis -> jangan append berulang
   if (base && base.includes(item.title) && base.includes(item.source)) {
-    log(`  ~ catatan sudah ada #${row.id} (tidak diulang): ${item.title} — ${item.source}`);
+    log(`  ~ catatan sudah ada #${row.id} (tidak diulang): ${item.title} - ${item.source}`);
     return false;
   }
   let desc = base ? `${base} ${note}` : `${item.title} ${note}`;

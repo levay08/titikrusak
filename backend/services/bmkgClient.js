@@ -5,10 +5,10 @@
 //   - gempa terkini : https://data.bmkg.go.id/DataMKG/TEWS/autogempa.json
 //                     (gempa terbaru) dan gempaterkini.json (daftar)
 //   - cuaca 3-harian : https://api.bmkg.go.id/publik/prakiraan-cuaca?adm4=...
-//                     (kode wilayah adm4 — lihat bmkgAdm4.js)
+//                     (kode wilayah adm4 - lihat bmkgAdm4.js)
 //
 // SEMUA fungsi enrichment BEST-EFFORT: mengembalikan null (bukan error)
-// bila gagal atau tidak ada data relevan — TIDAK boleh melempar error yang
+// bila gagal atau tidak ada data relevan - TIDAK boleh melempar error yang
 // menghentikan proses lain (File 2 Bagian 7.2). Atribusi "Sumber: BMKG"
 // wajib dicantumkan di UI (File 1 Bagian 10.4/11.4).
 
@@ -20,14 +20,14 @@ const GEMPATERKINI_URL = 'https://data.bmkg.go.id/DataMKG/TEWS/gempaterkini.json
 const WEATHER_URL = 'https://api.bmkg.go.id/publik/prakiraan-cuaca';
 
 // Radius maksimal gempa yang dianggap "dekat" dengan laporan (File 1 5.8:
-// 50-100 km) — dipakai 100 km.
+// 50-100 km) - dipakai 100 km.
 const QUAKE_RADIUS_KM = 100;
 // Rentang waktu gempa relevan: 30 hari sebelum laporan dibuat.
 const QUAKE_WINDOW_DAYS = 30;
 // Radius adm4 terdekat untuk prakiraan cuaca (daftar kurasi).
 const ADM4_RADIUS_KM = 60;
 
-// BMKG menolak User-Agent default (Python-urllib / node) dengan HTTP 403 —
+// BMKG menolak User-Agent default (Python-urllib / node) dengan HTTP 403 -
 // wajib mengirim User-Agent browser-like agar data terbuka dapat diakses.
 const BROWSER_UA =
   'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36';

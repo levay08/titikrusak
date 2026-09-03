@@ -11,7 +11,7 @@
 // data: { items: [...] } }; tiap item memuat `id` (UUID) = schema_id,
 // schema_name, schema_title, version, category, mandatory_kyc_file.
 //
-// BUKAN bagian alur runtime aplikasi — dijalankan sekali sebagai langkah
+// BUKAN bagian alur runtime aplikasi - dijalankan sekali sebagai langkah
 // verifikasi (File 2 Bagian 7.1). Akses token TIDAK pernah dicetak.
 
 const env = require('../config/env.js');

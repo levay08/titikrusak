@@ -1,6 +1,6 @@
 // frontend/src/components/FilterPanel.test.jsx
 // Tes interaksi FilterPanel: toggle checkbox multi-select, search box,
-// dropdown sorting, dan tombol Reset Filter — semuanya memicu onChange
+// dropdown sorting, dan tombol Reset Filter - semuanya memicu onChange
 // dengan state filter baru (real-time, tanpa submit).
 
 import { describe, it, expect, vi } from 'vitest';
@@ -34,7 +34,7 @@ describe('FilterPanel: status e.id sejalan dengan sesi otoritas', () => {
 
     expect(screen.getByText('Terverifikasi e.id')).toBeInTheDocument();
     expect(screen.getByText('Otoritas')).toBeInTheDocument();
-    expect(screen.getByText(/KYC e-KTP — nama sesuai KTP/)).toBeInTheDocument();
+    expect(screen.getByText(/KYC e-KTP - nama sesuai KTP/)).toBeInTheDocument();
     expect(screen.getByText(/sebagai Budi Santoso/)).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: /Keluar \/ Logout e.id/ }));
@@ -112,7 +112,7 @@ describe('FilterPanel', () => {
     expect(onRequestVerify).toHaveBeenCalledTimes(1);
   });
 
-  it('status verifikasi e.id: AKTIF saat terverifikasi — menampilkan role Warga + nama + tombol Keluar', async () => {
+  it('status verifikasi e.id: AKTIF saat terverifikasi - menampilkan role Warga + nama + tombol Keluar', async () => {
     const user = userEvent.setup();
     const onLogout = vi.fn();
     render(
@@ -129,7 +129,7 @@ describe('FilterPanel', () => {
     expect(screen.getByText('Terverifikasi e.id')).toBeInTheDocument();
     expect(screen.getByText(/Role:/)).toBeInTheDocument();
     expect(screen.getByText('Warga')).toBeInTheDocument();
-    expect(screen.getByText(/Member Lv1 — email, nama, alamat, no\. telepon/)).toBeInTheDocument();
+    expect(screen.getByText(/Member Lv1 - email, nama, alamat, no\. telepon/)).toBeInTheDocument();
     expect(screen.getByText(/sebagai Warga Garut/)).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /verifikasi e\.id/i })).not.toBeInTheDocument();
 

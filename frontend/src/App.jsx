@@ -1,13 +1,13 @@
 // frontend/src/App.jsx
 // Halaman utama: header sederhana (File 1 Bagian 9.1) + FilterPanel
-// (sidebar di desktop, drawer di mobile — File 1 Bagian 9.7) + area
+// (sidebar di desktop, drawer di mobile - File 1 Bagian 9.7) + area
 // tampilan yang bisa ditukar antara MapView dan ListView (File 1 Bagian
 // 9.2), tombol floating "Lapor Kerusakan" (File 1 Bagian 5.2 langkah
 // kedua), dan modal ReportForm (File 1 Bagian 9.6).
 //
 // Data laporan di-fetch DI SINI (satu-satunya sumber data) berdasarkan
 // state filter + sorting aktif, lalu diteruskan sebagai props yang sama
-// ke MapView dan ListView — dua mode tampilan dari data yang sama.
+// ke MapView dan ListView - dua mode tampilan dari data yang sama.
 // Fetch kedua tanpa filter menghitung total laporan di database untuk
 // membedakan kondisi hasil kosong (DB kosong vs filter tak cocok).
 
@@ -78,7 +78,7 @@ function SponsorLogo({ name, src, url }) {
           style={{
             position: 'absolute',
             // Rata kanan (right:0): chip sponsor berada di pojok kanan footer
-            // — bubble tengah sebelumnya bisa terpotong tepi layar.
+            // - bubble tengah sebelumnya bisa terpotong tepi layar.
             bottom: 'calc(100% + 8px)',
             right: 0,
             background: '#1c1917',
@@ -89,12 +89,12 @@ function SponsorLogo({ name, src, url }) {
             whiteSpace: 'nowrap',
             boxShadow: '0 2px 8px rgba(0, 0, 0, 0.35)',
             // zIndex tinggi: bubble memanjang ke area peta yang pane-nya
-            // ber-z-index hingga 700+ — tanpa ini bubble "terhalang line".
+            // ber-z-index hingga 700+ - tanpa ini bubble "terhalang line".
             zIndex: 2000,
             pointerEvents: 'none',
           }}
         >
-          {name} — {url}
+          {name} - {url}
           <span
             style={{
               position: 'absolute',
@@ -126,7 +126,7 @@ function SponsorLogo({ name, src, url }) {
 }
 
 // Baca status verifikasi e.id yang tersimpan lokal (dipakai status
-// verifikasi di sidebar FilterPanel — poin Alur Inti 5).
+// verifikasi di sidebar FilterPanel - poin Alur Inti 5).
 function getStoredEidVerification() {
   try {
     const raw = localStorage.getItem('titikrusak_eid');
@@ -145,7 +145,7 @@ const EMPTY_FILTERS = {
   bridge_authority: [],
   vital_status: [],
   // Filter status verifikasi titik oleh otoritas (File 1 6.2):
-  // 'semua' | 'verified' (terverifikasi/dalam_perbaikan/selesai — titik
+  // 'semua' | 'verified' (terverifikasi/dalam_perbaikan/selesai - titik
   // bercentang ✓ di peta) | 'belum' (dilaporkan).
   verified: 'semua',
   q: '',
@@ -153,7 +153,7 @@ const EMPTY_FILTERS = {
 };
 
 // Status yang tampil bercentang ✓ di peta (sudah diverifikasi/ditindak
-// otoritas) — dipakai filter verified (File 1 6.2).
+// otoritas) - dipakai filter verified (File 1 6.2).
 const VERIFIED_STATUSES = ['terverifikasi', 'dalam_perbaikan', 'selesai_diperbaiki'];
 
 // Enam opsi sorting FilterPanel (File 1 Bagian 6.8.10) -> pasangan
@@ -323,14 +323,14 @@ export default function App() {
   const [filters, setFilters] = useState(EMPTY_FILTERS);
   const [activeView, setActiveView] = useState('map'); // 'map' | 'list' | 'admin'
   // Sinyal reset peta ke tampilan awal (seluruh Indonesia) saat judul
-  // header "titikrusak.id" diklik — berfungsi juga saat sudah di mode Peta.
+  // header "titikrusak.id" diklik - berfungsi juga saat sudah di mode Peta.
   const [homeResetKey, setHomeResetKey] = useState(0);
   const [reports, setReports] = useState([]);
   const [dataError, setDataError] = useState(null);
   // Total laporan di database (fetch tanpa filter) untuk membedakan
   // kondisi hasil kosong (File 1 9.1/9.2): null = belum diketahui.
   const [totalCount, setTotalCount] = useState(null);
-  // Seluruh laporan TANPA filter — sumber data menu header (Statistik,
+  // Seluruh laporan TANPA filter - sumber data menu header (Statistik,
   // Pantau, Notifikasi) yang tidak boleh terpengaruh filter aktif.
   const [allReports, setAllReports] = useState([]);
   // Sesi otoritas lokal (File 1 Bagian 5.2): null = belum masuk.
@@ -346,9 +346,9 @@ export default function App() {
   const [eidVerified, setEidVerified] = useState(() => Boolean(getStoredEidVerification()));
   const [eidFlowOpen, setEidFlowOpen] = useState(false);
   // Mode internal "preview": dipakai utk screenshot OG (peta bersih tanpa
-  // modal welcome/sidebar/tooltip) — tidak berpengaruh ke pengguna biasa.
+  // modal welcome/sidebar/tooltip) - tidak berpengaruh ke pengguna biasa.
   const previewMode = typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('preview');
-  // Modal selamat datang: SESI per tab — muncul saat kunjungan pertama
+  // Modal selamat datang: SESI per tab - muncul saat kunjungan pertama
   // tab/window (tab baru setelah tab ditutup => muncul lagi). Selama tab
   // masih terbuka, flag sessionStorage membuat modal tidak muncul kembali
   // walau kembali ke halaman pertama.
@@ -384,10 +384,10 @@ export default function App() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   // Detail laporan dibuka dari tingkat App: hasil pencarian atau tombol
-  // "Lihat Detail" di popup peta — satu modal detail di level App.
+  // "Lihat Detail" di popup peta - satu modal detail di level App.
   const [detailReport, setDetailReport] = useState(null);
   // Modal menu footer (Dokumentasi + Syarat & Ketentuan + Kontak aktif;
-  // menu Status dihapus — koreksi user).
+  // menu Status dihapus - koreksi user).
   const [docOpen, setDocOpen] = useState(false);
   const [termsOpen, setTermsOpen] = useState(false);
   const [contactOpen, setContactOpen] = useState(false);
@@ -415,7 +415,7 @@ export default function App() {
     };
   }, [refreshKey, filters]);
 
-  // Hitung total laporan di database (TANPA filter apa pun) — hanya
+  // Hitung total laporan di database (TANPA filter apa pun) - hanya
   // berubah saat mount dan setelah laporan baru dikirim (refreshKey),
   // tidak bergantung pada filter.
   useEffect(() => {
@@ -492,7 +492,7 @@ export default function App() {
     setActiveView('admin');
   };
 
-  // Buka detail laporan dari popup peta — lewat App agar hanya satu modal
+  // Buka detail laporan dari popup peta - lewat App agar hanya satu modal
   // aktif (MapView menyerahkan ke sini via prop onOpenDetail).
   const openReportDetail = (report) => {
     closeAllModals();
@@ -504,12 +504,12 @@ export default function App() {
   const goHomeView = () => {
     closeAllModals();
     setActiveView('map');
-    // Reset peta ke tampilan awal (seluruh Indonesia) — berlaku juga saat
+    // Reset peta ke tampilan awal (seluruh Indonesia) - berlaku juga saat
     // sudah berada di mode Peta (mis. sudah zoom ke titik tertentu).
     setHomeResetKey((k) => k + 1);
   };
 
-  // Dengarkan event 'tk:go-home' dari Breadcrumb (klik "Beranda") — kembali
+  // Dengarkan event 'tk:go-home' dari Breadcrumb (klik "Beranda") - kembali
   // ke peta utama. Ref agar listener tidak menangkap goHomeView yang basi.
   const goHomeViewRef = useRef(goHomeView);
   goHomeViewRef.current = goHomeView;
@@ -542,8 +542,8 @@ export default function App() {
   };
 
   // Tombol floating disembunyikan saat kondisi hasil kosong Kondisi A
-  // (database kosong) menampilkan tombol ajakannya sendiri — dan selama
-  // pemuatan awal — sehingga hanya ada SATU tombol "Lapor Kerusakan"
+  // (database kosong) menampilkan tombol ajakannya sendiri - dan selama
+  // pemuatan awal - sehingga hanya ada SATU tombol "Lapor Kerusakan"
   // (poin Alur Inti 14). Saat fetch total gagal (dataError) tombol tetap
   // muncul agar pengguna tidak kehilangan akses melapor.
   const showFloatingLapor =
@@ -552,7 +552,7 @@ export default function App() {
 
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-      {/* Pita merah-putih tipis — aksen tema Indonesia (poin 15) */}
+      {/* Pita merah-putih tipis - aksen tema Indonesia (poin 15) */}
       <div className="tk-flag-ribbon" />
       <header
         style={{
@@ -570,7 +570,7 @@ export default function App() {
           <button
             type="button"
             onClick={goHomeView}
-            aria-label="titikrusak.id — kembali ke peta utama"
+            aria-label="titikrusak.id | kembali ke peta utama"
             title="Kembali ke peta utama"
             style={{
               display: 'flex',
@@ -638,7 +638,7 @@ export default function App() {
           </form>
         )}
 
-        {/* Menu header (poin Alur Inti 9) — desktop: langsung di header;
+        {/* Menu header (poin Alur Inti 9) - desktop: langsung di header;
             mobile: lewat drawer "Menu". Semua membuka MODAL, bukan halaman. */}
         {!isMobile && (
           <nav style={{ display: 'flex', alignItems: 'center', gap: 2, marginLeft: 'auto' }}>
@@ -772,7 +772,7 @@ export default function App() {
         </div>
       </header>
 
-      {/* News Flash / Berita Terkini — ticker berjalan (desktop & tablet
+      {/* News Flash / Berita Terkini - ticker berjalan (desktop & tablet
           saja; NewsTicker sendiri mengembalikan null saat mobile). */}
       <NewsTicker />
 
@@ -848,7 +848,7 @@ export default function App() {
           />
         )}
         {/* Tombol HIDE yang jelas di tepi sidebar (desktop): klik untuk
-            menyembunyikan panel filter — lebih mudah terlihat daripada
+            menyembunyikan panel filter - lebih mudah terlihat daripada
             tombol ⏴ kecil di header sidebar. */}
         {!isMobile && !sidebarCollapsed && (
           <button
@@ -915,7 +915,7 @@ export default function App() {
         )}
 
         <div style={{ position: 'relative', flex: 1, minWidth: 0 }}>
-          {/* Toggle mode tampilan (File 1 Bagian 9.2) — disembunyikan di
+          {/* Toggle mode tampilan (File 1 Bagian 9.2) - disembunyikan di
               halaman Admin (tampilan khusus otoritas) */}
           {activeView !== 'admin' && <ViewToggle view={activeView} onChange={setActiveView} />}
 
@@ -955,7 +955,7 @@ export default function App() {
           )}
 
           {/* Tombol floating Lapor Kerusakan (File 1 Bagian 9.1). Di
-              Kondisi A (database kosong) disembunyikan — EmptyResults
+              Kondisi A (database kosong) disembunyikan - EmptyResults
               sudah menampilkan satu tombol ajakan beranimasi, sehingga
               tidak ada dua tombol "Lapor" sekaligus (poin Alur Inti 14). */}
           {showFloatingLapor && (
@@ -984,7 +984,7 @@ export default function App() {
           )}
 
           {/* Keterangan data: seluruh titik saat ini dari pemberitaan
-              media (bukan laporan warga) — bisa ditutup (lihat
+              media (bukan laporan warga) - bisa ditutup (lihat
               SeedNotice). Tidak di halaman Admin. */}
           {activeView !== 'admin' && totalCount > 0 && <SeedNotice />}
 
@@ -1046,7 +1046,7 @@ export default function App() {
           )}
 
           {/* Drawer menu header mobile (poin Alur Inti 9): Tentang,
-              Statistik, Pantau, Notifikasi, dan Login otoritas — semuanya
+              Statistik, Pantau, Notifikasi, dan Login otoritas - semuanya
               membuka modal. */}
           {isMobile && menuOpen && (
             <>
@@ -1282,7 +1282,7 @@ export default function App() {
               >
                 {/* Alur e.id: desktop = scan QR; perangkat sentuh
                     (ponsel/tablet) = buka wallet e.id langsung (deep
-                    link) tanpa scan — lihat VerificationFlow walletMode. */}
+                    link) tanpa scan - lihat VerificationFlow walletMode. */}
                 <VerificationFlow
                   role="otoritas"
                   walletMode={isTouchDevice}
@@ -1301,7 +1301,7 @@ export default function App() {
           {welcomeOpen && <WelcomeModal onClose={handleWelcomeClose} />}
 
           {/* Modal verifikasi e.id WARGA dari sidebar (poin Alur Inti 5):
-              Member level 1 (email/nama/alamat/no. telp, tanpa KTP) —
+              Member level 1 (email/nama/alamat/no. telp, tanpa KTP) -
               desktop alur QR penuh, perangkat sentuh alur wallet e.id. */}
           {eidFlowOpen && (
             <div
@@ -1380,7 +1380,7 @@ export default function App() {
             />
           )}
 
-          {/* Modal menu header (poin Alur Inti 9) — semuanya modal, bukan
+          {/* Modal menu header (poin Alur Inti 9) - semuanya modal, bukan
               halaman baru. Data statistik/pantau/notif dari allReports
               (seluruh laporan TANPA filter). */}
           {docOpen && <DocModal onClose={() => setDocOpen(false)} />}
@@ -1399,7 +1399,7 @@ export default function App() {
         </div>
       </main>
 
-      {/* Footer: logo + tagline + sponsor (PANDI, e.id, IDCloudHost) —
+      {/* Footer: logo + tagline + sponsor (PANDI, e.id, IDCloudHost) -
           logo sponsor disejajarkan dalam chip putih berukuran sama. */}
       <footer
         style={{
@@ -1412,7 +1412,7 @@ export default function App() {
         }}
       >
         {/* Menu footer: Dokumentasi, Syarat & Ketentuan, dan Kontak (AKTIF
-            — form kirim email); menu Status DIHAPUS (koreksi user). */}
+            - form kirim email); menu Status DIHAPUS (koreksi user). */}
         <div
           style={{
             width: '100%',
@@ -1463,7 +1463,7 @@ export default function App() {
             <Logo size={26} />
             <div>
               {/* Judul + tagline dalam SATU baris, dipisah "|"; hak cipta
-                  jadi baris kecil di bawahnya (koreksi user — tanpa baris
+                  jadi baris kecil di bawahnya (koreksi user - tanpa baris
                   copyright terpisah selebar footer). */}
               <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'baseline', gap: '2px 7px' }}>
                 <span style={{ fontWeight: 700, color: '#fff', fontSize: 13 }}>
@@ -1477,7 +1477,7 @@ export default function App() {
                 </span>
               </div>
               <div style={{ fontSize: 11, opacity: 0.7, color: '#e2e8f0', marginTop: 3 }}>
-                © 2026 titikrusak.id oleh Arfhacorp — Hak cipta dilindungi
+                © 2026 titikrusak.id oleh Arfhacorp - Hak cipta dilindungi
               </div>
             </div>
           </div>

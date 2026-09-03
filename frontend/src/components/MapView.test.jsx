@@ -207,7 +207,7 @@ describe('MapView: navigasi bertahap (poin Alur Inti 17)', () => {
     const map = L.map.mock.results[0].value;
     // Kembali ke posisi sebelum klik marker (pusat awal + zoom 5).
     expect(map.setView).toHaveBeenLastCalledWith({ lat: -2.5, lng: 118 }, 5, { animate: true });
-    // Popup laporan ikut ditutup — tidak perlu close manual dulu.
+    // Popup laporan ikut ditutup - tidak perlu close manual dulu.
     expect(map.closePopup).toHaveBeenCalled();
   });
 
@@ -294,7 +294,7 @@ describe('MapView: hover tooltip jumlah titik + provinsi', () => {
     infra_type: 'jembatan',
   };
 
-  it('marker diberi tooltip "1 titik rusak — {provinsi}"', () => {
+  it('marker diberi tooltip "1 titik rusak - {provinsi}"', () => {
     render(<MapView reports={[REPORT]} />);
 
     const marker = L.circleMarker.mock.results[0].value;

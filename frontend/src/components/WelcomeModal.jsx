@@ -1,11 +1,11 @@
 // frontend/src/components/WelcomeModal.jsx
-// Modal selamat datang (hanya saat KUNJUNGAN PERTAMA per tab — flag
+// Modal selamat datang (hanya saat KUNJUNGAN PERTAMA per tab - flag
 // sessionStorage "titikrusak_welcome_seen"). Berisi latar belakang
 // singkat, solusi, fitur, dan ajakan melihat Dokumentasi serta melapor
 // dengan e.id. Logo transparan besar di latar belakang panel.
 //
 // WelcomeBody diekspor agar konten yang SAMA dipakai ulang oleh
-// AboutModal (menu "Tentang") — konten dua tempat ini selalu sama
+// AboutModal (menu "Tentang") - konten dua tempat ini selalu sama
 // (koreksi user: menu Tentang menyamakan konten modal welcome).
 
 import Logo from './Logo.jsx';
@@ -39,7 +39,7 @@ export function WelcomeBody({
       {/* Latar belakang masalah */}
       <div style={SECTION_TITLE}>Latar Belakang</div>
       <p style={SECTION_BODY}>
-        Jembatan putus, jalan ambles, sekolah bocor, hingga jaringan listrik padam —
+        Jembatan putus, jalan ambles, sekolah bocor, hingga jaringan listrik padam -
         kerusakan infrastruktur publik di Indonesia sering terjadi dan informasi
         tentangnya tersebar di mana-mana. Warga kesulitan melapor, sementara otoritas
         kesulitan memprioritaskan perbaikan karena tidak ada satu peta yang merangkumnya.
@@ -51,7 +51,7 @@ export function WelcomeBody({
         titikrusak.id menghadirkan peta terpadu kerusakan infrastruktur: laporan dari
         warga dan media dikumpulkan di satu tempat, lengkap dengan foto, tingkat
         kerusakan, dan status perbaikan. Otoritas bisa memverifikasi, memprioritaskan,
-        dan memantau progres — transparan untuk semua.
+        dan memantau progres - transparan untuk semua.
       </p>
 
       {/* Fitur */}
@@ -60,7 +60,7 @@ export function WelcomeBody({
         <li>Peta interaktif seluruh Indonesia dengan titik laporan nyata.</li>
         <li>Detail lengkap: foto, kategori, tingkat kerusakan, dan status perbaikan.</li>
         <li>Info pendukung BMKG: gempa terdekat dan prakiraan cuaca di lokasi laporan.</li>
-        <li>Dukungan warga via e.id — menaikkan prioritas laporan yang penting.</li>
+        <li>Dukungan warga via e.id - menaikkan prioritas laporan yang penting.</li>
         <li>Verifikasi dan tracking perbaikan oleh otoritas lokal.</li>
         <li>Pencarian, filter, dan statistik untuk memantau kondisi daerah Anda.</li>
       </ul>
@@ -69,12 +69,12 @@ export function WelcomeBody({
       <p style={SECTION_BODY}>
         Mulai dengan menjelajahi peta, atau buka menu <strong>Dokumentasi</strong> di
         bagian bawah halaman untuk panduan lengkap. Temukan kerusakan di sekitar Anda
-        dan laporkan lewat tombol <strong>“+ Lapor Kerusakan”</strong> — verifikasi
+        dan laporkan lewat tombol <strong>“+ Lapor Kerusakan”</strong> - verifikasi
         identitas dengan <strong>e.id</strong> (tanpa KTP untuk warga) agar laporan
         Anda lebih dipercaya.
       </p>
 
-      {/* Disclaimer independensi (menu Tentang & modal welcome — koreksi
+      {/* Disclaimer independensi (menu Tentang & modal welcome - koreksi
           user): titikrusak.id portal INDEPENDEN, bukan bagian dari
           lembaga/pemerintah/organisasi mana pun. */}
       <div
@@ -145,7 +145,7 @@ export default function WelcomeModal({
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Logo transparan besar di latar belakang — dekorasi, tidak
+        {/* Logo transparan besar di latar belakang - dekorasi, tidak
             menghalangi klik (pointerEvents none) */}
         <div
           aria-hidden="true"

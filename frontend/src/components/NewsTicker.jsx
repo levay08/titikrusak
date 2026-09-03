@@ -3,7 +3,7 @@
 // seputar perbaikan infrastruktur, infrastruktur rusak, dan bencana.
 // - 5 berita per batch; berganti ke 5 berikutnya tiap 2 putaran penuh ticker.
 // - hover -> ticker pause + tiap judul bisa diklik (buka source di tab baru).
-// - SEMBUNYI di mobile phone (isMobile true) — hanya laptop/PC/tablet.
+// - SEMBUNYI di mobile phone (isMobile true) - hanya laptop/PC/tablet.
 // Data dari GET /api/news (cache server, best-effort).
 
 import { useEffect, useRef, useState } from 'react';

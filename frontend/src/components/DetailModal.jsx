@@ -3,12 +3,12 @@
 // Layout field menyesuaikan layar (mobile: label di atas nilai).
 // Saat otoritas masuk (prop otoritas), modal menampilkan:
 //   - tombol tindakan status BERIKUTNYA (approve/verifikasi lalu lanjut ke
-//     perbaikan/selesai) — File 1 Bagian 6.2;
+//     perbaikan/selesai) - File 1 Bagian 6.2;
 //   - fitur Dukungan warga (File 1 Bagian 6.3) yang memerlukan e.id.
 //
 // Dipakai bersama oleh ListView (klik baris), MapView (tombol "Lihat
 // Detail" di popup marker), modal hasil pencarian header, dan halaman
-// Admin — satu komponen detail untuk semua titik masuk.
+// Admin - satu komponen detail untuk semua titik masuk.
 
 import { useState, useEffect } from 'react';
 import Breadcrumb, { homeCrumb } from './Breadcrumb.jsx';
@@ -96,7 +96,7 @@ function ThumbIcon({ active = false, size = 26 }) {
 
 // Format nilai enum/array/boolean untuk ditampilkan di detail.
 function formatValue(key, value) {
-  if (value === null || value === undefined || value === '') return '—';
+  if (value === null || value === undefined || value === '') return '-';
   if (key === 'severity') return SEVERITY_LABELS[value] || value;
   if (key === 'infra_type') return INFRA_LABELS[value] || value;
   if (key === 'bridge_authority') return AUTHORITY_LABELS[value] || value;
@@ -107,7 +107,7 @@ function formatValue(key, value) {
   if (key === 'reporter_is_verified') return value ? 'Ya' : 'Tidak';
   if (key === 'lat' || key === 'lng') return Number(value).toFixed(5);
   if (key === 'photo_urls') {
-    return Array.isArray(value) && value.length > 0 ? value.join(', ') : '—';
+    return Array.isArray(value) && value.length > 0 ? value.join(', ') : '-';
   }
   return String(value);
 }
@@ -124,7 +124,7 @@ function parseEnrich(value) {
     return JSON.parse(value);
   } catch (_e) {
     // Nilai lama berupa teks bebas (mis. seed NTT "Gempa Laut Flores M7,7
-    // (15/8/2026)") — tampilkan apa adanya.
+    // (15/8/2026)") - tampilkan apa adanya.
     return value;
   }
 }
@@ -153,7 +153,7 @@ const BMKG_SOURCE = (
 // Badge gempa terdekat: M{magnitude} · {lokasi} · {tanggal} (≈{jarak} km).
 function EarthquakeBadge({ value }) {
   const d = parseEnrich(value);
-  if (!d) return '—';
+  if (!d) return '-';
   // Nilai teks biasa (seed lama): tampilkan langsung tanpa format objek.
   if (typeof d === 'string') {
     return (
@@ -187,16 +187,16 @@ function EarthquakeBadge({ value }) {
         lineHeight: 1.45,
       }}
     >
-      Gempa terdekat: M{d.magnitude} — {d.location} ({d.date}, ±{d.distance_km} km)
+      Gempa terdekat: M{d.magnitude} - {d.location} ({d.date}, ±{d.distance_km} km)
       {BMKG_SOURCE}
     </span>
   );
 }
 
-// Badge cuaca: {kondisi} · {rentang suhu} — berlaku {tanggal}.
+// Badge cuaca: {kondisi} · {rentang suhu} - berlaku {tanggal}.
 function WeatherBadge({ value }) {
   const d = parseEnrich(value);
-  if (!d) return '—';
+  if (!d) return '-';
   // Nilai teks biasa: tampilkan langsung.
   if (typeof d === 'string') {
     return (
@@ -230,7 +230,7 @@ function WeatherBadge({ value }) {
         lineHeight: 1.45,
       }}
     >
-      Cuaca: {d.condition} · {d.temp_range} — berlaku {d.valid_date}
+      Cuaca: {d.condition} · {d.temp_range} - berlaku {d.valid_date}
       {BMKG_SOURCE}
     </span>
   );
@@ -239,7 +239,7 @@ function WeatherBadge({ value }) {
 export default function DetailModal({ report, onClose, otoritas = null, onReportUpdated, origin = null, onOriginClick = null }) {
   const isMobile = useIsMobile();
   // Perangkat sentuh (ponsel/tablet): verifikasi e.id untuk fitur Dukung
-  // lewat deep link wallet (tanpa scan QR) — lihat VerificationFlow.
+  // lewat deep link wallet (tanpa scan QR) - lihat VerificationFlow.
   const isTouchDevice = useIsTouchDevice();
   // Label asal navigasi untuk breadcrumb detail (File 1 Bagian 4.2):
   // 'list' -> Daftar Laporan, 'map' -> Peta, null -> tanpa breadcrumb.
@@ -254,7 +254,7 @@ export default function DetailModal({ report, onClose, otoritas = null, onReport
   // hasVoted menandai user sudah pernah mendukung (ikon biru, tombol terkunci).
   const [likeBurst, setLikeBurst] = useState(0);
   const [hasVoted, setHasVoted] = useState(false);
-  // Foto yang sedang dibuka dalam frame (lightbox dalam situs — tidak
+  // Foto yang sedang dibuka dalam frame (lightbox dalam situs - tidak
   // membuka tab baru / tidak menutup layar; bisa ditutup).
   const [photoView, setPhotoView] = useState(null);
 
@@ -263,6 +263,23 @@ export default function DetailModal({ report, onClose, otoritas = null, onReport
     beacon('detail_open');
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Riwayat status titik (transparansi publik) - tanpa nama pribadi otoritas.
+  const [statusHistory, setStatusHistory] = useState(null);
+  useEffect(() => {
+    let on = true;
+    fetch(`/api/activity/report/${report.id}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (on && d && Array.isArray(d.history) && d.history.length > 0) {
+          setStatusHistory(d.history);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      on = false;
+    };
+  }, [report.id]);
 
   // Enrichment BMKG yang dimuat ulang untuk laporan lama yang belum punya
   // data (File 2 Bagian 7.2): dipanggil saat detail dibuka, best-effort.
@@ -328,7 +345,7 @@ export default function DetailModal({ report, onClose, otoritas = null, onReport
       }
       await res.json();
       onReportUpdated(); // peta + daftar me-refresh (marker dapat centang)
-      onClose(); // modal menampilkan data lama — tutup agar tidak basi
+      onClose(); // modal menampilkan data lama - tutup agar tidak basi
     } catch (err) {
       setStatusAction('idle');
       setStatusError(err.message);
@@ -363,7 +380,7 @@ export default function DetailModal({ report, onClose, otoritas = null, onReport
       setHasVoted(true);
       setLikeBurst((b) => b + 1); // pop jempol + ledakan bintang
     } catch (err) {
-      // 409 (sudah didukung identitas yang sama) juga dianggap selesai —
+      // 409 (sudah didukung identitas yang sama) juga dianggap selesai -
       // tombol dinonaktifkan agar tidak berulang.
       if (String(err.message).includes('sudah didukung')) {
         setVoteState('done');
@@ -405,7 +422,7 @@ export default function DetailModal({ report, onClose, otoritas = null, onReport
         zIndex: 1200,
         background: 'rgba(15, 23, 42, 0.55)',
         display: 'flex',
-        // Mobile: bottom sheet (File 1 Bagian 9.7) — sama dengan modal
+        // Mobile: bottom sheet (File 1 Bagian 9.7) - sama dengan modal
         // ReportForm & otoritas; desktop: kartu di tengah.
         alignItems: isMobile ? 'flex-end' : 'center',
         justifyContent: 'center',
@@ -492,7 +509,7 @@ export default function DetailModal({ report, onClose, otoritas = null, onReport
           </button>
         </div>
 
-        {/* Klaim perbaikan dari media (monitor berita) — publik */}
+        {/* Klaim perbaikan dari media (monitor berita) - publik */}
         {report.media_repair_url && (
           <div
             style={{
@@ -506,7 +523,7 @@ export default function DetailModal({ report, onClose, otoritas = null, onReport
               marginBottom: 12,
             }}
           >
-            <strong>● Menurut media sudah diperbaiki</strong> — menunggu
+            <strong>● Menurut media sudah diperbaiki</strong> - menunggu
             verifikasi otoritas.{' '}
             <a
               href={report.media_repair_url}
@@ -598,6 +615,40 @@ export default function DetailModal({ report, onClose, otoritas = null, onReport
           ))}
         </div>
 
+        {/* ---- Riwayat status (transparansi publik) ---- */}
+        {statusHistory && statusHistory.length > 0 && (
+          <div style={{ marginTop: 14, borderTop: '1px solid #e2e8f0', paddingTop: 12 }}>
+            <div style={{ fontSize: 12, fontWeight: 600, color: '#334155', marginBottom: 8 }}>
+              Riwayat status (transparansi)
+            </div>
+            {statusHistory.map((h, i) => (
+              <div
+                key={i}
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  gap: 10,
+                  fontSize: 12.5,
+                  padding: '5px 0',
+                  borderBottom: i < statusHistory.length - 1 ? '1px solid #f1f5f9' : 'none',
+                }}
+              >
+                <span style={{ color: '#1c1917' }}>
+                  Otoritas - {STATUS_LABELS[h.new_status] || h.new_status}
+                </span>
+                <span style={{ color: '#64748b', flexShrink: 0 }}>
+                  {new Date(String(h.changed_at).replace(' ', 'T') + 'Z').toLocaleString('id-ID', {
+                    day: '2-digit',
+                    month: 'short',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+
         {/* ---- Tindakan otoritas: status berikutnya (File 1 Bagian 6.2) ---- */}
         {otoritas && nextStatus && (
           <div style={{ marginTop: 14, borderTop: '1px solid #e2e8f0', paddingTop: 14 }}>
@@ -645,7 +696,7 @@ export default function DetailModal({ report, onClose, otoritas = null, onReport
         )}
 
         {/* ---- Dukungan warga (File 1 Bagian 6.3): butuh e.id ----
-            Otoritas TIDAK bisa mendukung laporan — hanya warga yang
+            Otoritas TIDAK bisa mendukung laporan - hanya warga yang
             memberikan dukungan; saat sesi otoritas aktif tampil jumlahnya
             saja tanpa tombol. */}
         <div style={{ marginTop: 14, borderTop: '1px solid #e2e8f0', paddingTop: 14 }}>

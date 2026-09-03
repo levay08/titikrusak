@@ -14,13 +14,13 @@ const path = require('path');
 const { execFile } = require('child_process');
 
 // Batas: maksimal 5 foto, masing-masing <= 4 MB byte mentah (base64
-// data URL dibatasi 5,6 MB) — kompresi dilakukan di frontend.
+// data URL dibatasi 5,6 MB) - kompresi dilakukan di frontend.
 const MAX_PHOTOS = 5;
 const MAX_BYTES = 4 * 1024 * 1024;
 const MAX_DATA_URL_LEN = Math.ceil((MAX_BYTES * 4) / 3) + 256;
 
 // Signature sihir (magic bytes) per format gambar yang diizinkan.
-// MIME yang diklaim klien TIDAK dipercaya — dicek dari isi byte.
+// MIME yang diklaim klien TIDAK dipercaya - dicek dari isi byte.
 const SIGNATURES = [
   { ext: 'jpeg', magic: [0xff, 0xd8, 0xff] },
   { ext: 'png', magic: [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a] },
@@ -45,7 +45,7 @@ function sniffImage(buf) {
 
 // Validasi satu data URL gambar. Mengembalikan { ok:true } bila aman,
 // atau { ok:false, error }. URL http(s) biasa diizinkan (dipakai data
-// media hasil kurasi & hotlink) — bukan kanal upload file.
+// media hasil kurasi & hotlink) - bukan kanal upload file.
 function validatePhoto(raw) {
   const u = String(raw || '').trim();
   if (u === '') return { ok: false, error: 'Foto kosong' };
@@ -59,7 +59,7 @@ function validatePhoto(raw) {
   if (!m) return { ok: false, error: 'Data URL gambar tidak valid' };
   const declared = m[1].toLowerCase();
   if (!ALLOWED_MIME.has(declared)) {
-    return { ok: false, error: 'Tipe gambar tidak diizinkan (png/jpeg/webp/gif saja — SVG/HTML ditolak)' };
+    return { ok: false, error: 'Tipe gambar tidak diizinkan (png/jpeg/webp/gif saja - SVG/HTML ditolak)' };
   }
   let buf;
   try {
@@ -145,7 +145,7 @@ async function guardPhotos(arr, { antivirus = true } = {}) {
         // eslint-disable-next-line no-await-in-loop
         const s = await scanBytes(buf);
         if (s.ok === false) {
-          errors.push('Foto mengandung malware — ditolak antivirus');
+          errors.push('Foto mengandung malware - ditolak antivirus');
           continue;
         }
       }

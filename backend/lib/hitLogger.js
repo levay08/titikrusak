@@ -5,10 +5,10 @@
 // secara real-time ke file JSONL kecil di /srv/tk-hits/hits-YYYYMMDD-HH.jsonl.
 // Ringan: tulis di-buffer dalam memori & di-flush tiap 5 detik; file
 // berganti tiap jam (ukuran kecil). Aset statis (js/css/gambar/favicon)
-// di-skip agar file tetap kecil — yang dicatat: halaman, API, dsb.
+// di-skip agar file tetap kecil - yang dicatat: halaman, API, dsb.
 //
 // File dipindah (bukan disalin) tiap hari ke mesin lokal lewat sftp/scp
-// oleh cron sistem — lihat script lokal tk-pull.sh. Proses transfer
+// oleh cron sistem - lihat script lokal tk-pull.sh. Proses transfer
 // berjalan sebagai user 'tklog' (tanpa root; ForceCommand internal-sftp).
 
 const fs = require('fs');
@@ -79,7 +79,7 @@ function flush() {
     fs.mkdirSync(DIR, { recursive: true });
     fs.appendFileSync(path.join(DIR, currentFile), rows.join('\n') + '\n');
   } catch (_e) {
-    // logger tidak boleh mematikan request — gagal tulis = lewati.
+    // logger tidak boleh mematikan request - gagal tulis = lewati.
   }
 }
 
@@ -128,7 +128,7 @@ function hitLogger(req, res, next) {
 }
 
 // Catat event minat dari frontend (mis. mengetik di form kontak, klik
-// kirim WA, buka detail laporan) — TANPA isi teks (privasi), hanya jenis
+// kirim WA, buka detail laporan) - TANPA isi teks (privasi), hanya jenis
 // aksi. Baris: { t, ip, ev, ua }.
 function recordEvent({ ip, ev, ua }) {
   try {

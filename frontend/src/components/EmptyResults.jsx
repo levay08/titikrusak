@@ -38,7 +38,7 @@ export default function EmptyResults({ hasAnyData, onResetFilters, onLapor }) {
       }}
     >
       {hasAnyData ? (
-        /* Kondisi B: data ada, filter tidak cocok — normal, tanpa animasi */
+        /* Kondisi B: data ada, filter tidak cocok - normal, tanpa animasi */
         <>
           <p style={{ margin: '0 0 12px', fontSize: 14, fontWeight: 600, color: '#1c1917' }}>
             Tidak ada laporan yang sesuai dengan filter ini
@@ -63,7 +63,7 @@ export default function EmptyResults({ hasAnyData, onResetFilters, onLapor }) {
           )}
         </>
       ) : (
-        /* Kondisi A: belum ada laporan sama sekali — ajakan + pulse */
+        /* Kondisi A: belum ada laporan sama sekali - ajakan + pulse */
         <>
           <style>{PULSE_KEYFRAMES}</style>
           <p style={{ margin: '0 0 14px', fontSize: 14, lineHeight: 1.5, color: '#1c1917' }}>

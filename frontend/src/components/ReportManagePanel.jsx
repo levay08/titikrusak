@@ -3,10 +3,10 @@
 //   - Otoritas: tandai "✗ tidak dapat diverifikasi keasliannya" (batalkan
 //     juga bisa); otoritas TIDAK bisa menghapus laporan.
 //   - Warga terverifikasi e.id: EDIT & HAPUS laporan miliknya sendiri
-//     (hanya status 'dilaporkan' — server memverifikasi kepemilikan).
+//     (hanya status 'dilaporkan' - server memverifikasi kepemilikan).
 //   - Warga terverifikasi e.id: klaim "titik sudah diperbaiki" WAJIB foto;
 //     masuk antrean otoritas.
-//   - Otoritas: antrean klaim perbaikan untuk laporan ini — Terima = titik
+//   - Otoritas: antrean klaim perbaikan untuk laporan ini - Terima = titik
 //     di-close (status selesai_diperbaiki, HIJAU otomatis) / Tolak.
 // Semua keputusan otorisasi dilakukan SERVER (routes/guards.js) via header
 // 'x-eid-session'; tombol di sini hanya penyaji.
@@ -55,7 +55,7 @@ export default function ReportManagePanel({ report, otoritas, onReportUpdated, o
   const isOwner = isWarga && report.source_type === 'warga' && report.reporter_is_verified === 1;
   const canEditDelete = isOwner && report.status === 'dilaporkan';
   const canClaim = isWarga && report.status !== 'selesai_diperbaiki' && !report.unverifiable;
-  // Alur tolak otoritas: wajib alasan (koreksi user) — alasan tampil di
+  // Alur tolak otoritas: wajib alasan (koreksi user) - alasan tampil di
   // detail titik agar publik paham kenapa laporan ditolak.
   const [markOpen, setMarkOpen] = useState(false);
   const [markReason, setMarkReason] = useState('');
@@ -105,7 +105,7 @@ export default function ReportManagePanel({ report, otoritas, onReportUpdated, o
         }
       })
       .catch(() => {
-        /* antrean tidak bisa dimuat — tombol tetap bisa dipakai */
+        /* antrean tidak bisa dimuat - tombol tetap bisa dipakai */
       })
       .finally(() => on && setClaimsLoaded(true));
     return () => {
@@ -114,7 +114,7 @@ export default function ReportManagePanel({ report, otoritas, onReportUpdated, o
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOtoritas, report.id]);
 
-  // ---- Otoritas: tanda X (tolak) — WAJIB alasan ----
+  // ---- Otoritas: tanda X (tolak) - WAJIB alasan ----
   const submitMark = async () => {
     if (markReason.trim().length < 10) {
       setErr('Alasan penolakan wajib diisi minimal 10 karakter.');
@@ -175,7 +175,7 @@ export default function ReportManagePanel({ report, otoritas, onReportUpdated, o
 
   // ---- Warga: hapus milik sendiri (otoritas tidak bisa hapus) ----
   const deleteReport = async () => {
-    if (!window.confirm('Hapus laporan ini? Tindakan tidak bisa dibatalkan. Otoritas tidak dapat menghapus laporan — hanya Anda sebagai pelapor.')) return;
+    if (!window.confirm('Hapus laporan ini? Tindakan tidak bisa dibatalkan. Otoritas tidak dapat menghapus laporan - hanya Anda sebagai pelapor.')) return;
     setBusy('del');
     setErr('');
     try {
@@ -230,7 +230,7 @@ export default function ReportManagePanel({ report, otoritas, onReportUpdated, o
         method: 'POST',
         body: JSON.stringify({ photo_urls: claimPhotos, note: claimNote.trim() || null }),
       });
-      setClaimMsg('✓ Klaim terkirim. Menunggu verifikasi otoritas — titik akan berubah hijau setelah disetujui.');
+      setClaimMsg('✓ Klaim terkirim. Menunggu verifikasi otoritas - titik akan berubah hijau setelah disetujui.');
       setClaimOpen(false);
       setClaimPhotos([]);
       setClaimNote('');
@@ -286,7 +286,7 @@ export default function ReportManagePanel({ report, otoritas, onReportUpdated, o
             marginBottom: 12,
           }}
         >
-          ✗ <strong>Laporan ditolak otoritas</strong> — tidak dapat diverifikasi
+          ✗ <strong>Laporan ditolak otoritas</strong> - tidak dapat diverifikasi
           keasliannya.
           {report.unverifiable_reason && (
             <div style={{ marginTop: 4, color: '#7f1d1d' }}>
@@ -307,7 +307,7 @@ export default function ReportManagePanel({ report, otoritas, onReportUpdated, o
             <div style={{ border: '1px solid #fecaca', borderRadius: 8, padding: 10 }}>
               <textarea
                 aria-label="Alasan penolakan laporan"
-                placeholder="Alasan penolakan (min. 10 karakter) — akan terlihat publik di detail titik, mis. lokasi tidak sesuai fakta / foto tidak asli"
+                placeholder="Alasan penolakan (min. 10 karakter) - akan terlihat publik di detail titik, mis. lokasi tidak sesuai fakta / foto tidak asli"
                 value={markReason}
                 onChange={(e) => setMarkReason(e.target.value)}
                 rows={3}
@@ -424,7 +424,7 @@ export default function ReportManagePanel({ report, otoritas, onReportUpdated, o
                       disabled={busy === `c${c.id}`}
                       onClick={() => decideClaim(c.id, 'terima')}
                     >
-                      ✓ Terima — tutup titik (hijau)
+                      ✓ Terima - tutup titik (hijau)
                     </button>
                     <button
                       type="button"
@@ -450,7 +450,7 @@ export default function ReportManagePanel({ report, otoritas, onReportUpdated, o
       {/* ---- Warga: kelola laporan milik sendiri + klaim perbaikan ----
           Hanya tampil saat sesi warga terverifikasi aktif; pengunjung tanpa
           sesi tidak melihat bagian ini (keterangan dukungan di atas sudah
-          cukup — CTA verifikasi ada di sidebar & alur jempol). */}
+          cukup - CTA verifikasi ada di sidebar & alur jempol). */}
       {isWarga && (
         <div>
           <span style={sectionTitle}>Warga</span>
@@ -544,7 +544,7 @@ export default function ReportManagePanel({ report, otoritas, onReportUpdated, o
                       )}
                       <textarea
                         aria-label="Catatan klaim"
-                        placeholder="Catatan singkat (opsional) — mis. jenis perbaikan"
+                        placeholder="Catatan singkat (opsional) - mis. jenis perbaikan"
                         value={claimNote}
                         onChange={(e) => setClaimNote(e.target.value)}
                         rows={2}
@@ -570,7 +570,7 @@ export default function ReportManagePanel({ report, otoritas, onReportUpdated, o
       )}
       {report.status === 'selesai_diperbaiki' && (
         <p style={{ margin: '10px 0 0', fontSize: 12.5, color: '#15803d' }}>
-          ✓ Status laporan: <strong>{STATUS_LABELS.selesai_diperbaiki}</strong> — titik ditandai
+          ✓ Status laporan: <strong>{STATUS_LABELS.selesai_diperbaiki}</strong> - titik ditandai
           hijau di peta.
         </p>
       )}

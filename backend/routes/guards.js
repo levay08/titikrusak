@@ -21,7 +21,7 @@
 //                                    menampilkan tanda X.
 //
 // Kolom/daftar di bawah sengaja diduplikasi dari reports.js (status,
-// urutan, kolom publik) — jaga tetap sinkron bila mengubah di sana.
+// urutan, kolom publik) - jaga tetap sinkron bila mengubah di sana.
 
 const express = require('express');
 const { requireSession, verifyCaptcha } = require('../lib/security.js');
@@ -32,7 +32,7 @@ const router = express.Router();
 const STATUSES = ['dilaporkan', 'terverifikasi', 'dalam_perbaikan', 'selesai_diperbaiki'];
 const STATUS_ORDER = Object.fromEntries(STATUSES.map((s, i) => [s, i]));
 
-// Kolom publik — harus sama dengan PUBLIC_COLUMNS di reports.js + unverifiable.
+// Kolom publik - harus sama dengan PUBLIC_COLUMNS di reports.js + unverifiable.
 const PUBLIC_COLUMNS = [
   'id', 'created_at', 'updated_at', 'infra_type', 'severity', 'bridge_authority',
   'vital_status', 'vital_status_note', 'description', 'location_name', 'lat', 'lng',
@@ -76,7 +76,7 @@ router.post('/', (req, res, next) => {
           .get(sessionId)
       : null;
     if (!row) {
-      return res.status(403).json({ error: 'Verifikasi e.id tidak sah — ulangi verifikasi' });
+      return res.status(403).json({ error: 'Verifikasi e.id tidak sah - ulangi verifikasi' });
     }
     // Sanitasi: identitas SELALU dari server, bukan body klien.
     body.reporter_is_verified = true;
@@ -165,7 +165,7 @@ router.patch('/:id', requireSession('warga'), (req, res) => {
     return res.status(400).json({ error: 'Laporan hanya bisa diedit selama masih berstatus dilaporkan' });
   }
   if (existing.reporter_verified_did !== req.eidSession.holder_did) {
-    return res.status(403).json({ error: 'Anda bukan pelapor laporan ini — tidak bisa mengedit' });
+    return res.status(403).json({ error: 'Anda bukan pelapor laporan ini - tidak bisa mengedit' });
   }
 
   const body = req.body || {};
@@ -237,7 +237,7 @@ router.patch('/:id/unverifiable', requireSession('otoritas'), (req, res) => {
 
 // ---- PATCH /:id/media-fix : otoritas memutuskan klaim perbaikan yang
 //      berasal dari monitor berita (hijau tanpa ✓ = menunggu otoritas).
-//      { decision: 'terima' | 'tolak' } — terima => status
+//      { decision: 'terima' | 'tolak' } - terima => status
 //      selesai_diperbaiki (hijau ✓ otoritas), tolak => klaim dihapus.
 router.patch('/:id/media-fix', requireSession('otoritas'), (req, res) => {
   const id = Number(req.params.id);
@@ -277,7 +277,7 @@ router.patch('/:id/media-fix', requireSession('otoritas'), (req, res) => {
 
 // ---- DELETE /:id : HANYA pelapor (pemilik) bisa menghapus, dan hanya
 //      selama status masih 'dilaporkan'. Otoritas TIDAK punya akses
-//      hapus — otoritas hanya menandai (unverifiable) agar laporan tak
+//      hapus - otoritas hanya menandai (unverifiable) agar laporan tak
 //      bisa dihilangkan diam-diam. Laporan media/sumber lain tanpa
 //      reporter_verified_did tidak bisa dihapus siapa pun. ----
 router.delete('/:id', requireSession('warga'), (req, res) => {
@@ -290,7 +290,7 @@ router.delete('/:id', requireSession('warga'), (req, res) => {
   }
   if (existing.status !== 'dilaporkan') {
     return res.status(400).json({
-      error: 'Laporan sudah diproses (status bukan dilaporkan) — tidak bisa dihapus, hubungi otoritas',
+      error: 'Laporan sudah diproses (status bukan dilaporkan) - tidak bisa dihapus, hubungi otoritas',
     });
   }
   db.prepare('DELETE FROM reports WHERE id = ?').run(id); // votes/status_history/fix_claims ikut CASCADE
@@ -298,7 +298,7 @@ router.delete('/:id', requireSession('warga'), (req, res) => {
 });
 
 // ---- POST /:id/fix-claim : warga e.id terverifikasi menandai titik
-//      SUDAH DIPERBAIKI — wajib lampirkan minimal 1 foto bukti.
+//      SUDAH DIPERBAIKI - wajib lampirkan minimal 1 foto bukti.
 //      Klaim masuk antrean otoritas (status 'menunggu'). ----
 router.post('/:id/fix-claim', requireSession('warga'), async (req, res) => {
   const id = Number(req.params.id);
@@ -311,7 +311,7 @@ router.post('/:id/fix-claim', requireSession('warga'), async (req, res) => {
 
   const body = req.body || {};
   // Foto bukti klaim WAJIB: divalidasi magic bytes + scan ClamAV bila
-  // tersedia (lib/uploadGuard.js — proteksi upload 2 Sep 2026).
+  // tersedia (lib/uploadGuard.js - proteksi upload 2 Sep 2026).
   const guarded = await guardPhotos(body.photo_urls || []);
   if (guarded.photos.length === 0) {
     return res.status(400).json({ error: guarded.errors[0] || 'Klaim sudah diperbaiki wajib menyertakan minimal 1 foto bukti' });

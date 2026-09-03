@@ -3,7 +3,7 @@
 // backend/scripts/seed-media-reports.js
 // Mengisi laporan KERUSAKAN INFRASTRUKTUR dari berita (sumber media)
 // 2 tahun terakhir ke dalam DB (File 1 Bagian 6.2: source_type='media').
-// Data: scripts/media-reports.json. Idempotent — melewati laporan yang
+// Data: scripts/media-reports.json. Idempotent - melewati laporan yang
 // source_media_url-nya sudah ada.
 //
 // Untuk tiap entri:

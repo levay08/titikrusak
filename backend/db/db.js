@@ -103,7 +103,7 @@ db.exec(`
 
   -- ============================================================
   -- Tabel fix_claims: klaim warga "titik sudah diperbaiki" (fitur
-  -- 2 Sep 2026) — WAJIB lampirkan foto bukti; masuk antrean otoritas
+  -- 2 Sep 2026) - WAJIB lampirkan foto bukti; masuk antrean otoritas
   -- untuk diverifikasi; otoritas 'terima' -> status selesai_diperbaiki
   -- (hijau) / 'tolak' -> klaim ditolak, titik tetap.
   -- ============================================================

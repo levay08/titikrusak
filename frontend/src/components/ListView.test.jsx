@@ -179,7 +179,7 @@ describe('ListView', () => {
   });
 });
 
-describe('ListView: mode otoritas — pengelompokan prioritas (poin Alur Inti 7)', () => {
+describe('ListView: mode otoritas - pengelompokan prioritas (poin Alur Inti 7)', () => {
   const OTORITAS = { displayName: 'Dinas PU Garut' };
 
   // Campuran yang sengaja mewakili seluruh tier:
@@ -251,7 +251,7 @@ describe('ListView: mode otoritas — pengelompokan prioritas (poin Alur Inti 7)
 
     // Chip bahan prioritas: laporan terverifikasi e.id vs tanpa e.id.
     // Chip kelengkapan (Lengkap/Cukup/Minim) sengaja TIDAK ditampilkan lagi
-    // (kurang jelas artinya bagi otoritas — nilai tetap dipakai di skor
+    // (kurang jelas artinya bagi otoritas - nilai tetap dipakai di skor
     // prioritas, hanya tidak dirender).
     const stRow = screen.getByText('Jembatan Ambruk Cilawu').closest('button');
     expect(within(stRow).getByText('✓ e.id')).toBeInTheDocument();
@@ -309,7 +309,7 @@ describe('ListView: mode otoritas — pengelompokan prioritas (poin Alur Inti 7)
   });
 });
 
-describe('ListView: fitur Dukungan warga (poin Alur Inti 6) — butuh e.id', () => {
+describe('ListView: fitur Dukungan warga (poin Alur Inti 6) - butuh e.id', () => {
   beforeEach(() => {
     localStorage.clear();
   });

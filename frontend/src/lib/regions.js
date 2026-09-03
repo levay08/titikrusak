@@ -1,7 +1,7 @@
 // frontend/src/lib/regions.js
 // Deteksi wilayah Indonesia dari koordinat (lat, lng) untuk statistik
 // pelaporan (File 1): per PULAU dan per PROVINSI. Kotak pembatas (bbox)
-// bersifat PERKIRAAN kasar agar tidak bergantung pada API eksternal —
+// bersifat PERKIRAAN kasar agar tidak bergantung pada API eksternal -
 // cukup akurat untuk laporan yang lokasinya di daratan utama. Titik di
 // luar semua kotak dikategorikan "Lainnya" / "Tidak Terdeteksi".
 

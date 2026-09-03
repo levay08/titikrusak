@@ -3,12 +3,12 @@
 // backend/lib/security.js
 // Lapisan keamanan bersama (perbaikan temuan pentest K-1 & S-1 + fitur
 // baru captcha / edit-own / tandai-tidak-dapat-diverifikasi):
-//   1) requireSession(role)  — otorisasi WAJIB sesi e.id 'approved'
+//   1) requireSession(role)  - otorisasi WAJIB sesi e.id 'approved'
 //      (tabel verification_sessions). Identitas SELALU dari server,
 //      bukan dari body/header yang bisa dipalsukan klien.
 //   2) Captcha aritmetika stateless per-proses (1x pakai, kedaluwarsa
 //      5 menit) untuk pelapor warga TANPA verifikasi e.id.
-//   3) ensureUnverifiableColumn() — migrasi ringan kolom unverifiable
+//   3) ensureUnverifiableColumn() - migrasi ringan kolom unverifiable
 //      untuk DB produksi lama (tanpa wipe).
 
 const crypto = require('crypto');
@@ -31,6 +31,24 @@ function ensureUnverifiableColumn() {
   }
 }
 ensureUnverifiableColumn();
+
+// Kolom verifikasi utk transparansi otoritas (3 Sep 2026):
+//   agency_label  = instansi/asal yg DIPILIH otoritas ("bertindak sebagai");
+//   last_used_at  = waktu terakhir sesi melakukan aksi terotorisasi (dipakai
+//                   kartu "instansi yang bekerja" - bukan sekadar login).
+function ensureAgencyColumns() {
+  const cols = db
+    .prepare('PRAGMA table_info(verification_sessions)')
+    .all()
+    .map((c) => c.name);
+  if (!cols.includes('agency_label')) {
+    db.exec('ALTER TABLE verification_sessions ADD COLUMN agency_label TEXT');
+  }
+  if (!cols.includes('last_used_at')) {
+    db.exec('ALTER TABLE verification_sessions ADD COLUMN last_used_at TEXT');
+  }
+}
+ensureAgencyColumns();
 
 const SESSION_OK = 'approved';
 const ROLES = ['warga', 'otoritas'];
@@ -65,6 +83,15 @@ function requireSession(role) {
       holder_name: row.holder_name,
       role,
     };
+    // Tandai "sedang bekerja": setiap aksi terotorisasi memperbarui
+    // last_used_at - dasar fitur transparansi instansi aktif.
+    try {
+      db.prepare(
+        'UPDATE verification_sessions SET last_used_at = CURRENT_TIMESTAMP WHERE session_id = ?'
+      ).run(row.session_id);
+    } catch (_e) {
+      /* sentuh waktu best-effort */
+    }
     next();
   };
 }

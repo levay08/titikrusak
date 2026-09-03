@@ -24,7 +24,7 @@ const NEWS_TTL_MS = 30 * 60 * 1000; // 30 menit
 const MAX_ITEMS = 30; // pool cukup untuk rotasi beberapa batch x5
 const FETCH_TIMEOUT_MS = 8000;
 
-// Kata kunci negara/region luar — judul yang memuat ini dibuang agar feed
+// Kata kunci negara/region luar - judul yang memuat ini dibuang agar feed
 // tetap berita Indonesia saja (bukan internasional/Asia). Case-insensitive.
 const FOREIGN_KEYWORDS = [
   'amerika', 'united states', 'iran', 'irak', 'israel', 'palestina', 'rusia',
@@ -49,7 +49,7 @@ function cleanTitle(raw) {
   return idx > 0 ? s.slice(0, idx).trim() : s;
 }
 
-// Parser RSS minimal (regex) — tanpa dependensi XML berat.
+// Parser RSS minimal (regex) - tanpa dependensi XML berat.
 function parseGoogleNewsRss(xml) {
   const out = [];
   const blocks = String(xml || '').split('<item>').slice(1);

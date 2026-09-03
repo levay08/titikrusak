@@ -5,7 +5,7 @@
 
 // ---- Tingkat kerusakan (File 1 Bagian 6.8.2) ----
 // Warna: RINGAN = BIRU MUDA (koreksi user: hijau TIDAK lagi dipakai
-// severity — hijau khusus untuk laporan yang SUDAH DIPERBAIKI, lihat
+// severity - hijau khusus untuk laporan yang SUDAH DIPERBAIKI, lihat
 // STATUSES.selesai_diperbaiki & reportMarkerColor).
 export const SEVERITIES = [
   { value: 'ringan', label: 'Ringan', color: '#60a5fa' }, // biru muda
@@ -27,7 +27,7 @@ export const SEVERITY_DEFINITIONS = {
   berat:
     'Kerusakan struktural signifikan yang mengarah ke bahaya nyata bagi keselamatan; sangat berisiko, sebaiknya dihindari kecuali darurat.',
   ambruk:
-    'Mengancam jiwa secara aktif; infrastruktur putus total, roboh, atau akses terputus — tidak boleh didekati atau dilalui sama sekali.',
+    'Mengancam jiwa secara aktif; infrastruktur putus total, roboh, atau akses terputus - tidak boleh didekati atau dilalui sama sekali.',
 };
 
 // ---- Jenis infrastruktur (File 1 Bagian 6.8.1) ----
@@ -91,7 +91,7 @@ export const STATUS_COLORS = Object.fromEntries(STATUSES.map((s) => [s.value, s.
 // dan dokumentasi selalu satu sumber warna.
 export function reportMarkerColor(report) {
   if (report && report.status === 'selesai_diperbaiki') {
-    return STATUS_COLORS.selesai_diperbaiki; // #22c55e — satu-satunya hijau
+    return STATUS_COLORS.selesai_diperbaiki; // #22c55e - satu-satunya hijau
   }
   return SEVERITY_COLORS[(report && report.severity) || ''] || '#64748b';
 }

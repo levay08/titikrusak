@@ -1,5 +1,5 @@
 // frontend/src/App.query.test.jsx
-// Unit test query GET /api/reports hasil buildQuery — termasuk filter
+// Unit test query GET /api/reports hasil buildQuery - termasuk filter
 // Verifikasi Titik (sudah diverifikasi = status terverifikasi /
 // dalam_perbaikan / selesai_diperbaiki; belum = dilaporkan).
 

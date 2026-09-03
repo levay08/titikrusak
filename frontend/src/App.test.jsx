@@ -157,8 +157,12 @@ describe('App: alur lapor kerusakan end-to-end', () => {
 
     await user.click(screen.getAllByRole('button', { name: /login sebagai otoritas/i })[0]);
 
+    // Otoritas memilih asal instansi terlebih dahulu (transparansi publik).
+    await user.type(screen.getByLabelText(/asal instansi otoritas/i), 'BPBD Kota Uji');
+    await user.click(screen.getByRole('button', { name: /lanjutkan & tampilkan qr/i }));
+
     // Alur verifikasi LANGSUNG dimulai (POST /api/verify/start) dengan
-    // opsi membuka wallet e.id (deep link) — TANPA pindai QR.
+    // opsi membuka wallet e.id (deep link) - TANPA pindai QR.
     await waitFor(() =>
       expect(fetchMock).toHaveBeenCalledWith('/api/verify/start', expect.anything())
     );
@@ -211,7 +215,7 @@ describe('App: alur lapor kerusakan end-to-end', () => {
       screen.getByRole('button', { name: /notifikasi aktivitas laporan/i })
     ).toBeInTheDocument();
 
-    // Tentang -> modal (desain & konten sama dengan modal welcome —
+    // Tentang -> modal (desain & konten sama dengan modal welcome -
     // logo transparan di background, tombol "Tutup" untuk menutup).
     await user.click(screen.getByRole('button', { name: /^tentang$/i }));
     expect(screen.getByText('Tentang titikrusak.id')).toBeInTheDocument();
@@ -259,7 +263,7 @@ describe('App: alur lapor kerusakan end-to-end', () => {
     render(<App />);
     await waitFor(() => expect(fetchMock).toHaveBeenCalled());
 
-    // Sidebar tampil -> sembunyikan (dua kontrol: header ⏴ + tab tepi —
+    // Sidebar tampil -> sembunyikan (dua kontrol: header ⏴ + tab tepi -
     // klik yang pertama cukup).
     expect(screen.getByRole('heading', { name: /filter laporan/i })).toBeInTheDocument();
     await user.click(screen.getAllByRole('button', { name: /sembunyikan panel filter/i })[0]);
@@ -287,7 +291,7 @@ describe('App: alur lapor kerusakan end-to-end', () => {
       await screen.findByText(/Belum ada laporan infrastruktur rusak di sini/i)
     ).toBeInTheDocument();
     // ...dan TEPAT SATU tombol "Lapor Kerusakan" (dari kartu; tombol
-    // floating disembunyikan — tidak ada duplikat).
+    // floating disembunyikan - tidak ada duplikat).
     expect(screen.getAllByRole('button', { name: /lapor kerusakan/i })).toHaveLength(1);
   });
 
@@ -324,9 +328,9 @@ describe('App: alur lapor kerusakan end-to-end', () => {
 
     // Modal verifikasi WARGA terbuka + skema Member level 1 (email/nama/
     // alamat/no. telp, tanpa KTP).
-    expect(await screen.findByText(/Verifikasi e\.id — Warga/i)).toBeInTheDocument();
+    expect(await screen.findByText(/Verifikasi e\.id - Warga/i)).toBeInTheDocument();
     expect(
-      screen.getByText(/Verifikasi Member level 1: email, nama, alamat, dan nomor telepon — tanpa KTP\./i)
+      screen.getByText(/Verifikasi Member level 1: email, nama, alamat, dan nomor telepon - tanpa KTP\./i)
     ).toBeInTheDocument();
     await waitFor(() => expect(verifyStart).toHaveBeenCalledTimes(1));
     expect(verifyStart).toHaveBeenCalledWith(

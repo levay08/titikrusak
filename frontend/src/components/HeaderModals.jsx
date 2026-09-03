@@ -1,10 +1,10 @@
 // frontend/src/components/HeaderModals.jsx
-// Konten menu header (File 1 Bagian 9.1 / poin Alur Inti 9) — semuanya
+// Konten menu header (File 1 Bagian 9.1 / poin Alur Inti 9) - semuanya
 // MODAL, bukan halaman baru: Tentang, Statistik (per severity/pulau/
 // provinsi + tabel & grafik), Pantau (laporan dalam perbaikan & baru
 // selesai), dan Notifikasi (aktivitas laporan: dibuat oleh, lokasi, apa
 // yang rusak, status kerusakan). Data berasal dari props reports (satu
-// sumber data yang sama dengan peta/daftar — di sini versi TANPA filter).
+// sumber data yang sama dengan peta/daftar - di sini versi TANPA filter).
 
 import { useState, useEffect } from 'react';
 import {
@@ -23,7 +23,7 @@ import WelcomeModal from './WelcomeModal.jsx';
 
 // Tanggal DB (UTC "YYYY-MM-DD HH:MM:SS") -> teks lokal (id-ID).
 export function formatDateTime(value) {
-  if (!value) return '—';
+  if (!value) return '-';
   const t = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(value)
     ? new Date(`${value.replace(' ', 'T')}Z`)
     : new Date(value);
@@ -197,7 +197,7 @@ function DonutChart({ segments, size = 150, thickness = 20 }) {
 export function AboutModal({ onClose }) {
   // Konten & DESAIN menu "Tentang" SAMA dengan modal welcome (koreksi
   // user): layout panel + logo transparan besar di latar belakang +
-  // WelcomeBody (latar belakang, solusi, fitur utama, ajakan — satu
+  // WelcomeBody (latar belakang, solusi, fitur utama, ajakan - satu
   // sumber konten). Cukup ganti heading/judul & tombol penutup.
   return (
     <WelcomeModal
@@ -428,8 +428,8 @@ export function PantauModal({ reports = [], onClose }) {
   );
 }
 
-// ---- Notifikasi (poin 9 + transparansi): feed aktivitas gabungan — laporan
-// baru (warga), perubahan status (otoritas), dan dukungan (warga) — dari
+// ---- Notifikasi (poin 9 + transparansi): feed aktivitas gabungan - laporan
+// baru (warga), perubahan status (otoritas), dan dukungan (warga) - dari
 // GET /api/activity, terurut terbaru. ----
 export function NotifikasiModal({ onClose }) {
   const [activities, setActivities] = useState(null); // null = memuat

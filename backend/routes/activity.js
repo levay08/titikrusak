@@ -1,9 +1,9 @@
 'use strict';
 
 // backend/routes/activity.js
-// Feed aktivitas gabungan (transparansi): SEMUA kejadian di sistem —
+// Feed aktivitas gabungan (transparansi): SEMUA kejadian di sistem -
 // laporan baru (warga), perubahan status (otoritas), dan dukungan/vote
-// (warga) — digabung menjadi satu timeline terurut terbaru. Dipakai menu
+// (warga) - digabung menjadi satu timeline terurut terbaru. Dipakai menu
 // Notifikasi (HeaderModals). TIDAK membocorkan field DID: hanya nama
 // tampilan (actor) + lokasi + waktu.
 
@@ -54,6 +54,29 @@ router.get('/', (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Gagal memuat aktivitas' });
+  }
+});
+
+// ---- Riwayat status SATU laporan (transparansi publik): siapa/apa/kapan
+//      tanpa nama pribadi otoritas - cukup label "Otoritas". ----
+router.get('/report/:reportId', (req, res) => {
+  const id = Number(req.params.reportId);
+  if (!Number.isInteger(id) || id <= 0) {
+    return res.status(404).json({ error: 'Laporan tidak ditemukan' });
+  }
+  try {
+    const rows = db
+      .prepare(
+        `SELECT new_status, changed_at
+         FROM status_history WHERE report_id = ?
+         ORDER BY changed_at DESC`
+      )
+      .all(id);
+    res.json({
+      history: rows.map((r) => ({ new_status: r.new_status, changed_at: r.changed_at })),
+    });
+  } catch (_e) {
+    res.status(500).json({ error: 'Gagal memuat riwayat status' });
   }
 });
 

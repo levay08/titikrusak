@@ -2,7 +2,7 @@
 
 // backend/routes/verify.js
 // Endpoint verifikasi e.id (File 2 Bagian 7.1 langkah keempat-kelima-keenam;
-// File 1 Bagian 6.5 & 7.4). Tanpa autentikasi tambahan — session_id
+// File 1 Bagian 6.5 & 7.4). Tanpa autentikasi tambahan - session_id
 // sendiri yang menjadi kunci akses (File 1 Bagian 7.4).
 //
 //   POST /api/verify/start          -> buat VP Request di e.id Gateway,
@@ -40,7 +40,7 @@ const VP_SIMPLE_PATH = '/api/v1/verifier/presentation/simple/';
 const VP_RESULT_PATH = '/api/v1/verifier/presentation/result/';
 
 // Verification schema id per role (diisi dari env, hasil langkah ketiga).
-// WARGA memakai skema Member Lv1 (email/phone, TANPA KTP) — e.id tidak
+// WARGA memakai skema Member Lv1 (email/phone, TANPA KTP) - e.id tidak
 // menyediakan field nama di skema ini. Nama tampilan diturunkan dari
 // username email: "pahlevy.gmx@gmail.com" -> "Pahlevy Gmx".
 function usernameFromEmail(email) {
@@ -138,11 +138,26 @@ router.post('/start', verifyLimiter, async (req, res) => {
        VALUES (?, ?, 'pending', ?)`
     ).run(sessionId, role, data.expires_at || null);
 
+    // Otoritas: simpan label instansi/asal yg dipilih ("bertindak sebagai") -
+    // label inilah yg tampil publik, bukan nama pribadi.
+    if (role === 'otoritas') {
+      const rawAgency =
+        req.body && typeof req.body.agency_label === 'string'
+          ? req.body.agency_label.trim().slice(0, 120)
+          : '';
+      if (rawAgency.length >= 3) {
+        db.prepare('UPDATE verification_sessions SET agency_label = ? WHERE session_id = ?').run(
+          rawAgency,
+          sessionId
+        );
+      }
+    }
+
     res.status(201).json({
       qr_data: qrData,
       session_id: sessionId,
       // URL wallet e.id yang dibuka holder (mengandung challenge + qr_token)
-      // — value QR yang tepat untuk discan (docs create-vp).
+      // - value QR yang tepat untuk discan (docs create-vp).
       eid_oauth_url: data.eid_oauth_url || null,
     });
   } catch (err) {
@@ -196,7 +211,7 @@ router.get('/result/:session_id', async (req, res) => {
         ? data.presentation.credentialSubject
         : {};
     // Beberapa versi envelope menaruh credentialSubject di dalam
-    // verifiableCredential[0] — cek juga struktur itu.
+    // verifiableCredential[0] - cek juga struktur itu.
     if (!subject || typeof subject !== 'object' || Object.keys(subject).length === 0) {
       const vc = data.presentation && data.presentation.verifiableCredential;
       const cs = Array.isArray(vc) && vc[0] ? vc[0].credentialSubject : null;
@@ -204,7 +219,7 @@ router.get('/result/:session_id', async (req, res) => {
     }
     // Nama holder sesuai skema (File 1/File 2, koreksi alur): OTORITAS memakai
     // skema KYC e-KTP (identitas KTP: fullname), WARGA memakai Member level 1
-    // (email, nama, alamat, nomor telepon — tanpa KTP). Field nama dicari dari
+    // (email, nama, alamat, nomor telepon - tanpa KTP). Field nama dicari dari
     // beberapa varian nama kolom yang umum di skema KYC e.id.
     let holderName = null;
     if (row.schema_type === 'otoritas') {

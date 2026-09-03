@@ -7,7 +7,7 @@
 //   - enrichEarthquake: radius 100 km + jendela 30 hari -> JSON | null
 //   - enrichWeather: adm4 terdekat -> {condition, temp_range, valid_date} | null
 //   - SEMUA fungsi mengembalikan null (bukan error) saat fetch gagal.
-// Memakai fetch TIRUAN — tidak memanggil API asli.
+// Memakai fetch TIRUAN - tidak memanggil API asli.
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
@@ -161,7 +161,7 @@ test('enrichEarthquake: gempa di luar jendela 30 hari -> null (walau dekat)', as
       { prefix: 'https://data.bmkg.go.id/DataMKG/TEWS/gempaterkini.json', body: GEMPATERKINI },
     ]),
   });
-  // Laporan dibuat 1 Juli 2026 — gempa Ruteng (31 Agu) belum terjadi saat itu.
+  // Laporan dibuat 1 Juli 2026 - gempa Ruteng (31 Agu) belum terjadi saat itu.
   const eq = await client.enrichEarthquake({
     lat: -8.611,
     lng: 120.466,
@@ -184,7 +184,7 @@ test('enrichWeather: adm4 terdekat -> {condition, temp_range, valid_date}', asyn
 
 test('enrichWeather: lokasi jauh dari daftar adm4 -> null', async () => {
   const client = createBmkgClient({ fetchImpl: makeFetchMock([]) });
-  // Tengah Laut Jawa — tidak ada adm4 kurasi dalam 60 km.
+  // Tengah Laut Jawa - tidak ada adm4 kurasi dalam 60 km.
   const wx = await client.enrichWeather({ lat: -6.0, lng: 112.0 });
   assert.equal(wx, null);
 });

@@ -1,6 +1,6 @@
 'use strict';
 
-// backend/scripts/news-monitor.js — CLI pemantau berita -> titik peta.
+// backend/scripts/news-monitor.js - CLI pemantau berita -> titik peta.
 //
 // Penggunaan:
 //   node scripts/news-monitor.js            # jalankan & masukkan ke peta

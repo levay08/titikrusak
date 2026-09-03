@@ -10,7 +10,7 @@
 // saat ini (teks tebal). "Beranda" selalu kembali ke peta utama lewat event
 // window 'tk:go-home' yang didengarkan App (goHomeView).
 
-// Item pembuka "Beranda" — kembali ke peta utama (dipanggil App via event).
+// Item pembuka "Beranda" - kembali ke peta utama (dipanggil App via event).
 export function homeCrumb() {
   return {
     label: 'Beranda',

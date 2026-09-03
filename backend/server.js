@@ -16,7 +16,7 @@ const captchaRouter = require('./routes/captcha.js');
 
 const app = express();
 
-// Logger hit (JSONL kecil per jam) — real-time, ringan, di /srv/tk-hits.
+// Logger hit (JSONL kecil per jam) - real-time, ringan, di /srv/tk-hits.
 const { hitLogger, start: startHitLogger } = require('./lib/hitLogger.js');
 app.use(hitLogger);
 startHitLogger();
@@ -38,7 +38,7 @@ app.use((req, res, next) => {
 });
 
 // Body limit diperbesar: laporan bisa membawa foto (data URL hasil
-// kompresi frontend, maks. 5 foto) — File 1 Bagian 5.2.
+// kompresi frontend, maks. 5 foto) - File 1 Bagian 5.2.
 app.use(express.json({ limit: '12mb' }));
 
 // Captcha anti-bot untuk pelapor tanpa verifikasi e.id.
@@ -69,6 +69,7 @@ app.use('/api/activity', activityRouter);
 
 // Route berita terkini (news flash) dari agregasi RSS Indonesia.
 app.use('/api/news', newsRouter);
+app.use('/api/otoritas', require('./routes/otoritas.js'));
 
 
 // ---- SPA (halaman web) ikut lewat backend agar tercatat di hitLogger ----

@@ -42,13 +42,13 @@ import { beacon } from '../lib/interest.js';
 const DEFAULT_CENTER = { lat: -2.5, lng: 118 };
 
 // Radius maksimum pergeseran pin dari titik hasil geocoding (File 1
-// Bagian 5.2): 1,5 km — di tengah rentang 1-2 km yang ditentukan.
+// Bagian 5.2): 1,5 km - di tengah rentang 1-2 km yang ditentukan.
 const MAX_RADIUS_M = 1500;
 
 const GEOCODE_URL = 'https://nominatim.openstreetmap.org/search';
 
 // Ikon pin lokasi (bukan titik): simbol pin klasik dengan ujung runcing
-// di bawah — anchor tepat di UJUNG pin, jadi ujung pin = koordinat
+// di bawah - anchor tepat di UJUNG pin, jadi ujung pin = koordinat
 // persis lokasi. Warna oranye (tema maintenance/perbaikan).
 const PIN_ICON = L.divIcon({
   className: '',
@@ -146,7 +146,7 @@ function LocationMiniMap({ anchor, pin, onPinChange }) {
 
   // Saat hasil geocoding BARU masuk (anchor berubah): arahkan peta dan
   // pindahkan pin ke titik hasil. CATATAN: hanya bereaksi pada perubahan
-  // ANCHOR — JANGAN ikutkan `pin` di deps. Kalau `pin` ikut, setiap
+  // ANCHOR - JANGAN ikutkan `pin` di deps. Kalau `pin` ikut, setiap
   // gerakan drag (yang memperbarui state pin) memicu setView + setLatLng
   // ulang, sehingga pin terasa macet/terlompat dan tidak leluasa digeser.
   useEffect(() => {
@@ -208,7 +208,7 @@ export default function ReportForm({ onSubmitted, onClose }) {
   const [verification, setVerification] = useState(null);
   const [verificationOpen, setVerificationOpen] = useState(false);
   // Perangkat sentuh (ponsel/tablet): alur wallet e.id (buka aplikasi via
-  // deep link) TANPA scan QR — lihat VerificationFlow walletMode.
+  // deep link) TANPA scan QR - lihat VerificationFlow walletMode.
   const isTouchDevice = useIsTouchDevice();
 
   // Sinyal minat: user membuka alur lapor (tanpa data tambahan).
@@ -219,7 +219,7 @@ export default function ReportForm({ onSubmitted, onClose }) {
 
   // Status verifikasi e.id yang TERSIMPAN (localStorage 'titikrusak_eid').
   // Kalau sudah terverifikasi, lapor berikutnya TIDAK perlu verifikasi
-  // ulang — langsung pilih identitas (nama asli / anonim); opsi "tanpa
+  // ulang - langsung pilih identitas (nama asli / anonim); opsi "tanpa
   // verifikasi" menjadi nonaktif karena pengguna sudah terverifikasi.
   const [initialVerified] = useState(() => {
     try {
@@ -390,7 +390,7 @@ export default function ReportForm({ onSubmitted, onClose }) {
         const dataUrl = await compressImage(file);
         setPhotos((prev) => [...prev, dataUrl]);
       } catch (_err) {
-        setPhotoError('Gagal membaca foto — coba file lain.');
+        setPhotoError('Gagal membaca foto - coba file lain.');
       }
     }
   };
@@ -491,7 +491,7 @@ export default function ReportForm({ onSubmitted, onClose }) {
               marginBottom: 14,
             }}
           >
-            ✓ Terverifikasi e.id — Role: <strong>Warga</strong> (Member Lv1)
+            ✓ Terverifikasi e.id - Role: <strong>Warga</strong> (Member Lv1)
             <br />
             sebagai <strong>{initialVerified.displayName}</strong>
           </div>
@@ -616,9 +616,9 @@ export default function ReportForm({ onSubmitted, onClose }) {
           >
             <strong>Dengan e.id, laporan Anda:</strong>
             <ul style={{ margin: '6px 0 0', paddingLeft: 18 }}>
-              <li>langsung bertanda terverifikasi — mudah diverifikasi dan diproses otoritas;</li>
+              <li>langsung bertanda terverifikasi - mudah diverifikasi dan diproses otoritas;</li>
               <li>
-                mendapat fitur Dukungan dari warga lain — dukungan menaikkan prioritas
+                mendapat fitur Dukungan dari warga lain - dukungan menaikkan prioritas
                 penanganan laporan.
               </li>
             </ul>
@@ -677,7 +677,7 @@ export default function ReportForm({ onSubmitted, onClose }) {
           try {
             localStorage.setItem('titikrusak_eid', JSON.stringify(result));
           } catch (_e) {
-            // localStorage tidak tersedia — abaikan, verifikasi tetap berlaku
+            // localStorage tidak tersedia - abaikan, verifikasi tetap berlaku
             // untuk form ini.
           }
           setEidSession({ session_id: result.session_id, role: 'warga' });
@@ -698,7 +698,7 @@ export default function ReportForm({ onSubmitted, onClose }) {
         <p style={{ margin: '0 0 16px', fontSize: 14, lineHeight: 1.5, color: '#334155' }}>
           Terima kasih! Laporan Anda sudah terkirim dan akan segera di-review serta
           ditindaklanjuti oleh otoritas setempat. Status awal laporan:{' '}
-          <strong>Dilaporkan</strong> — marker baru akan langsung muncul di peta.
+          <strong>Dilaporkan</strong> - marker baru akan langsung muncul di peta.
         </p>
         <div style={{ display: 'flex', gap: 10 }}>
           <button
@@ -759,7 +759,7 @@ export default function ReportForm({ onSubmitted, onClose }) {
             marginBottom: 14,
           }}
         >
-          ✓ Terverifikasi e.id — melapor sebagai <strong>{verification.displayName}</strong>
+          ✓ Terverifikasi e.id - melapor sebagai <strong>{verification.displayName}</strong>
         </div>
       ) : (
         <div
@@ -809,7 +809,7 @@ export default function ReportForm({ onSubmitted, onClose }) {
           onChange={set('infra_type')}
           style={{ ...inputStyle, height: 38 }}
         >
-          <option value="">— Pilih —</option>
+          <option value="">- Pilih -</option>
           {INFRA_TYPES.map((o) => (
             <option key={o.value} value={o.value}>
               {o.label}
@@ -957,7 +957,7 @@ export default function ReportForm({ onSubmitted, onClose }) {
             Pilih Foto…
           </label>
           <span style={{ fontSize: 11.5, color: '#94a3b8', marginLeft: 8 }}>
-            JPG/PNG — dikompres otomatis
+            JPG/PNG - dikompres otomatis
           </span>
         </div>
         {photoError && <div style={errorStyle}>{photoError}</div>}

@@ -75,7 +75,7 @@ const PUBLIC_SELECT = PUBLIC_COLUMNS.join(', ');
 // photo_urls juga disimpan sebagai string JSON array (laporan dari media),
 // dikembalikan sebagai array agar frontend bisa merender foto.
 // related_earthquake / related_weather disimpan sebagai string JSON objek
-// hasil enrichment BMKG (File 1 5.8 / File 2 7.2) — dikembalikan sebagai
+// hasil enrichment BMKG (File 1 5.8 / File 2 7.2) - dikembalikan sebagai
 // objek agar frontend bisa merender badge kontekstual.
 function parseVitalStatus(row) {
   if (!row) return row;
@@ -118,7 +118,7 @@ function parseVitalStatus(row) {
 // Nilai enum status laporan (File 1 Bagian 6.2).
 const STATUSES = ['dilaporkan', 'terverifikasi', 'dalam_perbaikan', 'selesai_diperbaiki'];
 
-// Urutan alur status (File 1 Bagian 6.2): hanya boleh maju satu arah —
+// Urutan alur status (File 1 Bagian 6.2): hanya boleh maju satu arah -
 // dilaporkan -> terverifikasi -> dalam_perbaikan -> selesai_diperbaiki.
 const STATUS_ORDER = { dilaporkan: 1, terverifikasi: 2, dalam_perbaikan: 3, selesai_diperbaiki: 4 };
 
@@ -217,7 +217,7 @@ router.get('/', (req, res) => {
   const order = q.order === 'asc' ? 'ASC' : 'DESC';
   let orderBy;
   if (sort === 'severity') {
-    // severity disimpan sebagai TEXT ('ringan'..'ambruk'), bukan angka —
+    // severity disimpan sebagai TEXT ('ringan'..'ambruk'), bukan angka -
     // ORDER BY alfabet biasa salah (ambruk < berat < ringan < sedang).
     // Petakan tiap nilai ke angka urutan sebelum mengurutkan.
     orderBy =
@@ -245,7 +245,7 @@ router.get('/', (req, res) => {
 //
 // Enrichment BMKG (File 2 Bagian 7.2 / File 1 Bagian 5.8): setelah
 // tersimpan, dicari gempa terkait (radius 100 km, 30 hari terakhir) dan
-// prakiraan cuaca lokasi (adm4 terdekat) secara BEST-EFFORT — hasilnya
+// prakiraan cuaca lokasi (adm4 terdekat) secara BEST-EFFORT - hasilnya
 // disimpan ke related_earthquake / related_weather bila ada; kegagalan
 // enrichment TIDAK pernah menggagalkan penyimpanan laporan.
 router.post('/', reportLimiter, async (req, res) => {
@@ -331,7 +331,7 @@ router.post('/', reportLimiter, async (req, res) => {
   // reporter_display_name opsional; reporter_is_verified true hanya jika
   // pengguna menyelesaikan alur verifikasi e.id. Catatan: verifikasi
   // penuh sisi server (mencocokkan holder_did dengan sesi) menyusul di
-  // langkah berikutnya — untuk sekarang flag dikirim klien.
+  // langkah berikutnya - untuk sekarang flag dikirim klien.
   const reporter_display_name =
     body.reporter_display_name !== undefined && body.reporter_display_name !== null &&
     String(body.reporter_display_name).trim() !== ''
@@ -342,10 +342,10 @@ router.post('/', reportLimiter, async (req, res) => {
   }
   const reporter_is_verified = body.reporter_is_verified === true ? 1 : 0;
 
-  // Foto laporan (opsional): array string — URL publik atau data URL
+  // Foto laporan (opsional): array string - URL publik atau data URL
   // hasil kompresi di frontend. Maksimal 5; data URL divalidasi isi
   // byte-nya (magic bytes gambar asli, SVG/HTML ditolak) + scan ClamAV
-  // bila tersedia (lib/uploadGuard.js — proteksi upload 2 Sep 2026).
+  // bila tersedia (lib/uploadGuard.js - proteksi upload 2 Sep 2026).
   let photo_urls = null;
   if (Array.isArray(body.photo_urls) && body.photo_urls.length > 0) {
     const guarded = await guardPhotos(body.photo_urls);
@@ -479,7 +479,7 @@ router.patch('/:id/status', (req, res) => {
 // Dukungan warga terhadap laporan (File 1 Bagian 6.3): menambah vote_count
 // dan mencatat baris di tabel votes. Dukungan hanya dapat diberikan oleh
 // warga terverifikasi e.id (voter_is_verified). voter_did diisi identitas
-// tampilan (nama/alias) sebagai pengganti sementara — pencocokan penuh
+// tampilan (nama/alias) sebagai pengganti sementara - pencocokan penuh
 // holder_did<->sesi menyusul di langkah berikutnya (sama seperti
 // reporter_display_name pada POST /api/reports).
 // Body: { voter_display_name?, voter_is_verified }

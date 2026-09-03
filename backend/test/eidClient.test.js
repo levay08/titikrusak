@@ -2,7 +2,7 @@
 
 // backend/test/eidClient.test.js
 // Unit test logika penyimpanan & refresh access token e.id Gateway.
-// Memakai fetch TIRUAN (mock) — tidak memanggil API asli, karena
+// Memakai fetch TIRUAN (mock) - tidak memanggil API asli, karena
 // EID_CLIENT_ID / EID_CLIENT_SECRET belum tersedia di lingkungan ini.
 //
 // Format request/response mock mengikuti dokumentasi resmi:

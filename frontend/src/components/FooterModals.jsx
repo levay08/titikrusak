@@ -31,7 +31,7 @@ const sectionTitle = {
 // Arti singkat tiap status laporan (alur File 1 Bagian 6.2).
 const STATUS_MEANING = {
   dilaporkan: 'Laporan baru masuk dan menunggu verifikasi otoritas.',
-  terverifikasi: 'Divalidasi oleh otoritas — titik tampil dengan centang ✓ di peta.',
+  terverifikasi: 'Divalidasi oleh otoritas - titik tampil dengan centang ✓ di peta.',
   dalam_perbaikan: 'Sedang ditangani / diperbaiki oleh otoritas.',
   selesai_diperbaiki: 'Perbaikan telah selesai dilakukan.',
 };
@@ -41,7 +41,7 @@ export function DocModal({ onClose }) {
     <ModalShell title="Dokumentasi" onClose={onClose} maxWidth={640}>
       {/* ---- Legenda peta: tingkat kerusakan ---- */}
       <div style={{ marginBottom: 18 }}>
-        <span style={sectionTitle}>Legenda Peta — Tingkat Kerusakan</span>
+        <span style={sectionTitle}>Legenda Peta - Tingkat Kerusakan</span>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {SEVERITY_ORDER.map((sev) => (
             <div
@@ -94,7 +94,7 @@ export function DocModal({ onClose }) {
         >
           Titik <strong>hijau</strong> di peta berarti laporan <strong>sudah diperbaiki</strong>{' '}
           (status Selesai Diperbaiki), bukan tingkat kerusakan. Titik lain berwarna sesuai
-          tingkat kerusakan — <strong>Ringan</strong> = biru muda, Sedang = kuning, Berat =
+          tingkat kerusakan - <strong>Ringan</strong> = biru muda, Sedang = kuning, Berat =
           oranye, Ambruk = merah. Centang <strong>✓</strong> di dalam titik = laporan sudah
           diverifikasi otoritas.
         </p>
@@ -166,31 +166,31 @@ export function DocModal({ onClose }) {
         <span style={sectionTitle}>Panduan Mengoperasikan</span>
         <ol style={{ margin: 0, paddingLeft: 20, fontSize: 13, lineHeight: 1.7, color: '#334155' }}>
           <li>
-            <strong>Lihat peta</strong> — klik titik berwarna untuk membuka detail
+            <strong>Lihat peta</strong> - klik titik berwarna untuk membuka detail
             lengkap (foto, jenis kerusakan, status, sumber); klik cluster (angka)
             untuk memperbesar ke area itu.
           </li>
           <li>
-            <strong>Filter &amp; cari</strong> — gunakan sidebar filter (severity,
+            <strong>Filter &amp; cari</strong> - gunakan sidebar filter (severity,
             kewenangan, status vital) atau search bar di header untuk mencari kata
             kunci (nama kota, jenis kerusakan, media).
           </li>
           <li>
-            <strong>Laporkan kerusakan</strong> — tekan tombol “+ Lapor Kerusakan”,
+            <strong>Laporkan kerusakan</strong> - tekan tombol “+ Lapor Kerusakan”,
             isi form (jenis, lokasi, deskripsi). Verifikasi e.id bersifat opsional
             bagi pelapor.
           </li>
           <li>
-            <strong>Dukung laporan</strong> — pada detail titik, tekan “Dukung
-            laporan” (memerlukan verifikasi e.id warga) — dukungan menjadi sinyal
+            <strong>Dukung laporan</strong> - pada detail titik, tekan “Dukung
+            laporan” (memerlukan verifikasi e.id warga) - dukungan menjadi sinyal
             prioritas bagi otoritas.
           </li>
           <li>
-            <strong>Otoritas</strong> — login lalu buka menu “Admin” untuk
-            memverifikasi laporan dan mengeset status perbaikan.
+            <strong>Otoritas</strong> - login lalu buka menu “Admin” untuk
+            memverifikasi laporan dan mengatur status perbaikan.
           </li>
           <li>
-            <strong>Menu header</strong> — Tentang, Statistik, Pantau, Notifikasi
+            <strong>Menu header</strong> - Tentang, Statistik, Pantau, Notifikasi
             menampilkan ringkasan &amp; aktivitas seluruh laporan.
           </li>
         </ol>
@@ -208,7 +208,7 @@ export function TermsModal({ onClose }) {
           <p style={{ margin: '0 0 8px' }}>
             titikrusak.id mengumpulkan data laporan kerusakan infrastruktur
             publik: jenis &amp; tingkat kerusakan, lokasi (koordinat), deskripsi,
-            foto (opsional), dan nama pelapor (opsional — pelaporan anonim
+            foto (opsional), dan nama pelapor (opsional - pelaporan anonim
             didukung penuh).
           </p>
           <p style={{ margin: 0 }}>
@@ -228,12 +228,12 @@ export function TermsModal({ onClose }) {
             kredensial, dokumen, atau data identitas mentah Anda.
           </p>
           <p style={{ margin: '0 0 8px' }}>
-            <strong>Warga (pelapor)</strong> — verifikasi Member level 1: email,
-            nama, alamat, dan nomor telepon. <strong>TANPA KTP</strong> — cukup
+            <strong>Warga (pelapor)</strong> - verifikasi Member level 1: email,
+            nama, alamat, dan nomor telepon. <strong>TANPA KTP</strong> - cukup
             untuk mendukung laporan dan menandai laporan terverifikasi.
           </p>
           <p style={{ margin: 0 }}>
-            <strong>Otoritas (verifikator)</strong> — verifikasi <strong>KYC
+            <strong>Otoritas (verifikator)</strong> - verifikasi <strong>KYC
             e-KTP</strong>: identitas penuh dengan dokumen kependudukan. Hanya
             otoritas terverifikasi yang dapat menyetujui laporan dan mengubah
             status perbaikan.
@@ -255,9 +255,9 @@ export function TermsModal({ onClose }) {
   );
 }
 
-// ---- Kontak (kirim pesan via WHATSAPP — koreksi user: email tidak
+// ---- Kontak (kirim pesan via WHATSAPP - koreksi user: email tidak
 // bisa diandalkan, ganti ke nomor 62818101990) ----
-// Submit membuka chat WhatsApp (wa.me) dengan pesan yang sudah tersusun —
+// Submit membuka chat WhatsApp (wa.me) dengan pesan yang sudah tersusun -
 // tidak butuh server email/relay apa pun.
 const WA_NUMBER = '62818101990';
 const waLink = (text) =>
@@ -283,7 +283,7 @@ export function ContactModal({ onClose }) {
 
   const set = (key) => (e) => {
     // Sinyal minat: user mulai mengetik di form kontak (sekali per bukaan,
-    // tanpa mengirim isi teks — privasi aman).
+    // tanpa mengirim isi teks - privasi aman).
     if (!typedSent.current) {
       typedSent.current = true;
       beacon('contact_typed');
@@ -300,7 +300,7 @@ export function ContactModal({ onClose }) {
   };
 
   // Susun pesan WhatsApp dengan format RAPI (bukan satu baris panjang),
-  // lalu buka chat wa.me — tidak butuh server email apa pun.
+  // lalu buka chat wa.me - tidak butuh server email apa pun.
   const submit = (e) => {
     e.preventDefault();
     if (!validate()) return;
@@ -339,7 +339,7 @@ export function ContactModal({ onClose }) {
   return (
     <ModalShell title="Kontak" onClose={onClose} maxWidth={520}>
       <p style={{ margin: '0 0 14px', fontSize: 13, lineHeight: 1.55, color: '#334155' }}>
-        Ada masukan, pertanyaan, atau kerja sama? Isi form lalu tekan kirim — WhatsApp
+        Ada masukan, pertanyaan, atau kerja sama? Isi form lalu tekan kirim - WhatsApp
         terbuka dengan pesan Anda ke <strong>62818101990</strong>. Kami membalas
         secepatnya.
       </p>
@@ -359,7 +359,7 @@ export function ContactModal({ onClose }) {
           }}
         >
           <p style={{ margin: '0 0 8px', fontWeight: 600 }}>
-            ✓ WhatsApp terbuka dengan pesan Anda — tinggal tekan tombol kirim di
+            ✓ WhatsApp terbuka dengan pesan Anda - tinggal tekan tombol kirim di
             WhatsApp.
           </p>
           <p style={{ margin: '0 0 10px', fontSize: 12.5, color: '#334155' }}>

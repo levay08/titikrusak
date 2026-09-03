@@ -1,6 +1,6 @@
 // frontend/src/components/SeedNotice.test.jsx
 // Tes tooltip keterangan data: seluruh titik di peta saat ini adalah data
-// nyata dari pemberitaan media (bukan laporan warga) — bisa ditutup (✕);
+// nyata dari pemberitaan media (bukan laporan warga) - bisa ditutup (✕);
 // penutupan tersimpan per sesi tab (sessionStorage) seperti WelcomeModal.
 
 import { beforeEach, describe, it, expect, vi } from 'vitest';

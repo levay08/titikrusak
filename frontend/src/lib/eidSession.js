@@ -1,5 +1,5 @@
 // frontend/src/lib/eidSession.js
-// Penyimpanan sesi e.id hasil verifikasi (session_id + role) — dipakai
+// Penyimpanan sesi e.id hasil verifikasi (session_id + role) - dipakai
 // sebagai header 'x-eid-session' untuk SEMUA aksi yang butuh otorisasi
 // server (vote, status, edit, hapus, klaim perbaikan, tanda X). Server
 // memverifikasi ke tabel verification_sessions; klien hanya menyimpan.

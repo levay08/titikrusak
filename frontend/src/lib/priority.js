@@ -1,12 +1,12 @@
 // frontend/src/lib/priority.js
 // Skor & pengelompokan prioritas laporan untuk sisi Otoritas (File 1
-// Bagian 6.2/6.3): prioritas dihitung dari TIGA parameter —
+// Bagian 6.2/6.3): prioritas dihitung dari TIGA parameter -
 //   1. severity (ringan=1, sedang=2, berat=3, ambruk=4; bobot x3 agar
-//      keselamatan tetap dominan — ambruk selalu prioritas tertinggi),
+//      keselamatan tetap dominan - ambruk selalu prioritas tertinggi),
 //   2. validasi e.id pelapor (reporter_is_verified: +2),
 //   3. kelengkapan laporan (maks +4: description, photo_urls,
 //      vital_status_note, bridge_authority diketahui).
-// Bonus kecil: dukungan warga (vote_count >= 5) menambah +1 — dukungan
+// Bonus kecil: dukungan warga (vote_count >= 5) menambah +1 - dukungan
 // interaktif ikut menaikkan prioritas (File 1 Bagian 6.3).
 // Skor maksimum = 4*3 + 2 + 4 + 1 = 19, dipetakan ke 4 tier prioritas.
 

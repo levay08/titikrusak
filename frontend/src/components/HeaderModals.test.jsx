@@ -1,5 +1,5 @@
 // frontend/src/components/HeaderModals.test.jsx
-// Tes menu header (poin Alur Inti 9) — semuanya MODAL: Tentang (about),
+// Tes menu header (poin Alur Inti 9) - semuanya MODAL: Tentang (about),
 // Statistik (total/severity/wilayah per pulau & provinsi, tabel + grafik),
 // Pantau (hanya laporan dalam perbaikan & selesai), Notifikasi (aktivitas
 // laporan: dibuat oleh, lokasi, apa yang rusak, status kerusakan).
@@ -77,7 +77,7 @@ const REPORTS = [
   },
 ];
 
-describe('AboutModal (menu Tentang — konten SAMA dengan modal welcome)', () => {
+describe('AboutModal (menu Tentang - konten SAMA dengan modal welcome)', () => {
   it('menampilkan konten yang sama dengan modal welcome: latar belakang, solusi, fitur utama, ajakan', () => {
     render(<AboutModal onClose={vi.fn()} />);
     expect(screen.getByText('Tentang titikrusak.id')).toBeInTheDocument();
@@ -90,9 +90,9 @@ describe('AboutModal (menu Tentang — konten SAMA dengan modal welcome)', () =>
       screen.getByText(/peta terpadu kerusakan infrastruktur/i)
     ).toBeInTheDocument();
     expect(
-      screen.getByText(/Dukungan warga via e\.id — menaikkan prioritas/i)
+      screen.getByText(/Dukungan warga via e\.id - menaikkan prioritas/i)
     ).toBeInTheDocument();
-    // Ajakan verifikasi — teks terbagi elemen <strong>, cek textContent.
+    // Ajakan verifikasi - teks terbagi elemen <strong>, cek textContent.
     expect(
       screen.getByText(
         (_c, el) =>
@@ -105,7 +105,7 @@ describe('AboutModal (menu Tentang — konten SAMA dengan modal welcome)', () =>
     expect(screen.queryByText('Cara pakai')).not.toBeInTheDocument();
     expect(screen.queryByText(/platform crowdsourcing untuk melaporkan/i)).not.toBeInTheDocument();
 
-    // Disclaimer independensi (koreksi user — juga tampil di modal welcome
+    // Disclaimer independensi (koreksi user - juga tampil di modal welcome
     // karena memakai WelcomeBody yang sama).
     expect(
       screen.getByText(
@@ -176,7 +176,7 @@ describe('PantauModal (poin 9: laporan perbaikan & selesai)', () => {
   });
 });
 
-describe('NotifikasiModal (feed aktivitas gabungan — transparansi)', () => {
+describe('NotifikasiModal (feed aktivitas gabungan - transparansi)', () => {
   afterEach(() => {
     vi.unstubAllGlobals();
   });

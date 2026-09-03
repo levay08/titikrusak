@@ -100,7 +100,12 @@ describe('VerificationFlow', () => {
   it('status rejected -> pesan gagal + tombol Coba Lagi, polling berhenti', async () => {
     const fetchMock = buildFetchMock({ startStatus: 'rejected' });
     vi.stubGlobal('fetch', fetchMock);
+    const user = userEvent.setup();
     render(<VerificationFlow role="otoritas" onComplete={vi.fn()} onCancel={vi.fn()} {...FAST} />);
+
+    // Otoritas wajib memilih asal instansi sebelum QR/verifikasi berjalan.
+    await user.type(screen.getByLabelText(/asal instansi otoritas/i), 'BPBD Uji');
+    await user.click(screen.getByRole('button', { name: /lanjutkan & tampilkan qr/i }));
 
     expect(await screen.findByText(/Verifikasi ditolak/i, {}, { timeout: 2000 })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /coba lagi/i })).toBeInTheDocument();
@@ -117,13 +122,13 @@ describe('VerificationFlow', () => {
   });
 });
 
-describe('VerificationFlow walletMode (ponsel/tablet — buka wallet e.id, tanpa pindai QR)', () => {
+describe('VerificationFlow walletMode (ponsel/tablet - buka wallet e.id, tanpa pindai QR)', () => {
   beforeEach(() => {
     vi.unstubAllGlobals();
   });
 
   // Status tetap pending (approveAfter sangat besar) agar UI tahap QR
-  // stabil selama pengujian — approval dibahas tes desktop terpisah.
+  // stabil selama pengujian - approval dibahas tes desktop terpisah.
   const STAY_PENDING = { approveAfter: Number.MAX_SAFE_INTEGER };
 
   it('menampilkan tautan "Buka Wallet e.id" (deep link) dan TIDAK meminta scan QR', async () => {

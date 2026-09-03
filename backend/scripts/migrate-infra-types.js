@@ -36,7 +36,7 @@ function checkHasNewInfra() {
 }
 
 if (checkHasNewInfra()) {
-  console.log('Skema sudah memuat jenis infrastruktur baru — tidak perlu migrasi.');
+  console.log('Skema sudah memuat jenis infrastruktur baru - tidak perlu migrasi.');
   process.exit(0);
 }
 

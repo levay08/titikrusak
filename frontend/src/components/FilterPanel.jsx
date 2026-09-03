@@ -1,7 +1,7 @@
 // frontend/src/components/FilterPanel.jsx
 // Panel filter laporan (File 1 Bagian 9.1): sidebar di kiri peta yang
 // mengubah data yang ditampilkan MapView secara real-time (tanpa submit
-// maupun reload). Komponen ini controlled — seluruh state filter tinggal
+// maupun reload). Komponen ini controlled - seluruh state filter tinggal
 // di App dan diteruskan lewat props.
 //
 // Isi sesuai File 1 Bagian 9.1:
@@ -14,6 +14,7 @@
 //   - tombol Reset Filter
 
 import { SEVERITIES, BRIDGE_AUTHORITIES, VITAL_STATUSES } from '../lib/labels.js';
+import ActiveOtoritas from './ActiveOtoritas.jsx';
 
 // Enam opsi sorting (File 1 Bagian 6.8.10), dipetakan ke pasangan
 // sort/order yang dipahami backend GET /api/reports.
@@ -49,7 +50,7 @@ const inputStyle = {
 
 // Grup checkbox kecil dengan warna dot opsional (untuk severity).
 // `cols > 1` = susun dua kolom (hemat tinggi sidebar agar tidak perlu
-// scroll — koreksi user). `showTitle=false` untuk grup yang judulnya
+// scroll - koreksi user). `showTitle=false` untuk grup yang judulnya
 // dirender sendiri (mis. Status Vital yang bisa dilipat).
 function CheckboxGroup({ title, options, selected, onToggle, cols = 1, showTitle = true }) {
   const rowStyle = {
@@ -115,7 +116,7 @@ export default function FilterPanel({
   eidDisplayName = null, // nama pengguna terverifikasi (untuk ditampilkan)
   onRequestVerify = () => {},
   onLogoutEid = () => {},
-  otoritas = null, // sesi otoritas aktif (null = belum masuk) — kartu e.id
+  otoritas = null, // sesi otoritas aktif (null = belum masuk) - kartu e.id
   // menampilkan status OTORITAS (KYC) dengan tombol keluar, sejalan dengan
   // login otoritas di header/admin.
   onLogoutOtoritas = () => {},
@@ -239,7 +240,7 @@ export default function FilterPanel({
         </select>
       </div>
 
-      {/* Tingkat kerusakan — 2 kolom agar hemat tinggi (tanpa scroll) */}
+      {/* Tingkat kerusakan - 2 kolom agar hemat tinggi (tanpa scroll) */}
       <CheckboxGroup
         title="Tingkat Kerusakan"
         options={SEVERITIES}
@@ -256,7 +257,7 @@ export default function FilterPanel({
         onToggle={toggle('bridge_authority')}
       />
 
-      {/* Status vital — tetap tampil polos tanpa opsi lipat (koreksi user) */}
+      {/* Status vital - tetap tampil polos tanpa opsi lipat (koreksi user) */}
       <CheckboxGroup
         title="Status Vital"
         options={VITAL_STATUSES}
@@ -286,7 +287,7 @@ export default function FilterPanel({
         </p>
       </div>
 
-      {/* Status verifikasi e.id (poin Alur Inti 5): AKTIF — menampilkan
+      {/* Status verifikasi e.id (poin Alur Inti 5): AKTIF - menampilkan
           ROLE yang terverifikasi. Prioritas: sesi OTORITAS (KYC e-KTP, nama
           sesuai KTP) > warga (Member Lv1). Saat belum: abu-abu + tombol
           verifikasi BIRU MUDA. */}
@@ -326,7 +327,7 @@ export default function FilterPanel({
                   Terverifikasi e.id
                 </div>
                 <div style={{ fontSize: 11.5, color: '#475569', marginTop: 2 }}>
-                  Role: <strong>Otoritas</strong> (KYC e-KTP — nama sesuai KTP)
+                  Role: <strong>Otoritas</strong> (KYC e-KTP - nama sesuai KTP)
                 </div>
                 {otoritas.displayName && (
                   <div
@@ -415,7 +416,7 @@ export default function FilterPanel({
                   Terverifikasi e.id
                 </div>
                 <div style={{ fontSize: 11.5, color: '#475569', marginTop: 2 }}>
-                  Role: <strong>Warga</strong> (Member Lv1 — email, nama, alamat, no. telepon)
+                  Role: <strong>Warga</strong> (Member Lv1 - email, nama, alamat, no. telepon)
                 </div>
                 {eidDisplayName && (
                   <div
@@ -517,7 +518,7 @@ export default function FilterPanel({
                 padding: '8px 10px',
                 borderRadius: 6,
                 border: 'none',
-                // Biru MUDA (bukan kuning) — warna brand e.id.
+                // Biru MUDA (bukan kuning) - warna brand e.id.
                 background: '#60a5fa',
                 color: '#fff',
                 fontSize: 12,
@@ -547,6 +548,8 @@ export default function FilterPanel({
             </button>
           </div>
         )}
+        {/* Transparansi publik: instansi otoritas yang bekerja 24 jam */}
+        <ActiveOtoritas />
       </div>
     </aside>
   );

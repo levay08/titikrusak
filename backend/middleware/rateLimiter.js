@@ -8,7 +8,7 @@ const rateLimit = require('express-rate-limit');
 
 // Digunakan pada POST /api/reports ketika request tidak membawa
 // session_id yang sudah terverifikasi (diterapkan tanpa kondisi
-// pada tahap ini sesuai File 2 Bagian 6.3 — verifikasi e.id belum
+// pada tahap ini sesuai File 2 Bagian 6.3 - verifikasi e.id belum
 // diintegrasikan di tahap ini, sehingga seluruh POST dianggap tanpa
 // verifikasi dan rate limit berlaku untuk semua).
 const reportLimiter = rateLimit({
@@ -21,7 +21,7 @@ const reportLimiter = rateLimit({
   },
 });
 
-// Limiter verifikasi e.id (anti spam session dari IP sama — mis. bot
+// Limiter verifikasi e.id (anti spam session dari IP sama - mis. bot
 // mencoba membuat banyak sesi verifikasi).
 const verifyLimiter = rateLimit({
   windowMs: 60 * 1000, // 1 menit

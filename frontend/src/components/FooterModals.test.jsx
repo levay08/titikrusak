@@ -16,11 +16,11 @@ describe('FooterModals: Dokumentasi', () => {
 
     // Legenda peta: severity dengan definisi (nama muncul di baris legenda
     // DAN di catatan warna -> pakai getAllByText).
-    expect(screen.getByText(/Legenda Peta — Tingkat Kerusakan/)).toBeInTheDocument();
+    expect(screen.getByText(/Legenda Peta - Tingkat Kerusakan/)).toBeInTheDocument();
     expect(screen.getAllByText('Ringan').length).toBeGreaterThan(0);
     expect(screen.getAllByText('Ambruk').length).toBeGreaterThan(0);
     expect(screen.getByText(/Kerusakan kosmetik atau kecil/)).toBeInTheDocument();
-    // Catatan: hijau khusus laporan sudah diperbaiki (koreksi user) —
+    // Catatan: hijau khusus laporan sudah diperbaiki (koreksi user) -
     // teks terbagi elemen <strong>, cek lewat textContent.
     expect(
       screen.getByText(
