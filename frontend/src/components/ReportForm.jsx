@@ -46,6 +46,8 @@ const DEFAULT_CENTER = { lat: -2.5, lng: 118 };
 const MAX_RADIUS_M = 1500;
 
 const GEOCODE_URL = 'https://nominatim.openstreetmap.org/search';
+// Balik arah (koordinat -> nama jalan/daerah) utk label pin (4 Sep 2026).
+const REVERSE_URL = 'https://nominatim.openstreetmap.org/reverse';
 
 // Ikon pin lokasi (bukan titik): simbol pin klasik dengan ujung runcing
 // di bawah - anchor tepat di UJUNG pin, jadi ujung pin = koordinat
@@ -268,6 +270,21 @@ export default function ReportForm({ onSubmitted, onClose }) {
   const [pinConfirmed, setPinConfirmed] = useState(false);
   const [geoState, setGeoState] = useState('idle'); // idle | searching | found | notfound | error
   const [geoError, setGeoError] = useState('');
+  // Nama lokasi hasil balik-arah dari posisi PIN (teks kecil di bawah field
+  // nama lokasi). GPS otomatis mengarahkan pin ke lokasi user saat form
+  // dibuka, tanpa mengisi field nama.
+  const [pinLabel, setPinLabel] = useState('');
+
+  const reverseName = useCallback(async (c) => {
+    try {
+      const r = await fetch(`${REVERSE_URL}?format=json&lat=${c.lat}&lon=${c.lng}&zoom=16`);
+      if (!r.ok) return null;
+      const d = await r.json();
+      return d && d.display_name ? d.display_name : null;
+    } catch (_e) {
+      return null;
+    }
+  }, []);
 
   const set = (field) => (e) => setForm((f) => ({ ...f, [field]: e.target.value }));
 
@@ -281,10 +298,47 @@ export default function ReportForm({ onSubmitted, onClose }) {
     }));
   };
 
-  const handlePinChange = useCallback((next, isFinal) => {
-    setPin(next);
-    if (isFinal) setPinConfirmed(true);
-  }, []);
+  const handlePinChange = useCallback(
+    (next, isFinal) => {
+      setPin(next);
+      if (isFinal) {
+        setPinConfirmed(true);
+        // Geser pin -> label nama lokasi ikut titik pin (balik-arah).
+        reverseName(next).then((n) => {
+          if (n) setPinLabel(n);
+        });
+      }
+    },
+    [reverseName]
+  );
+
+  // GPS aktif (PC/tablet/mobile): saat form dibuka, pin langsung menunjuk
+  // lokasi user saat ini. Field nama lokasi TETAP KOSONG - nama titik baru
+  // muncul sebagai teks kecil di bawah field (dari balik-arah koordinat).
+  // Tanpa izin GPS cukup diabaikan senyap (tanpa teks aktif/tidak aktif).
+  useEffect(() => {
+    if (typeof navigator === 'undefined' || !('geolocation' in navigator)) return undefined;
+    let on = true;
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        if (!on) return;
+        const here = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        setAnchor(here);
+        setPin(here);
+        setPinConfirmed(true);
+        reverseName(here).then((n) => {
+          if (on && n) setPinLabel(n);
+        });
+      },
+      () => {
+        /* izin ditolak / GPS tidak tersedia: biarkan pin di tengah */
+      },
+      { timeout: 8000, maximumAge: 60000 }
+    );
+    return () => {
+      on = false;
+    };
+  }, [reverseName]);
 
   // ---- Geocoding via Nominatim (File 1 Bagian 5.2 langkah kelima) ----
   const searchLocation = async () => {
@@ -302,6 +356,7 @@ export default function ReportForm({ onSubmitted, onClose }) {
         setAnchor(found);
         setPin(found);
         setPinConfirmed(true);
+        setPinLabel(data[0].display_name || '');
         setGeoState('found');
       } else {
         // Tidak ditemukan: peta kembali ke tengah Indonesia; pengguna
@@ -326,7 +381,9 @@ export default function ReportForm({ onSubmitted, onClose }) {
     if (form.vital_status.includes('lainnya') && !form.vital_status_note.trim()) {
       errs.vital_status_note = 'Wajib diisi karena Lainnya dipilih';
     }
-    if (!form.location_name.trim()) errs.location_name = 'Nama lokasi wajib diisi';
+    if (!(form.location_name.trim() || (pinConfirmed && pinLabel))) {
+      errs.location_name = 'Nama lokasi wajib diisi';
+    }
     // Lokasi wajib ditentukan: lewat hasil geocoding atau geser pin manual.
     if (!pinConfirmed) {
       errs.location =
@@ -411,7 +468,9 @@ export default function ReportForm({ onSubmitted, onClose }) {
       severity: form.severity,
       bridge_authority: form.bridge_authority,
       vital_status: form.vital_status,
-      location_name: form.location_name.trim(),
+      location_name:
+        form.location_name.trim() ||
+        (pinConfirmed && pinLabel ? pinLabel.trim().slice(0, 120) : ''),
       lat: Number(pin.lat),
       lng: Number(pin.lng),
       description: form.description.trim() === '' ? null : form.description.trim(),
@@ -1045,6 +1104,26 @@ export default function ReportForm({ onSubmitted, onClose }) {
           </button>
         </div>
         {errors.location_name && <div style={errorStyle}>{errors.location_name}</div>}
+
+        {/* Nama lokasi sesuai posisi pin (balik-arah): muncul di bawah field
+            nama, di atas peta. Terisi otomatis dari GPS / hasil pencarian /
+            posisi pin setelah digeser. */}
+        {pinLabel ? (
+          <div
+            style={{
+              marginTop: 8,
+              padding: '6px 10px',
+              borderRadius: 6,
+              background: '#fefce8',
+              border: '1px solid #fde047',
+              fontSize: 12,
+              color: '#713f12',
+              lineHeight: 1.45,
+            }}
+          >
+            📍 Lokasi titik: {pinLabel}
+          </div>
+        ) : null}
 
         {/* Mini-map: pin hasil geocoding, bisa digeser (dibatasi radius) */}
         <div style={{ marginTop: 10, borderRadius: 8, overflow: 'hidden', border: '1px solid #cbd5e1' }}>
