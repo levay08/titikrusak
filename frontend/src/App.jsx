@@ -506,9 +506,13 @@ export default function App() {
     setActiveView('admin');
   };
 
+  // Konfirmasi keluar e.id: null = tertutup; 'full' = keluar dari nav/
+  // badge otoritas (balik ke peta); 'warga' = keluar dari panel warga.
+  const [logoutAsk, setLogoutAsk] = useState(null);
+
   // Keluar dari e.id (warga ATAU otoritas): hapus sesi + data verifikasi,
   // kembali ke tampilan peta. Setelah keluar baru bisa ganti peran.
-  const logoutEid = () => {
+  const doLogoutEid = () => {
     closeAllModals();
     setActiveView('peta');
     setOtoritas(null);
@@ -520,6 +524,7 @@ export default function App() {
       // abaikan
     }
   };
+  const logoutEid = () => setLogoutAsk('full');
 
   // Sesi e.id bisa berubah dari komponen lain (verifikasi diskusi/vote) -
   // sinkronkan status agar menu Keluar / Login Otoritas ikut berubah.
@@ -563,8 +568,8 @@ export default function App() {
     setEidFlowOpen(true);
   };
 
-  // Keluar dari verifikasi e.id (poin: opsi logout verifikasi).
-  const handleLogoutEid = () => {
+  // Keluar dari verifikasi e.id (poin: opsi logout verifikasi) - panel warga.
+  const doWargaLogout = () => {
     try {
       localStorage.removeItem('titikrusak_eid');
     } catch (_e) {
@@ -573,6 +578,7 @@ export default function App() {
     clearEidSession();
     setEidVerified(false);
   };
+  const handleLogoutEid = () => setLogoutAsk('warga');
   const storedEid = getStoredEidVerification();
 
   const openHeaderModal = (setter) => () => {
@@ -1480,6 +1486,83 @@ export default function App() {
           )}
           {notifOpen && (
             <NotifikasiModal onClose={() => setNotifOpen(false)} />
+          )}
+
+          {/* Dialog konfirmasi Keluar e.id (4 Sep 2026) */}
+          {logoutAsk && (
+            <div
+              style={{
+                position: 'fixed',
+                inset: 0,
+                zIndex: 1700,
+                background: 'rgba(15, 23, 42, 0.55)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: 16,
+              }}
+              onClick={() => setLogoutAsk(null)}
+            >
+              <div
+                role="dialog"
+                aria-label="Konfirmasi keluar e.id"
+                style={{
+                  background: '#fff',
+                  borderRadius: 14,
+                  maxWidth: 380,
+                  width: '100%',
+                  padding: '20px 22px',
+                  boxShadow: '0 10px 40px rgba(0, 0, 0, 0.4)',
+                }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div style={{ fontSize: 17, fontWeight: 800, color: '#1c1917', marginBottom: 8 }}>
+                  Yakin ingin keluar?
+                </div>
+                <p style={{ margin: '0 0 16px', fontSize: 13, lineHeight: 1.5, color: '#475569' }}>
+                  Sesi e.id Anda akan dihapus dari perangkat ini. Untuk diskusi, dukungan,
+                  atau masuk sebagai otoritas, Anda perlu verifikasi ulang nanti.
+                </p>
+                <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+                  <button
+                    type="button"
+                    onClick={() => setLogoutAsk(null)}
+                    style={{
+                      padding: '9px 16px',
+                      borderRadius: 8,
+                      border: '1px solid #cbd5e1',
+                      background: '#fff',
+                      color: '#1c1917',
+                      fontSize: 13,
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Batal
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (logoutAsk === 'full') doLogoutEid();
+                      else doWargaLogout();
+                      setLogoutAsk(null);
+                    }}
+                    style={{
+                      padding: '9px 16px',
+                      borderRadius: 8,
+                      border: 'none',
+                      background: '#dc2626',
+                      color: '#fff',
+                      fontSize: 13,
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Ya, Keluar
+                  </button>
+                </div>
+              </div>
+            </div>
           )}
         </div>
       </main>
