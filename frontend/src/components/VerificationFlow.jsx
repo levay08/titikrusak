@@ -48,27 +48,19 @@ export default function VerificationFlow({
   // Alur perangkat sentuh (ponsel/tablet): buka wallet e.id lewat deep
   // link (eid_oauth_url) - TANPA pindai QR. Desktop (false) = QR biasa.
   walletMode = false,
-  // Lanjutkan sesi yang tertunda: user sempat pindah ke wallet & kembali
-  // (halaman termuat ulang) - polling langsung berjalan tanpa membuat
-  // permintaan verifikasi baru.
-  resumeSessionId = null,
   pollIntervalMs = 4000,
   maxWaitMs = 5 * 60 * 1000,
 }) {
-  const [phase, setPhase] = useState(() =>
-    resumeSessionId ? 'resume' : role === 'otoritas' ? 'agency' : 'starting'
-  ); // starting | agency | qr | resume | approved | failed
+  const [phase, setPhase] = useState(() => (role === 'otoritas' ? 'agency' : 'starting')); // starting | agency | qr | approved | failed
   const [qrData, setQrData] = useState(null);
   const [qrUrl, setQrUrl] = useState(null);
-  const [sessionId, setSessionId] = useState(resumeSessionId);
+  const [sessionId, setSessionId] = useState(null);
   const [errorMsg, setErrorMsg] = useState('');
   const [holderName, setHolderName] = useState(null);
   const [aliasMode, setAliasMode] = useState(false);
   const [alias, setAlias] = useState('');
   // Sisa waktu sesi (display countdown, 1 detik).
   const [remainingMs, setRemainingMs] = useState(maxWaitMs);
-  // Pemicu "Periksa status sekarang" di tahap resume (langsung poll ulang).
-  const [tickNow, setTickNow] = useState(0);
   // Alur wallet (mobile): QR disembunyikan - bisa dimunculkan sebagai
   // opsi cadangan lewat tautan "Atau pindai QR di perangkat lain".
   const [showQr, setShowQr] = useState(false);
@@ -137,9 +129,9 @@ export default function VerificationFlow({
     }
   }, [startVerification, isOtoritasFlow, phase]);
 
-  // ---- Polling status: tahap qr ATAU resume ---- 
+  // ---- Langkah 4-7: polling status sampai selesai ----
   useEffect(() => {
-    if ((phase !== 'qr' && phase !== 'resume') || !sessionId) return undefined;
+    if (phase !== 'qr' || !sessionId) return undefined;
 
     const finish = (nextPhase, message) => {
       setErrorMsg(message);
@@ -209,74 +201,16 @@ export default function VerificationFlow({
       clearInterval(interval);
       document.removeEventListener('visibilitychange', onVisible);
     };
-  }, [phase, sessionId, pollIntervalMs, tickNow]);
+  }, [phase, sessionId, pollIntervalMs]);
 
   // ---- Countdown sisa waktu sesi (display per detik) ----
   useEffect(() => {
-    if (phase !== 'qr' && phase !== 'resume') return undefined;
+    if (phase !== 'qr') return undefined;
     const update = () => setRemainingMs(Math.max(0, deadlineRef.current - Date.now()));
     update();
     const interval = setInterval(update, 1000);
     return () => clearInterval(interval);
   }, [phase]);
-
-  // ---- Resume: atur ulang tenggat saat dilanjutkan dari sesi tertunda ----
-  useEffect(() => {
-    if (resumeSessionId) {
-      deadlineRef.current = Date.now() + maxWaitMs;
-      setRemainingMs(maxWaitMs);
-    }
-  }, [resumeSessionId, maxWaitMs]);
-
-  // ---- Sesi tertunda (sessionStorage): simpan saat QR/wallet tampil agar
-  // bila halaman termuat ulang (kembali dari wallet), modal verifikasi
-  // terbuka lagi & polling lanjut otomatis tanpa perlu menekan apa pun.
-  // Dihapus saat selesai / gagal / modal ditutup (batal). ----
-  const pendingKey = 'tk_eid_pending';
-  const approvedRef = useRef(false);
-  const pendingSavedRef = useRef(false);
-  useEffect(() => {
-    if (phase === 'qr' && walletMode && sessionId && !pendingSavedRef.current) {
-      pendingSavedRef.current = true;
-      try {
-        sessionStorage.setItem(pendingKey, JSON.stringify({ session_id: sessionId, role }));
-      } catch (_e) {
-        // abaikan
-      }
-    }
-  }, [phase, walletMode, sessionId, role, pendingKey]);
-
-  useEffect(() => {
-    if (phase === 'approved') {
-      approvedRef.current = true;
-      try {
-        sessionStorage.removeItem(pendingKey);
-      } catch (_e) {
-        // abaikan
-      }
-    } else if (phase === 'failed') {
-      try {
-        sessionStorage.removeItem(pendingKey);
-      } catch (_e) {
-        // abaikan
-      }
-    }
-  }, [phase, pendingKey]);
-
-  // Modal ditutup sebelum selesai (batal) -> hapus sesi tertunda.
-  useEffect(
-    () => () => {
-      if (!approvedRef.current) {
-        try {
-          sessionStorage.removeItem(pendingKey);
-        } catch (_e) {
-          // abaikan
-        }
-      }
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    []
-  );
 
   // mm:ss - angka tabular agar tidak berkedip saat berdetak.
   const fmtTime = (ms) => {
@@ -507,17 +441,12 @@ export default function VerificationFlow({
               >
                 Verifikasi langsung dari perangkat ini - tanpa pindai QR.
               </p>
-              {/* Tab SAMA (4 Sep 2026): buka wallet di halaman ini, bukan
-                  tab baru - setelah setujui, tekan kembali (←) browser;
-                  status diperiksa otomatis saat halaman kembali aktif. */}
+              {/* Tab baru (cara aman): halaman ini tetap hidup & status
+                  diperiksa otomatis begitu kembali ke tab ini. */}
               <a
                 href={qrValue}
-                onClick={(e) => {
-                  // Deep link wallet (eid://...) tidak bisa dipaksa di tab
-                  // sama oleh browser; biarkan navigasi default.
-                  e.preventDefault();
-                  window.location.href = qrValue;
-                }}
+                target="_blank"
+                rel="noopener noreferrer"
                 style={{
                   display: 'block',
                   width: '100%',
@@ -537,9 +466,8 @@ export default function VerificationFlow({
             </div>
             <p style={{ margin: '0 0 10px', fontSize: 12.5, lineHeight: 1.55, color: '#475569' }}>
               Aplikasi e.id akan terbuka untuk menyetujui verifikasi. Jika aplikasi
-              belum terpasang, halaman wallet e.id terbuka di halaman yang sama. Setelah
-              menyetujui, tekan kembali (←) di browser untuk kembali ke sini; status
-              diperiksa otomatis.
+              belum terpasang, halaman wallet e.id terbuka di tab browser baru. Setelah
+              menyetujui, kembali ke tab ini; status diperbarui otomatis.
             </p>
             {countdownChip}
             <div style={{ marginTop: 12 }}>
@@ -572,38 +500,6 @@ export default function VerificationFlow({
             {countdownChip}
           </div>
         ))}
-
-      {/* ---- Tahap resume: kembali dari wallet, lanjut polling ----
-          (4 Sep 2026: tanpa perlu menekan apa pun setelah kembali) */}
-      {phase === 'resume' && (
-        <div style={{ textAlign: 'center', padding: '4px 0 2px' }}>
-          <p style={{ margin: '0 0 8px', fontSize: 14.5, fontWeight: 600, color: '#1c1917' }}>
-            Menunggu persetujuan dari wallet e.id…
-          </p>
-          <p style={{ margin: '0 0 12px', fontSize: 12.5, lineHeight: 1.5, color: '#475569' }}>
-            Status diperiksa otomatis. Sudah menyetujui di wallet? Tekan tombol di bawah
-            agar langsung diperiksa.
-          </p>
-          {countdownChip}
-          <button
-            type="button"
-            onClick={() => setTickNow((t) => t + 1)}
-            style={{
-              marginTop: 10,
-              padding: '9px 18px',
-              borderRadius: 8,
-              border: 'none',
-              background: '#facc15',
-              color: '#1c1917',
-              fontSize: 13.5,
-              fontWeight: 700,
-              cursor: 'pointer',
-            }}
-          >
-            Periksa status sekarang
-          </button>
-        </div>
-      )}
 
       {/* ---- Tahap approved: pilihan nama (File 1 3.5) ---- */}
       {phase === 'approved' && (
@@ -746,8 +642,8 @@ export default function VerificationFlow({
         </div>
       )}
 
-      {/* Batal di tahap QR/resume/starting/approved */}
-      {(phase === 'qr' || phase === 'starting' || phase === 'approved' || phase === 'resume') && (
+      {/* Batal di tahap QR/starting/approved */}
+      {(phase === 'qr' || phase === 'starting' || phase === 'approved') && (
         <div style={{ marginTop: 16, textAlign: 'center' }}>
           <button
             type="button"

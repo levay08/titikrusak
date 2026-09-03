@@ -141,9 +141,7 @@ describe('VerificationFlow walletMode (ponsel/tablet - buka wallet e.id, tanpa p
       'href',
       'https://wallet-sandbox.e.id/oauth/credential?c=challenge-1&q=qrtoken-1'
     );
-    // Tab SAMA (bukan tab baru): navigasi dilakukan ke wallet di halaman
-    // ini; setelah setujui user tekan kembali (←) browser.
-    expect(walletLink).not.toHaveAttribute('target');
+    expect(walletLink).toHaveAttribute('target', '_blank');
     // Tanpa pindai QR di perangkat ini.
     expect(screen.queryByText(/Scan QR ini dengan aplikasi e\.id/i)).not.toBeInTheDocument();
     expect(screen.getByText(/tanpa pindai QR/i)).toBeInTheDocument();
