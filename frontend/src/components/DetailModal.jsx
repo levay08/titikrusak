@@ -86,11 +86,31 @@ const LIKE_STARS = [
 ];
 
 function ThumbIcon({ active = false, size = 26 }) {
+  // Ikon jempol gaya solid klasik (Font Awesome), lebih tegas & enak
+  // dilihat di ukuran kecil dibanding versi sebelumnya.
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true" style={{ display: 'block' }}>
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 512 512"
+      aria-hidden="true"
+      style={{
+        display: 'block',
+        filter: active ? 'drop-shadow(0 1px 2px rgba(37, 99, 235, 0.45))' : undefined,
+        transition: 'filter .15s ease',
+      }}
+    >
+      {active && (
+        <defs>
+          <linearGradient id="tkThumbGrad" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stopColor="#60a5fa" />
+            <stop offset="100%" stopColor="#2563eb" />
+          </linearGradient>
+        </defs>
+      )}
       <path
-        d="M23 10c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 1 7.58 7.59C7.21 7.96 7 8.47 7 9v9c0 1.1.9 2 2 2h7c.84 0 1.58-.55 1.87-1.31l2.86-7.17c.14-.33.27-.67.27-1.03V10z"
-        fill={active ? '#2563eb' : '#94a3b8'}
+        d="M104 224H24c-13.255 0-24 10.745-24 24v192c0 13.255 10.745 24 24 24h80c13.255 0 24-10.745 24-24V248c0-13.255-10.745-24-24-24zM320 64c-13.255 0-24 10.745-24 24v304c0 13.255 10.745 24 24 24h24c79.529 0 144-64.471 144-144v-64c0-79.529-64.471-144-144-144h-24z"
+        fill={active ? 'url(#tkThumbGrad)' : '#cbd5e1'}
       />
     </svg>
   );
