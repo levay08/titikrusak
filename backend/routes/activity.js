@@ -21,7 +21,7 @@ router.get('/', (req, res) => {
     const created = db
       .prepare(
         `SELECT 'report_created' AS type, id AS report_id, location_name,
-                reporter_display_name AS actor, severity, infra_type,
+                reporter_display_name AS actor, source_type, severity, infra_type,
                 created_at AS at
          FROM reports`
       )
@@ -36,12 +36,15 @@ router.get('/', (req, res) => {
       )
       .all();
 
-    // 3) Dukungan/vote (warga): voter_did saat ini menyimpan nama tampilan
-    //    atau 'anonim' (identitas penuh DID menyusul).
+    // 3) Dukungan/vote: identitas penuh (DID) & IP TIDAK pernah tampil di
+    //    feed publik - voter ditampilkan anonim.
     const votes = db
       .prepare(
         `SELECT 'voted' AS type, v.report_id, r.location_name,
-                v.voter_did AS actor, v.created_at AS at
+                CASE WHEN v.voter_did LIKE 'ip:%' OR v.voter_did = 'anonim'
+                      OR v.voter_did LIKE 'did:%' THEN NULL
+                     ELSE v.voter_did END AS actor,
+                v.created_at AS at
          FROM votes v JOIN reports r ON r.id = v.report_id`
       )
       .all();

@@ -194,9 +194,20 @@ describe('NotifikasiModal (feed aktivitas gabungan - transparansi)', () => {
                 report_id: 3,
                 location_name: 'Jembatan Cibeureum',
                 actor: 'Warga Garut',
+                source_type: 'warga',
                 severity: 'ambruk',
                 infra_type: 'jembatan',
                 at: '2026-09-01 10:00:00',
+              },
+              {
+                type: 'report_created',
+                report_id: 40,
+                location_name: 'Jalan Trans Sulawesi Parimo',
+                actor: null,
+                source_type: 'media',
+                severity: 'berat',
+                infra_type: 'jalan',
+                at: '2026-09-01 10:30:00',
               },
               {
                 type: 'status_changed',
@@ -210,7 +221,7 @@ describe('NotifikasiModal (feed aktivitas gabungan - transparansi)', () => {
                 type: 'voted',
                 report_id: 3,
                 location_name: 'Jembatan Cibeureum',
-                actor: 'Anonim',
+                actor: null,
                 at: '2026-09-01 12:00:00',
               },
             ],
@@ -221,16 +232,18 @@ describe('NotifikasiModal (feed aktivitas gabungan - transparansi)', () => {
 
     render(<NotifikasiModal onClose={vi.fn()} />);
 
-    // Ketiga jenis aktivitas tampil.
-    expect(await screen.findByText(/melaporkan/i)).toBeInTheDocument();
+    // Ketiga jenis aktivitas tampil (laporan warga + laporan media).
+    expect((await screen.findAllByText(/melaporkan/i)).length).toBeGreaterThanOrEqual(2);
     expect(screen.getByText(/mengubah status menjadi/i)).toBeInTheDocument();
     expect(screen.getByText(/mendukung laporan/i)).toBeInTheDocument();
 
-    // Aktor + lokasi.
+    // Aktor + lokasi. Titik media: pelapor = "Media", bukan warga.
     expect(screen.getByText('Warga Garut')).toBeInTheDocument();
+    expect(screen.getByText('Media')).toBeInTheDocument();
     expect(screen.getByText('Dinas PU')).toBeInTheDocument();
-    expect(screen.getByText('Anonim')).toBeInTheDocument();
+    expect(screen.getByText('Warga')).toBeInTheDocument();
     expect(screen.getAllByText('Jembatan Cibeureum').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByText('Jalan Trans Sulawesi Parimo')).toBeInTheDocument();
 
     // Chip status perubahan + chip severity laporan.
     expect(screen.getByText('Terverifikasi')).toBeInTheDocument();

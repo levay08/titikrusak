@@ -583,9 +583,13 @@ export function NotifikasiModal({ onClose }) {
   const feed = activities || [];
 
   const actorName = (a) => {
+    if (a.type === 'report_created') {
+      // Titik dari seed media/online: pelapor = media, bukan warga.
+      if (a.source_type === 'media') return 'Media';
+      return a.actor || 'Warga';
+    }
+    if (a.type === 'voted') return 'Warga';
     if (a.actor) return String(a.actor);
-    if (a.type === 'report_created') return 'Warga';
-    if (a.type === 'voted') return 'Anonim';
     return 'Otoritas';
   };
 
