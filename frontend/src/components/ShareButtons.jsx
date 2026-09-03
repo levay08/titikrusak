@@ -4,9 +4,23 @@
 
 import { useState } from 'react';
 
+const DEFAULT_BASE = 'https://titikrusak.id/';
+
+// Tautan menuju DETAIL titik laporan (deep link), bukan sekadar beranda:
+// ".../?laporan=<id>". Saat tautan dibuka, aplikasi membuka detail titik
+// itu (App membaca parameter laporan setelah data termuat).
+function buildReportUrl(report) {
+  const base =
+    typeof window !== 'undefined' && window.location
+      ? `${window.location.origin}${window.location.pathname}`
+      : DEFAULT_BASE;
+  const id = Number(report && report.id);
+  return Number.isInteger(id) && id > 0 ? `${base}?laporan=${id}` : base;
+}
+
 function buildMessage(report) {
   const place = report.location_name || 'titik rusak';
-  const url = 'https://titikrusak.id/';
+  const url = buildReportUrl(report);
   return {
     text: `Bagikan laporan titik rusak ini: ${place}. Lihat di ${url}`,
     url,

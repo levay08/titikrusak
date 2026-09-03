@@ -10,7 +10,7 @@
 // MapView, modal pencarian, dan halaman Admin).
 
 import Breadcrumb, { homeCrumb } from './Breadcrumb.jsx';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   SEVERITIES,
   SEVERITY_COLORS,
@@ -153,10 +153,18 @@ export default function ListView({
   onOpenReportForm,
   otoritas = null, // sesi otoritas aktif (null = warga biasa)
   onReportUpdated = () => {},
+  onDetailOpenChange, // App: sembunyikan toggle Peta/Daftar saat detail terbuka
 }) {
   const [selected, setSelected] = useState(null);
   const otoritasMode = Boolean(otoritas);
   const isMobile = useIsMobile();
+
+  // Beri tahu App saat detail dari baris daftar (panel samping desktop /
+  // bottom sheet mobile) terbuka atau tertutup - toggle Peta/Daftar di
+  // tengah-atas disembunyikan agar tidak menghalangi panel detail.
+  useEffect(() => {
+    onDetailOpenChange?.(Boolean(selected));
+  }, [selected, onDetailOpenChange]);
 
   // Mode otoritas (File 1 Bagian 6.2/6.3): laporan dikelompokkan berdasarkan
   // prioritas - gabungan severity + validasi e.id + kelengkapan laporan

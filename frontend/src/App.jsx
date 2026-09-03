@@ -360,6 +360,11 @@ export default function App() {
   // walau kembali ke halaman pertama.
   const [welcomeOpen, setWelcomeOpen] = useState(() => {
     if (previewMode) return false;
+    // Tautan bagikan laporan (?laporan=<id>): jangan tampilkan modal
+    // selamat datang yang menutupi detail titik yang dibuka.
+    if (typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('laporan')) {
+      return false;
+    }
     try {
       return !sessionStorage.getItem('titikrusak_welcome_seen');
     } catch (_e) {
@@ -392,6 +397,10 @@ export default function App() {
   // Detail laporan dibuka dari tingkat App: hasil pencarian atau tombol
   // "Lihat Detail" di popup peta - satu modal detail di level App.
   const [detailReport, setDetailReport] = useState(null);
+  // Panel detail mode Daftar dikelola ListView (selected internal). ListView
+  // melapor lewat onDetailOpenChange agar toggle Peta/Daftar disembunyikan
+  // saat panel detail terbuka (tidak menghalangi view).
+  const [listDetailOpen, setListDetailOpen] = useState(false);
   // Modal menu footer (Dokumentasi + Syarat & Ketentuan + Kontak aktif;
   // menu Status dihapus - koreksi user).
   const [docOpen, setDocOpen] = useState(false);
@@ -451,6 +460,32 @@ export default function App() {
     // verifikasi di sidebar agar selalu sinkron dengan localStorage.
     setEidVerified(Boolean(getStoredEidVerification()));
   };
+
+  // Keluar dari mode Daftar -> panel detail daftar ikut dianggap tertutup.
+  useEffect(() => {
+    if (activeView !== 'list') setListDetailOpen(false);
+  }, [activeView]);
+
+  // Deep link laporan (tautan bagikan ".../?laporan=<id>"): begitu data
+  // laporan termuat, buka detail titik itu, lalu bersihkan parameter URL
+  // agar reload berikutnya kembali ke peta utama (tidak auto-buka lagi).
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (!params.has('laporan')) return undefined;
+    if (allReports.length === 0) return undefined; // tunggu fetch data
+    const id = Number(params.get('laporan'));
+    const target =
+      Number.isInteger(id) && id > 0
+        ? allReports.find((r) => Number(r.id) === id) || null
+        : null;
+    if (target) setDetailReport(target);
+    try {
+      window.history.replaceState(null, '', window.location.pathname);
+    } catch (_e) {
+      // abaikan bila history tidak tersedia
+    }
+    return undefined;
+  }, [allReports]);
   const handleFilterChange = (next) => setFilters(next);
   const handleResetFilters = () => setFilters(EMPTY_FILTERS);
 
@@ -1043,7 +1078,7 @@ export default function App() {
         <div style={{ position: 'relative', flex: 1, minWidth: 0 }}>
           {/* Toggle mode tampilan (File 1 Bagian 9.2) - disembunyikan di
               halaman Admin (tampilan khusus otoritas) */}
-          {activeView !== 'admin' && !(activeView === 'list' && detailReport) && (
+          {activeView !== 'admin' && !(activeView === 'list' && (detailReport || listDetailOpen)) && (
             <ViewToggle view={activeView} onChange={setActiveView} />
           )}
 
@@ -1079,6 +1114,7 @@ export default function App() {
               onOpenReportForm={openReportForm}
               otoritas={otoritas}
               onReportUpdated={handleSubmitted}
+              onDetailOpenChange={setListDetailOpen}
             />
           )}
 
