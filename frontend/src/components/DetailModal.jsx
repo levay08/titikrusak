@@ -75,8 +75,24 @@ const FIELD_ORDER = [
   ['source_media_date', 'Tanggal Media'],
   ['related_earthquake', 'Gempa Terkait'],
   ['related_weather', 'Cuaca Terkait'],
-  ['vote_count', 'Jumlah Vote'],
 ];
+
+// Ledakan bintang saat dukungan berhasil: [dx, dy, delayMs]
+const LIKE_STARS = [
+  [-54, -34, 0], [54, -30, 60], [-38, 6, 120], [42, 14, 180],
+  [-70, -10, 40], [64, -48, 90], [-14, -58, 20], [10, -64, 210],
+];
+
+function ThumbIcon({ active = false, size = 26 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true" style={{ display: 'block' }}>
+      <path
+        d="M23 10c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 1 7.58 7.59C7.21 7.96 7 8.47 7 9v9c0 1.1.9 2 2 2h7c.84 0 1.58-.55 1.87-1.31l2.86-7.17c.14-.33.27-.67.27-1.03V10z"
+        fill={active ? '#2563eb' : '#94a3b8'}
+      />
+    </svg>
+  );
+}
 
 // Format nilai enum/array/boolean untuk ditampilkan di detail.
 function formatValue(key, value) {
@@ -234,6 +250,10 @@ export default function DetailModal({ report, onClose, otoritas = null, onReport
   const [voteError, setVoteError] = useState('');
   const [voteCount, setVoteCount] = useState(Number(report.vote_count) || 0);
   const [eidVerified, setEidVerified] = useState(() => Boolean(getStoredEidVerification()));
+  // Animasi like: likeBurst naik tiap dukungan sukses (memicu pop + bintang);
+  // hasVoted menandai user sudah pernah mendukung (ikon biru, tombol terkunci).
+  const [likeBurst, setLikeBurst] = useState(0);
+  const [hasVoted, setHasVoted] = useState(false);
   // Foto yang sedang dibuka dalam frame (lightbox dalam situs — tidak
   // membuka tab baru / tidak menutup layar; bisa ditutup).
   const [photoView, setPhotoView] = useState(null);
@@ -340,12 +360,15 @@ export default function DetailModal({ report, onClose, otoritas = null, onReport
       const updated = await res.json();
       setVoteCount(Number(updated.vote_count) || voteCount + 1);
       setVoteState('done');
+      setHasVoted(true);
+      setLikeBurst((b) => b + 1); // pop jempol + ledakan bintang
     } catch (err) {
       // 409 (sudah didukung identitas yang sama) juga dianggap selesai —
       // tombol dinonaktifkan agar tidak berulang.
       if (String(err.message).includes('sudah didukung')) {
         setVoteState('done');
         setVoteError('Laporan ini sudah Anda dukung.');
+        setHasVoted(true);
       } else {
         setVoteState('idle');
         setVoteError(err.message);
@@ -627,34 +650,61 @@ export default function DetailModal({ report, onClose, otoritas = null, onReport
             saja tanpa tombol. */}
         <div style={{ marginTop: 14, borderTop: '1px solid #e2e8f0', paddingTop: 14 }}>
           {otoritas ? (
-            <div style={{ fontSize: 13, color: '#334155' }}>
-              🤝 Dukungan warga: <strong>{voteCount}</strong>
-              <span style={{ display: 'block', fontSize: 11.5, color: '#64748b', marginTop: 2 }}>
-                Dukungan diberikan oleh warga terverifikasi e.id — otoritas tidak
-                memberikan dukungan.
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, color: '#334155' }}>
+              <ThumbIcon size={22} />
+              <span>
+                Dukungan warga: <strong>{voteCount}</strong>
               </span>
             </div>
           ) : voteState === 'idle' ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <span style={{ flex: 1, fontSize: 13, color: '#334155' }}>
-                🤝 Dukungan warga: <strong>{voteCount}</strong>
-              </span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               <button
                 type="button"
+                aria-label="Dukung laporan warga (jempol)"
                 onClick={handleVoteClick}
+                disabled={voteState === 'busy' || hasVoted}
+                title={
+                  hasVoted
+                    ? 'Anda sudah mendukung laporan ini'
+                    : eidVerified
+                      ? 'Dukung laporan ini'
+                      : 'Verifikasi e.id untuk mendukung'
+                }
                 style={{
-                  padding: '9px 14px',
-                  borderRadius: 8,
-                  border: '1px solid #eab308',
-                  background: '#fff',
-                  color: '#eab308',
-                  fontSize: 13,
-                  fontWeight: 700,
-                  cursor: 'pointer',
+                  position: 'relative',
+                  width: 48,
+                  height: 48,
+                  borderRadius: '50%',
+                  flexShrink: 0,
+                  border: `2px solid ${hasVoted ? '#2563eb' : '#cbd5e1'}`,
+                  background: hasVoted ? '#dbeafe' : '#fff',
+                  cursor: hasVoted ? 'default' : 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxShadow: '0 1px 3px rgba(0,0,0,.12)',
                 }}
               >
-                {eidVerified ? 'Dukung laporan' : 'Dukung laporan (e.id)'}
+                <span
+                  key={likeBurst}
+                  className={`tk-like-pop${likeBurst > 0 ? ' tk-like-pop--active' : ''}`}
+                >
+                  <ThumbIcon active={hasVoted} size={26} />
+                </span>
+                {likeBurst > 0 &&
+                  LIKE_STARS.map(([dx, dy, del], i) => (
+                    <span
+                      key={i}
+                      className="tk-star"
+                      style={{ '--dx': `${dx}px`, '--dy': `${dy}px`, animationDelay: `${del}ms` }}
+                    >
+                      ✦
+                    </span>
+                  ))}
               </button>
+              <span style={{ flex: 1, fontSize: 13, color: '#334155' }}>
+                Dukungan warga: <strong>{voteCount}</strong>
+              </span>
             </div>
           ) : null}
 

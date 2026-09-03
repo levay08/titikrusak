@@ -321,14 +321,14 @@ describe('ListView: fitur Dukungan warga (poin Alur Inti 6) — butuh e.id', () 
     render(<ListView reports={[REPORT]} onResetFilters={vi.fn()} />);
 
     await user.click(screen.getByText('Jalan Berlubang Dalam'));
-    await user.click(screen.getByRole('button', { name: /dukung laporan \(e\.id\)/i }));
+    await user.click(screen.getByRole('button', { name: /dukung laporan warga/i }));
 
     expect(
       screen.getByText(/Fitur Dukungan tersedia untuk warga terverifikasi e\.id/i)
     ).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: /^batal$/i }));
-    expect(screen.getByRole('button', { name: /dukung laporan \(e\.id\)/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /dukung laporan warga/i })).toBeInTheDocument();
   });
 
   it('warga terverifikasi e.id: Dukung mengirim POST /vote dan menampilkan jumlah baru', async () => {
@@ -347,7 +347,7 @@ describe('ListView: fitur Dukungan warga (poin Alur Inti 6) — butuh e.id', () 
     render(<ListView reports={[REPORT]} onResetFilters={vi.fn()} />);
 
     await user.click(screen.getByText('Jalan Berlubang Dalam'));
-    await user.click(screen.getByRole('button', { name: /^dukung laporan$/i }));
+    await user.click(screen.getByRole('button', { name: /dukung laporan warga/i }));
 
     await waitFor(() => expect(fetchMock).toHaveBeenCalled());
     expect(fetchMock).toHaveBeenCalledWith(
@@ -381,7 +381,7 @@ describe('ListView: fitur Dukungan warga (poin Alur Inti 6) — butuh e.id', () 
     render(<ListView reports={[REPORT]} onResetFilters={vi.fn()} />);
 
     await user.click(screen.getByText('Jalan Berlubang Dalam'));
-    await user.click(screen.getByRole('button', { name: /^dukung laporan$/i }));
+    await user.click(screen.getByRole('button', { name: /dukung laporan warga/i }));
 
     expect(await screen.findByText(/Laporan ini sudah Anda dukung\./i)).toBeInTheDocument();
   });
