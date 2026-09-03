@@ -248,9 +248,9 @@ body {
   }
 }
 
-/* Logo header: PIN POINT (lingkaran titik di dalam pin) TERBELAH DUA
-   (masking dua belahan), esensi "rusak". Belahan menjauh membentuk celah
-   retak, lalu perlahan tersambung kembali, jeda lama, lalu berulang. */
+/* Logo header: PIN KUNING TERBELAH DUA secara DIAGONAL (masking dua
+   belahan), esensi "rusak". Belahan menjauh membentuk celah patah, lalu
+   perlahan tersambung kembali, jeda lama, lalu berulang. */
 .tk-logo-crack .tk-crack-piece {
   will-change: transform;
 }
