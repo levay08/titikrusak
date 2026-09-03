@@ -515,6 +515,8 @@ export default function App() {
   const doLogoutEid = () => {
     closeAllModals();
     setActiveView('peta');
+    setOtoritasOpen(false);
+    setEidFlowOpen(false);
     setOtoritas(null);
     setEidVerified(false);
     clearEidSession();
@@ -754,11 +756,10 @@ export default function App() {
             >
               🔔
             </button>
-            {/* Login Otoritas / Keluar: warga verified tidak melihat menu
-                otoritas (dan sebaliknya); keduanya melihat Keluar. */}
-            {eidVerified || otoritas ? (
-              <HeaderNavItem icon="🔓" label="Keluar e.id" onClick={logoutEid} />
-            ) : (
+            {/* Login Otoritas: TIDAK tampil saat warga/otoritas sudah
+                verified - keluar lewat kartu peran (badge otoritas /
+                panel warga / drawer), tidak ada menu ganda. */}
+            {!eidVerified && !otoritas && (
               <HeaderNavItem icon="🔒" label="Login Otoritas" onClick={openAdmin} framed />
             )}
           </nav>
@@ -1203,7 +1204,7 @@ export default function App() {
                   { icon: '📍', label: 'Bookmark', open: openHeaderModal(setBookmarkOpen) },
                   { icon: '🔔', label: 'Notifikasi', open: openHeaderModal(setNotifOpen) },
                   ...(eidVerified || otoritas
-                    ? [{ icon: '🔓', label: 'Keluar e.id', open: logoutEid }]
+                    ? []
                     : [{ icon: '🔒', label: 'Login Otoritas', open: openAdmin }]),
                 ].map((item) => (
                   <button
@@ -1252,7 +1253,8 @@ export default function App() {
                           padding: '0 6px',
                         }}
                       >
-                        Masuk sebagai <strong>{otoritas.displayName}</strong>
+                        Anda saat ini masuk sebagai{' '}
+                        <strong>Otoritas terverifikasi e.id</strong>
                       </div>
                       <button
                         type="button"
@@ -1285,7 +1287,8 @@ export default function App() {
                           padding: '0 6px',
                         }}
                       >
-                        Masuk sebagai <strong>Warga terverifikasi</strong>
+                        Anda saat ini masuk sebagai{' '}
+                        <strong>Warga terverifikasi e.id</strong>
                       </div>
                       <button
                         type="button"
@@ -1407,6 +1410,32 @@ export default function App() {
                 }}
                 onClick={(e) => e.stopPropagation()}
               >
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'flex-end',
+                    margin: '-4px 0 6px',
+                  }}
+                >
+                  <button
+                    type="button"
+                    aria-label="Tutup alur verifikasi e.id"
+                    onClick={() => setOtoritasOpen(false)}
+                    style={{
+                      border: '1px solid #cbd5e1',
+                      background: '#fff',
+                      borderRadius: 6,
+                      width: 28,
+                      height: 28,
+                      fontSize: 14,
+                      lineHeight: 1,
+                      cursor: 'pointer',
+                      color: '#475569',
+                    }}
+                  >
+                    ✕
+                  </button>
+                </div>
                 {/* Alur e.id: desktop = scan QR; perangkat sentuh
                     (ponsel/tablet) = buka wallet e.id langsung (deep
                     link) tanpa scan - lihat VerificationFlow walletMode. */}
@@ -1459,6 +1488,32 @@ export default function App() {
                 }}
                 onClick={(e) => e.stopPropagation()}
               >
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'flex-end',
+                    margin: '-4px 0 6px',
+                  }}
+                >
+                  <button
+                    type="button"
+                    aria-label="Tutup alur verifikasi e.id"
+                    onClick={() => setEidFlowOpen(false)}
+                    style={{
+                      border: '1px solid #cbd5e1',
+                      background: '#fff',
+                      borderRadius: 6,
+                      width: 28,
+                      height: 28,
+                      fontSize: 14,
+                      lineHeight: 1,
+                      cursor: 'pointer',
+                      color: '#475569',
+                    }}
+                  >
+                    ✕
+                  </button>
+                </div>
                 <VerificationFlow
                   role="warga"
                   walletMode={isTouchDevice}
@@ -1604,7 +1659,7 @@ export default function App() {
                       cursor: 'pointer',
                     }}
                   >
-                    Ya, Keluar
+                    Keluar
                   </button>
                 </div>
               </div>
