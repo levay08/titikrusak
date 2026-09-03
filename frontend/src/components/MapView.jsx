@@ -787,16 +787,18 @@ export default function MapView({
     // Hover cluster -> tooltip: jumlah titik rusak + provinsi di area itu.
     // Pakai bindTooltip (bukan openTooltip manual) agar tooltip otomatis
     // hilang saat kursor meninggalkan cluster - tanpa perlu klik/refresh.
-    clusterGroup.bindTooltip(
-      (layer) => {
-        if (typeof layer.getChildCount !== 'function') return '';
-        const count = layer.getChildCount();
-        const ll = layer.getLatLng();
-        const prov = detectProvince(ll.lat, ll.lng);
-        return `<b>${count} titik rusak</b>${prov ? ` - ${prov}` : ''}`;
-      },
-      { direction: 'top', offset: [0, -10], opacity: 0.95, sticky: true }
-    );
+    if (typeof clusterGroup.bindTooltip === 'function') {
+      clusterGroup.bindTooltip(
+        (layer) => {
+          if (typeof layer.getChildCount !== 'function') return '';
+          const count = layer.getChildCount();
+          const ll = layer.getLatLng();
+          const prov = detectProvince(ll.lat, ll.lng);
+          return `<b>${count} titik rusak</b>${prov ? ` - ${prov}` : ''}`;
+        },
+        { direction: 'top', offset: [0, -10], opacity: 0.95, sticky: true }
+      );
+    }
 
     // Status yang berarti laporan sudah di-approve/verified oleh otoritas
     // (File 1 Bagian 6.2): marker menampilkan centang DI DALAM lingkaran,
