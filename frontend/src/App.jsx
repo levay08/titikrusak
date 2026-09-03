@@ -526,6 +526,22 @@ export default function App() {
   };
   const logoutEid = () => setLogoutAsk('full');
 
+  // Buka alur verifikasi otoritas. Jaga: bila sesi warga masih aktif, sesi
+  // itu dihapus dulu (setara logout) agar proses tidak macet di tengah.
+  const openOtoritasLogin = () => {
+    if (eidVerified) {
+      setEidVerified(false);
+      clearEidSession();
+      try {
+        localStorage.removeItem('titikrusak_eid');
+      } catch (_e) {
+        // abaikan
+      }
+    }
+    closeAllModals();
+    setOtoritasOpen(true);
+  };
+
   // Sesi e.id bisa berubah dari komponen lain (verifikasi diskusi/vote) -
   // sinkronkan status agar menu Keluar / Login Otoritas ikut berubah.
   useEffect(() => {
@@ -919,10 +935,7 @@ export default function App() {
             onLogoutEid={handleLogoutEid}
             otoritas={otoritas}
             onLogoutOtoritas={() => setOtoritas(null)}
-            onRequestLogin={() => {
-              closeAllModals();
-              setOtoritasOpen(true);
-            }}
+            onRequestLogin={openOtoritasLogin}
           />
         )}
         {/* Tombol HIDE yang jelas di tepi sidebar (desktop): klik untuk
@@ -1246,6 +1259,39 @@ export default function App() {
                         onClick={() => {
                           setMenuOpen(false);
                           setOtoritas(null);
+                        }}
+                        style={{
+                          width: '100%',
+                          padding: '11px 14px',
+                          borderRadius: 8,
+                          border: '1px solid #cbd5e1',
+                          background: '#fff',
+                          color: '#1c1917',
+                          fontSize: 14,
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                        }}
+                      >
+                        Keluar
+                      </button>
+                    </>
+                  ) : eidVerified ? (
+                    <>
+                      <div
+                        style={{
+                          fontSize: 12,
+                          color: '#64748b',
+                          marginBottom: 8,
+                          padding: '0 6px',
+                        }}
+                      >
+                        Masuk sebagai <strong>Warga terverifikasi</strong>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setMenuOpen(false);
+                          logoutEid();
                         }}
                         style={{
                           width: '100%',

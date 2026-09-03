@@ -452,24 +452,6 @@ export default function FilterPanel({
             >
               Keluar / Logout e.id
             </button>
-            <button
-              type="button"
-              onClick={onRequestLogin}
-              style={{
-                width: '100%',
-                marginTop: 6,
-                padding: '7px 10px',
-                borderRadius: 6,
-                border: 'none',
-                background: '#facc15',
-                color: '#1c1917',
-                fontSize: 12,
-                fontWeight: 700,
-                cursor: 'pointer',
-              }}
-            >
-              Login sebagai Otoritas
-            </button>
           </div>
         ) : (
           <div
