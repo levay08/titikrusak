@@ -22,6 +22,8 @@ import {
 } from '../lib/labels.js';
 import VerificationFlow from './VerificationFlow.jsx';
 import ReportManagePanel from './ReportManagePanel.jsx';
+import ShareButtons from './ShareButtons.jsx';
+import Discussion from './Discussion.jsx';
 import { setEidSession, eidSessionHeaders } from '../lib/eidSession.js';
 import { beacon } from '../lib/interest.js';
 import useIsMobile from '../lib/useIsMobile.js';
@@ -254,6 +256,29 @@ export default function DetailModal({ report, onClose, otoritas = null, onReport
   // hasVoted menandai user sudah pernah mendukung (ikon biru, tombol terkunci).
   const [likeBurst, setLikeBurst] = useState(0);
   const [hasVoted, setHasVoted] = useState(false);
+  // Bookmark (tandai laporan): pin lokal per perangkat.
+  const BM_KEY = 'titikrusak_bookmarks';
+  const getBm = () => {
+    try {
+      return JSON.parse(localStorage.getItem(BM_KEY)) || [];
+    } catch (_e) {
+      return [];
+    }
+  };
+  const [marked, setMarked] = useState(() => getBm().includes(Number(report.id)));
+  const [pinPop, setPinPop] = useState(0);
+  const toggleBookmark = () => {
+    const arr = getBm();
+    const id = Number(report.id);
+    const next = arr.includes(id) ? arr.filter((x) => x !== id) : [...arr, id];
+    try {
+      localStorage.setItem(BM_KEY, JSON.stringify(next));
+    } catch (_e) {
+      /* abaikan */
+    }
+    setMarked(!arr.includes(id));
+    setPinPop((p) => p + 1);
+  };
   // Foto yang sedang dibuka dalam frame (lightbox dalam situs - tidak
   // membuka tab baru / tidak menutup layar; bisa ditutup).
   const [photoView, setPhotoView] = useState(null);
@@ -488,6 +513,27 @@ export default function DetailModal({ report, onClose, otoritas = null, onReport
               </span>
             )}
           </div>
+          <button
+            type="button"
+            aria-label={marked ? 'Hapus dari bookmark' : 'Tandai laporan (bookmark)'}
+            title={marked ? 'Hapus dari bookmark' : 'Tandai laporan'}
+            onClick={toggleBookmark}
+            style={{
+              border: marked ? '1px solid #eab308' : '1px solid #cbd5e1',
+              background: marked ? '#fefce8' : '#fff',
+              borderRadius: 6,
+              width: 30,
+              height: 30,
+              fontSize: 16,
+              lineHeight: 1,
+              cursor: 'pointer',
+              flexShrink: 0,
+            }}
+          >
+            <span key={pinPop} className="tk-pin-pop">
+              {marked ? '📍' : '📌'}
+            </span>
+          </button>
           <button
             type="button"
             onClick={onClose}
@@ -840,6 +886,8 @@ export default function DetailModal({ report, onClose, otoritas = null, onReport
           onReportUpdated={onReportUpdated}
           onClose={onClose}
         />
+        <ShareButtons report={report} />
+        <Discussion report={report} />
       </div>
 
       {/* ---- Foto dalam frame (lightbox dalam situs): tidak membuka tab

@@ -70,6 +70,7 @@ app.use('/api/activity', activityRouter);
 // Route berita terkini (news flash) dari agregasi RSS Indonesia.
 app.use('/api/news', newsRouter);
 app.use('/api/otoritas', require('./routes/otoritas.js'));
+app.use('/api/comments', require('./routes/comments.js'));
 
 
 // ---- SPA (halaman web) ikut lewat backend agar tercatat di hitLogger ----

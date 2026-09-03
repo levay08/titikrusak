@@ -425,6 +425,57 @@ export function StatistikModal({ reports = [], onClose }) {
   );
 }
 
+// ---- Bookmark (3 Sep 2026): daftar laporan yang ditandai pin, per perangkat ----
+export function BookmarkModal({ reports = [], onClose, onOpenReport }) {
+  const ids = (() => {
+    try {
+      return JSON.parse(localStorage.getItem('titikrusak_bookmarks')) || [];
+    } catch (_e) {
+      return [];
+    }
+  })();
+  const items = reports.filter((r) => ids.includes(Number(r.id)));
+  return (
+    <ModalShell title="Bookmark" onClose={onClose} maxWidth={480}>
+      {items.length === 0 ? (
+        <p style={{ fontSize: 13, color: '#64748b', margin: 0 }}>
+          Belum ada laporan yang ditandai. Buka detail titik lalu tekan ikon pin (📌) untuk
+          menandainya.
+        </p>
+      ) : (
+        items.map((r) => (
+          <button
+            type="button"
+            key={r.id}
+            onClick={() => {
+              if (onOpenReport) onOpenReport(r);
+              onClose();
+            }}
+            style={{
+              display: 'block',
+              width: '100%',
+              textAlign: 'left',
+              border: '1px solid #e2e8f0',
+              borderRadius: 8,
+              background: '#fff',
+              padding: '9px 11px',
+              marginBottom: 8,
+              cursor: 'pointer',
+            }}
+          >
+            <span style={{ display: 'block', fontSize: 12.5, fontWeight: 700, color: '#1c1917' }}>
+              📍 {r.location_name}
+            </span>
+            <span style={{ display: 'block', fontSize: 11, color: '#64748b', marginTop: 2 }}>
+              {r.infra_type} - {r.status}
+            </span>
+          </button>
+        ))
+      )}
+    </ModalShell>
+  );
+}
+
 // ---- Pantau (poin 9: status yang masuk perbaikan & yang baru beres) ----
 export function PantauModal({ reports = [], onClose }) {
   const tracked = reports

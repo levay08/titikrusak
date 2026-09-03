@@ -23,6 +23,7 @@ import {
   StatistikModal,
   PantauModal,
   NotifikasiModal,
+  BookmarkModal,
 } from './components/HeaderModals.jsx';
 import useIsMobile from './lib/useIsMobile.js';
 import useIsTouchDevice from './lib/useIsTouchDevice.js';
@@ -341,6 +342,7 @@ export default function App() {
   const [statsOpen, setStatsOpen] = useState(false);
   const [pantauOpen, setPantauOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
+  const [bookmarkOpen, setBookmarkOpen] = useState(false);
   // Status verifikasi e.id pengguna (poin Alur Inti 5) + modal verifikasi
   // warga dari sidebar FilterPanel.
   const [eidVerified, setEidVerified] = useState(() => Boolean(getStoredEidVerification()));
@@ -470,6 +472,7 @@ export default function App() {
     setStatsOpen(false);
     setPantauOpen(false);
     setNotifOpen(false);
+    setBookmarkOpen(false);
     setEidFlowOpen(false);
     setSearchOpen(false);
     setDetailReport(null);
@@ -671,6 +674,7 @@ export default function App() {
             <HeaderNavItem label="Tentang" onClick={openHeaderModal(setAboutOpen)} />
             <HeaderNavItem label="Statistik" onClick={openHeaderModal(setStatsOpen)} />
             <HeaderNavItem label="Pantau" onClick={openHeaderModal(setPantauOpen)} />
+            <HeaderNavItem label="Bookmark" icon="📍" onClick={openHeaderModal(setBookmarkOpen)} />
             <button
               type="button"
               aria-label="Notifikasi aktivitas laporan"
@@ -1135,6 +1139,7 @@ export default function App() {
                   { icon: 'ℹ️', label: 'Tentang', open: openHeaderModal(setAboutOpen) },
                   { icon: '📊', label: 'Statistik', open: openHeaderModal(setStatsOpen) },
                   { icon: '🚧', label: 'Pantau', open: openHeaderModal(setPantauOpen) },
+                  { icon: '📍', label: 'Bookmark', open: openHeaderModal(setBookmarkOpen) },
                   { icon: '🔔', label: 'Notifikasi', open: openHeaderModal(setNotifOpen) },
                   { icon: '🔒', label: 'Login Otoritas', open: openAdmin },
                 ].map((item) => (
@@ -1418,6 +1423,16 @@ export default function App() {
           )}
           {pantauOpen && (
             <PantauModal reports={allReports} onClose={() => setPantauOpen(false)} />
+          )}
+          {bookmarkOpen && (
+            <BookmarkModal
+              reports={allReports}
+              onClose={() => setBookmarkOpen(false)}
+              onOpenReport={(r) => {
+                setBookmarkOpen(false);
+                setDetailReport(r);
+              }}
+            />
           )}
           {notifOpen && (
             <NotifikasiModal onClose={() => setNotifOpen(false)} />
