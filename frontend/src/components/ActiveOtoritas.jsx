@@ -65,7 +65,7 @@ export default function ActiveOtoritas() {
           marginBottom: 8,
         }}
       >
-        Instansi yang bekerja
+        Status Otoritas
       </span>
       {loaded && rows.length === 0 ? (
         <span style={{ ...label, background: '#f8fafc', color: '#64748b' }}>
