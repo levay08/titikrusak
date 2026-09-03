@@ -18,5 +18,6 @@ export default defineConfig({
     globals: true, // diperlukan agar auto-cleanup @testing-library/react aktif antar test
     setupFiles: ['./src/test/setup.js'],
     css: false,
+    testTimeout: 10000, // aman saat semua file tes berjalan paralel
   },
 });

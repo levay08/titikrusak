@@ -133,14 +133,16 @@ router.patch('/:id/status', requireSession('otoritas'), (req, res) => {
   res.json(getRow(id));
 });
 
-// ---- POST /:id/vote : warga verified saja, did dari server (fix S-1) ----
-router.post('/:id/vote', requireSession('warga'), (req, res) => {
+// ---- POST /:id/vote : dukung laporan - TANPA wajib e.id (4 Sep 2026).
+// Identitas voter: sesi e.id bila ada, selain itu IP pengunjung (anti
+// spam: 1 dukungan per perangkat/IP per laporan).
+router.post('/:id/vote', (req, res) => {
   const id = Number(req.params.id);
   if (!Number.isInteger(id) || id <= 0) return res.status(404).json({ error: 'Laporan tidak ditemukan' });
   const existing = db.prepare('SELECT id, vote_count FROM reports WHERE id = ?').get(id);
   if (!existing) return res.status(404).json({ error: 'Laporan tidak ditemukan' });
 
-  const voterDid = req.eidSession.holder_did || 'anonim';
+  const voterDid = (req.eidSession && req.eidSession.holder_did) || 'ip:' + (req.ip || 'anonim');
   const dup = db
     .prepare('SELECT id FROM votes WHERE report_id = ? AND voter_did = ?')
     .get(id, voterDid);
@@ -155,13 +157,13 @@ router.post('/:id/vote', requireSession('warga'), (req, res) => {
 });
 
 // ---- DELETE /:id/vote : membatalkan dukungan (unlike) ----
-router.delete('/:id/vote', requireSession('warga'), (req, res) => {
+router.delete('/:id/vote', (req, res) => {
   const id = Number(req.params.id);
   if (!Number.isInteger(id) || id <= 0) return res.status(404).json({ error: 'Laporan tidak ditemukan' });
   const existing = db.prepare('SELECT id FROM reports WHERE id = ?').get(id);
   if (!existing) return res.status(404).json({ error: 'Laporan tidak ditemukan' });
 
-  const voterDid = req.eidSession.holder_did || 'anonim';
+  const voterDid = (req.eidSession && req.eidSession.holder_did) || 'ip:' + (req.ip || 'anonim');
   const row = db
     .prepare('SELECT id FROM votes WHERE report_id = ? AND voter_did = ?')
     .get(id, voterDid);

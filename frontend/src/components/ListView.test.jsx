@@ -309,33 +309,14 @@ describe('ListView: mode otoritas - pengelompokan prioritas (poin Alur Inti 7)',
   });
 });
 
-describe('ListView: fitur Dukungan warga (poin Alur Inti 6) - butuh e.id', () => {
+describe('ListView: fitur Dukungan warga - TANPA perlu verifikasi e.id', () => {
   beforeEach(() => {
     localStorage.clear();
   });
 
   const REPORT = { ...SAMPLE[0], id: 11, location_name: 'Jalan Berlubang Dalam' };
 
-  it('tanpa verifikasi e.id: klik Dukung memunculkan ajakan verifikasi, Batal kembali', async () => {
-    const user = userEvent.setup();
-    render(<ListView reports={[REPORT]} onResetFilters={vi.fn()} />);
-
-    await user.click(screen.getByText('Jalan Berlubang Dalam'));
-    await user.click(screen.getByRole('button', { name: /dukung laporan warga/i }));
-
-    expect(
-      screen.getByText(/Fitur Dukungan tersedia untuk warga terverifikasi e\.id/i)
-    ).toBeInTheDocument();
-
-    await user.click(screen.getByRole('button', { name: /^batal$/i }));
-    expect(screen.getByRole('button', { name: /dukung laporan warga/i })).toBeInTheDocument();
-  });
-
-  it('warga terverifikasi e.id: Dukung mengirim POST /vote dan menampilkan jumlah baru', async () => {
-    localStorage.setItem(
-      'titikrusak_eid',
-      JSON.stringify({ displayName: 'Warga Garut', isVerified: true })
-    );
+  it('klik Dukung langsung mengirim POST /vote (tanpa verifikasi) dan jumlah naik', async () => {
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
       status: 201,
@@ -349,31 +330,55 @@ describe('ListView: fitur Dukungan warga (poin Alur Inti 6) - butuh e.id', () =>
     await user.click(screen.getByText('Jalan Berlubang Dalam'));
     await user.click(screen.getByRole('button', { name: /dukung laporan warga/i }));
 
-    await waitFor(() => expect(fetchMock).toHaveBeenCalled());
-    expect(fetchMock).toHaveBeenCalledWith(
-      '/api/reports/11/vote',
-      expect.objectContaining({
-        method: 'POST',
-        body: JSON.stringify({
-          voter_display_name: 'Warga Garut',
-          voter_is_verified: true,
-        }),
-      })
+    await waitFor(() =>
+      expect(fetchMock).toHaveBeenCalledWith(
+        '/api/reports/11/vote',
+        expect.objectContaining({ method: 'POST' })
+      )
     );
     expect(
       await screen.findByText(/Terima kasih! Dukungan Anda tercatat \(3\)\./i)
     ).toBeInTheDocument();
   });
 
-  it('dukungan duplikat (409) menampilkan pesan sudah mendukung', async () => {
-    localStorage.setItem(
-      'titikrusak_eid',
-      JSON.stringify({ displayName: 'Warga Garut', isVerified: true })
+  it('klik lagi (jempol aktif) membatalkan dukungan via DELETE /vote', async () => {
+    const fetchMock = vi.fn().mockImplementation((url, opts = {}) => {
+      const isDelete = opts.method === 'DELETE';
+      return Promise.resolve({
+        ok: true,
+        status: isDelete ? 200 : 201,
+        json: async () => ({ id: 11, vote_count: isDelete ? 2 : 3 }),
+      });
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    const user = userEvent.setup();
+
+    render(<ListView reports={[REPORT]} onResetFilters={vi.fn()} />);
+
+    await user.click(screen.getByText('Jalan Berlubang Dalam'));
+    const support = () => screen.getByRole('button', { name: /dukung laporan warga/i });
+    await user.click(support());
+    await screen.findByText(/Terima kasih! Dukungan Anda tercatat \(3\)\./i);
+
+    await user.click(screen.getByRole('button', { name: /batalkan dukungan laporan warga/i }));
+    await waitFor(() =>
+      expect(fetchMock).toHaveBeenCalledWith(
+        '/api/reports/11/vote',
+        expect.objectContaining({ method: 'DELETE' })
+      )
     );
+    // Jumlah turun (respons DELETE vote_count=2) & tombol kembali ke dukung.
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: /dukung laporan warga/i })).toBeInTheDocument()
+    );
+    expect(screen.getByText(/Dukungan warga:/)).toBeInTheDocument();
+  });
+
+  it('dukungan duplikat (409) menampilkan pesan sudah mendukung', async () => {
     const fetchMock = vi.fn().mockResolvedValue({
       ok: false,
       status: 409,
-      json: async () => ({ error: 'Laporan ini sudah didukung oleh identitas yang sama' }),
+      json: async () => ({ error: 'Laporan ini sudah didukung oleh perangkat yang sama' }),
     });
     vi.stubGlobal('fetch', fetchMock);
     const user = userEvent.setup();

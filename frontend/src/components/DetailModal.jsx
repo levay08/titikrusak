@@ -86,34 +86,23 @@ const LIKE_STARS = [
 ];
 
 function ThumbIcon({ active = false, size = 26 }) {
-  // Ikon jempol gaya solid klasik (Font Awesome), lebih tegas & enak
-  // dilihat di ukuran kecil dibanding versi sebelumnya.
+  // Model outline modern (Lucide thumbs-up): kanvas 24 dengan jarak aman
+  // bawaan - tidak terpotong di ukuran kecil (4 Sep 2026).
   return (
     <svg
       width={size}
       height={size}
-      viewBox="0 0 512 512"
+      viewBox="0 0 24 24"
       aria-hidden="true"
-      style={{
-        display: 'block',
-        filter: active ? 'drop-shadow(0 1px 2px rgba(37, 99, 235, 0.45))' : undefined,
-        transition: 'filter .15s ease',
-      }}
+      style={{ display: 'block' }}
+      fill="none"
+      stroke={active ? '#2563eb' : '#94a3b8'}
+      strokeWidth={1.9}
+      strokeLinecap="round"
+      strokeLinejoin="round"
     >
-      {active && (
-        <defs>
-          <linearGradient id="tkThumbGrad" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="#60a5fa" />
-            <stop offset="100%" stopColor="#2563eb" />
-          </linearGradient>
-        </defs>
-      )}
-      <g transform="translate(51 44) scale(0.84)">
-        <path
-          d="M104 224H24c-13.255 0-24 10.745-24 24v192c0 13.255 10.745 24 24 24h80c13.255 0 24-10.745 24-24V248c0-13.255-10.745-24-24-24zM320 64c-13.255 0-24 10.745-24 24v304c0 13.255 10.745 24 24 24h24c79.529 0 144-64.471 144-144v-64c0-79.529-64.471-144-144-144h-24z"
-          fill={active ? 'url(#tkThumbGrad)' : '#cbd5e1'}
-        />
-      </g>
+      <path d="M7 10v12" />
+      <path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z" />
     </svg>
   );
 }
@@ -271,12 +260,11 @@ export default function DetailModal({ report, onClose, otoritas = null, onReport
   const originLabel = origin === 'list' ? 'Daftar Laporan' : origin === 'map' ? 'Peta' : null;
   const [statusAction, setStatusAction] = useState('idle'); // idle | busy
   const [statusError, setStatusError] = useState('');
-  const [voteState, setVoteState] = useState('idle'); // idle | prompt | verifying | busy | done
+  const [voteState, setVoteState] = useState('idle'); // idle | busy | done
   const [voteError, setVoteError] = useState('');
   const [voteCount, setVoteCount] = useState(Number(report.vote_count) || 0);
-  const [eidVerified, setEidVerified] = useState(() => Boolean(getStoredEidVerification()));
   // Animasi like: likeBurst naik tiap dukungan sukses (memicu pop + bintang);
-  // hasVoted menandai user sudah pernah mendukung (ikon biru, tombol terkunci).
+  // hasVoted menandai user sudah mendukung (ikon biru; klik lagi = batalkan).
   const [likeBurst, setLikeBurst] = useState(0);
   const [hasVoted, setHasVoted] = useState(false);
   // Bookmark (tandai laporan): pin lokal per perangkat.
@@ -400,17 +388,14 @@ export default function DetailModal({ report, onClose, otoritas = null, onReport
     }
   };
 
-  const castVote = async (displayName) => {
+  const castVote = async () => {
     setVoteState('busy');
     setVoteError('');
     try {
       const res = await fetch(`/api/reports/${report.id}/vote`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...eidSessionHeaders() },
-        body: JSON.stringify({
-          voter_display_name: displayName || null,
-          voter_is_verified: true,
-        }),
+        body: JSON.stringify({}),
       });
       if (!res.ok) {
         let msg = `HTTP ${res.status}`;
@@ -428,9 +413,9 @@ export default function DetailModal({ report, onClose, otoritas = null, onReport
       setHasVoted(true);
       setLikeBurst((b) => b + 1); // pop jempol + ledakan bintang
     } catch (err) {
-      // 409 (sudah didukung identitas yang sama) juga dianggap selesai -
-      // tombol dinonaktifkan agar tidak berulang.
-      if (String(err.message).includes('sudah didukung')) {
+      // 409 (sudah didukung dari perangkat/IP yang sama) juga dianggap
+      // selesai - tombol dikunci agar tidak berulang.
+      if (/sudah (mendukung|didukung)/.test(err.message)) {
         setVoteState('done');
         setVoteError('Laporan ini sudah Anda dukung.');
         setHasVoted(true);
@@ -470,28 +455,13 @@ export default function DetailModal({ report, onClose, otoritas = null, onReport
   };
 
   const handleVoteClick = () => {
-    if (eidVerified) {
-      // Sudah mendukung -> klik lagi untuk membatalkan (unlike).
-      if (hasVoted) {
-        removeVote();
-      } else {
-        castVote(getStoredEidVerification()?.displayName || null);
-      }
+    // Tanpa verifikasi e.id: siapa pun bisa dukung/batalkan dukungan.
+    if (voteState === 'busy') return;
+    if (hasVoted) {
+      removeVote();
     } else {
-      setVoteState('prompt');
+      castVote();
     }
-  };
-
-  const handleVoteVerified = (result) => {
-    try {
-      localStorage.setItem(EID_STORAGE_KEY, JSON.stringify(result));
-    } catch (_e) {
-      // abaikan bila localStorage tidak tersedia
-    }
-    setEidSession({ session_id: result.session_id, role: 'warga' });
-    setEidVerified(true);
-    setVoteState('busy');
-    castVote(result.displayName || null);
   };
 
   return (
@@ -849,9 +819,7 @@ export default function DetailModal({ report, onClose, otoritas = null, onReport
                 title={
                   hasVoted
                     ? 'Batalkan dukungan'
-                    : eidVerified
-                      ? 'Dukung laporan ini'
-                      : 'Verifikasi e.id untuk mendukung'
+                    : 'Dukung laporan ini'
                 }
                 style={{
                   position: 'relative',
@@ -896,66 +864,6 @@ export default function DetailModal({ report, onClose, otoritas = null, onReport
             )}
             </>
           ) : null}
-
-          {!otoritas && voteState === 'prompt' && (
-            <div
-              style={{
-                background: '#fefce8',
-                border: '1px solid #fef08a',
-                borderRadius: 8,
-                padding: '12px',
-              }}
-            >
-              <p style={{ margin: '0 0 10px', fontSize: 13, lineHeight: 1.5, color: '#854d0e' }}>
-                Fitur Dukungan tersedia untuk warga terverifikasi e.id. Dukungan warga
-                menjadi sinyal prioritas bagi otoritas.
-              </p>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                <button
-                  type="button"
-                  onClick={() => setVoteState('verifying')}
-                  style={{
-                    width: '100%',
-                    padding: '11px 14px',
-                    borderRadius: 8,
-                    border: 'none',
-                    background: '#facc15',
-                    color: '#1c1917',
-                    fontSize: 14,
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                  }}
-                >
-                  Verifikasi dengan e.id
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setVoteState('idle')}
-                  style={{
-                    width: '100%',
-                    padding: '10px 14px',
-                    borderRadius: 8,
-                    border: '1px solid #cbd5e1',
-                    background: '#fff',
-                    color: '#1c1917',
-                    fontSize: 13,
-                    cursor: 'pointer',
-                  }}
-                >
-                  Batal
-                </button>
-              </div>
-            </div>
-          )}
-
-          {voteState === 'verifying' && (
-            <VerificationFlow
-              role="warga"
-              walletMode={isTouchDevice}
-              onComplete={handleVoteVerified}
-              onCancel={() => setVoteState('prompt')}
-            />
-          )}
 
           {(voteState === 'busy' || voteState === 'done') && (
             <div style={{ fontSize: 13, color: '#334155' }}>
