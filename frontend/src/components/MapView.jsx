@@ -506,23 +506,57 @@ function ZoomSlider({ map }) {
             margin: isMobile ? '1px 0' : '2px 0',
           }}
         />
-        {/* Slider vertikal: zoom halus (pengganti slider horizontal lama) */}
-        <input
-          type="range"
-          aria-label="Zoom peta"
-          min={min}
-          max={max}
-          value={zoom}
-          onChange={(e) => map.setZoom(Number(e.target.value))}
+        {/* Slider vertikal: zoom halus (pengganti slider horizontal lama).
+            Bisa digeser atas-bawah; garis kecil di tengah = klik untuk
+            kembali ke tampilan seluruh Indonesia (fit screen). */}
+        <div
           style={{
-            writingMode: 'vertical-lr',
-            direction: 'rtl',
-            height: isMobile ? 84 : 110,
-            accentColor: '#eab308',
-            cursor: 'pointer',
-            margin: '2px 0',
+            position: 'relative',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '8px 4px',
           }}
-        />
+        >
+          <input
+            type="range"
+            aria-label="Zoom peta"
+            min={min}
+            max={max}
+            value={zoom}
+            onChange={(e) => map.setZoom(Number(e.target.value))}
+            style={{
+              writingMode: 'vertical-lr',
+              direction: 'rtl',
+              height: isMobile ? 72 : 96,
+              accentColor: '#eab308',
+              cursor: 'grab',
+              margin: 0,
+            }}
+          />
+          <button
+            type="button"
+            aria-label="Tampilan seluruh Indonesia (garis tengah slider)"
+            title="Klik garis tengah: tampilan seluruh Indonesia"
+            onClick={() =>
+              map.fitBounds(HOME_BOUNDS, { padding: HOME_PADDING, maxZoom: HOME_MAX_ZOOM })
+            }
+            style={{
+              position: 'absolute',
+              left: '50%',
+              top: '50%',
+              transform: 'translate(-50%, -50%)',
+              width: 24,
+              height: 5,
+              borderRadius: 3,
+              background: '#334155',
+              border: 'none',
+              cursor: 'pointer',
+              padding: 0,
+              boxShadow: '0 0 0 2px rgba(255, 255, 255, 0.9)',
+            }}
+          />
+        </div>
         <button
           type="button"
           onClick={() => map.fitBounds(HOME_BOUNDS, { padding: HOME_PADDING, maxZoom: HOME_MAX_ZOOM })}
