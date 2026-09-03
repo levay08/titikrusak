@@ -419,9 +419,42 @@ export default function DetailModal({ report, onClose, otoritas = null, onReport
     }
   };
 
+  const removeVote = async () => {
+    setVoteState('busy');
+    setVoteError('');
+    try {
+      const res = await fetch(`/api/reports/${report.id}/vote`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json', ...eidSessionHeaders() },
+      });
+      if (!res.ok) {
+        let msg = `HTTP ${res.status}`;
+        try {
+          const d = await res.json();
+          if (d.error) msg = d.error;
+        } catch (_e) {
+          // body bukan JSON
+        }
+        throw new Error(msg);
+      }
+      const updated = await res.json();
+      setVoteCount(Number(updated.vote_count) || Math.max(0, voteCount - 1));
+      setVoteState('idle');
+      setHasVoted(false);
+    } catch (err) {
+      setVoteState('idle');
+      setVoteError(err.message);
+    }
+  };
+
   const handleVoteClick = () => {
     if (eidVerified) {
-      castVote(getStoredEidVerification()?.displayName || null);
+      // Sudah mendukung -> klik lagi untuk membatalkan (unlike).
+      if (hasVoted) {
+        removeVote();
+      } else {
+        castVote(getStoredEidVerification()?.displayName || null);
+      }
     } else {
       setVoteState('prompt');
     }
@@ -472,20 +505,31 @@ export default function DetailModal({ report, onClose, otoritas = null, onReport
                 overflowY: 'auto',
                 padding: '16px 20px',
                 boxShadow: '-8px 0 24px rgba(15, 23, 42, 0.08)',
+                display: 'flex',
+                flexDirection: 'row',
+                alignItems: 'flex-start',
+                gap: 16,
               }
             : {
                 background: '#fff',
                 borderRadius: isMobile ? '14px 14px 0 0' : 12,
-                width: '100%',
-                maxWidth: 560,
+                width: isMobile ? '100%' : 'min(940px, 96vw)',
+                maxWidth: isMobile ? undefined : 940,
                 maxHeight: isMobile ? '92dvh' : '85vh',
                 overflowY: 'auto',
                 padding: isMobile ? '18px 18px 24px' : '20px 24px',
                 boxShadow: '0 10px 40px rgba(0, 0, 0, 0.4)',
+                // Desktop: dua kolom - kiri detail laporan, kanan bagikan +
+                // diskusi (sticky). Mobile: satu kolom (ditumpuk).
+                display: 'flex',
+                flexDirection: isMobile ? 'column' : 'row',
+                alignItems: 'flex-start',
+                gap: isMobile ? 0 : 18,
               }
         }
         onClick={(e) => e.stopPropagation()}
       >
+        <div style={{ flex: 1, minWidth: 0, maxWidth: 620 }}>
         {originLabel && (
           <Breadcrumb
             items={[
@@ -770,16 +814,19 @@ export default function DetailModal({ report, onClose, otoritas = null, onReport
                 Dukungan warga: <strong>{voteCount}</strong>
               </span>
             </div>
-          ) : voteState === 'idle' ? (
+          ) : voteState === 'idle' || hasVoted ? (
+            <>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               <button
                 type="button"
-                aria-label="Dukung laporan warga (jempol)"
+                aria-label={
+                  hasVoted ? 'Batalkan dukungan laporan warga' : 'Dukung laporan warga (jempol)'
+                }
                 onClick={handleVoteClick}
-                disabled={voteState === 'busy' || hasVoted}
+                disabled={voteState === 'busy'}
                 title={
                   hasVoted
-                    ? 'Anda sudah mendukung laporan ini'
+                    ? 'Batalkan dukungan'
                     : eidVerified
                       ? 'Dukung laporan ini'
                       : 'Verifikasi e.id untuk mendukung'
@@ -820,6 +867,12 @@ export default function DetailModal({ report, onClose, otoritas = null, onReport
                 Dukungan warga: <strong>{voteCount}</strong>
               </span>
             </div>
+            {hasVoted && (
+              <div style={{ fontSize: 11.5, color: '#64748b', marginTop: 6 }}>
+                Klik jempol biru untuk membatalkan dukungan Anda.
+              </div>
+            )}
+            </>
           ) : null}
 
           {!otoritas && voteState === 'prompt' && (
@@ -884,7 +937,7 @@ export default function DetailModal({ report, onClose, otoritas = null, onReport
 
           {(voteState === 'busy' || voteState === 'done') && (
             <div style={{ fontSize: 13, color: '#334155' }}>
-              {voteState === 'busy' && <span>Mencatat dukungan…</span>}
+              {voteState === 'busy' && <span>Memproses dukungan Anda…</span>}
               {voteState === 'done' && (
                 <span style={{ color: '#15803d', fontWeight: 600 }}>
                   ✓ {voteError || `Terima kasih! Dukungan Anda tercatat (${voteCount}).`}
@@ -903,8 +956,29 @@ export default function DetailModal({ report, onClose, otoritas = null, onReport
           onReportUpdated={onReportUpdated}
           onClose={onClose}
         />
-        <ShareButtons report={report} />
-        <Discussion report={report} />
+        </div>
+
+        {/* Kolom kanan (desktop): bagikan + diskusi; mobile otomatis
+            ditumpuk di bawah karena panel flexDirection column. */}
+        <div
+          style={
+            isMobile
+              ? { width: 'auto', flexShrink: 0 }
+              : {
+                  width: 300,
+                  flexShrink: 0,
+                  borderLeft: '1px solid #e2e8f0',
+                  paddingLeft: 16,
+                  position: 'sticky',
+                  top: 0,
+                  maxHeight: '78vh',
+                  overflowY: 'auto',
+                }
+          }
+        >
+          <ShareButtons report={report} />
+          <Discussion report={report} />
+        </div>
       </div>
 
       {/* ---- Foto dalam frame (lightbox dalam situs): tidak membuka tab

@@ -154,6 +154,29 @@ router.post('/:id/vote', requireSession('warga'), (req, res) => {
   res.status(201).json(getRow(id));
 });
 
+// ---- DELETE /:id/vote : membatalkan dukungan (unlike) ----
+router.delete('/:id/vote', requireSession('warga'), (req, res) => {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id) || id <= 0) return res.status(404).json({ error: 'Laporan tidak ditemukan' });
+  const existing = db.prepare('SELECT id FROM reports WHERE id = ?').get(id);
+  if (!existing) return res.status(404).json({ error: 'Laporan tidak ditemukan' });
+
+  const voterDid = req.eidSession.holder_did || 'anonim';
+  const row = db
+    .prepare('SELECT id FROM votes WHERE report_id = ? AND voter_did = ?')
+    .get(id, voterDid);
+  if (!row) return res.status(404).json({ error: 'Dukungan tidak ditemukan' });
+
+  db.transaction(() => {
+    db.prepare('DELETE FROM votes WHERE id = ?').run(row.id);
+    db.prepare(
+      'UPDATE reports SET vote_count = MAX(0, vote_count - 1), updated_at = CURRENT_TIMESTAMP WHERE id = ?'
+    ).run(id);
+  })();
+
+  res.json(getRow(id));
+});
+
 // ---- PATCH /:id : edit laporan milik sendiri (pelapor verified) ----
 const EDITABLE = ['description', 'location_name', 'severity'];
 router.patch('/:id', requireSession('warga'), (req, res) => {

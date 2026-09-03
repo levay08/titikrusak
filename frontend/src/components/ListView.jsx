@@ -301,7 +301,7 @@ export default function ListView({
               top: 58,
               right: 0,
               bottom: 0,
-              width: 'min(580px, 62vw)',
+              width: 'min(940px, 92vw)',
               zIndex: 900,
               borderTop: '4px solid #facc15',
             }}
