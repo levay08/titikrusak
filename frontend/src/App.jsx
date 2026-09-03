@@ -43,7 +43,7 @@ import { DocModal, TermsModal, ContactModal } from './components/FooterModals.js
 const SPONSORS = [
   { name: 'PANDI', src: 'https://pandi.id/public/images/2022/9/ppnd-new-1663309705.png', url: 'https://pandi.id' },
   { name: 'e.id', src: 'https://e.id/eid-logo.png', url: 'https://e.id' },
-  { name: 'IDCloudHost', src: 'https://cdn.theorg.com/00338df6-fc27-4b80-8835-e54ad48378ad_medium.jpg', url: 'https://idcloudhost.com' },
+  { name: 'IDCloudHost', src: 'https://media.licdn.com/dms/image/v2/D4D0BAQHLuap3Q74A5A/company-logo_200_200/B4DZ_K3g3ZHQAE-/0/1785814978225/idcloudhost_logo?e=2147483647&v=beta&t=pbbvJR6BQCtwyPe8bcBrxdKudRXX9qFa5MrpqdoBDtM', url: 'https://idcloudhost.com' },
 ];
 
 // Satu chip logo sponsor: tinggi seragam agar sejajar & rapi. Seluruh chip
@@ -676,7 +676,7 @@ export default function App() {
               color: '#fff',
             }}
           >
-            <Logo size={30} animated />
+            <Logo size={30} animated spin />
             <h1 style={{ margin: 0, fontSize: 18, fontWeight: 700, whiteSpace: 'nowrap' }}>
               titikrusak.id
             </h1>
@@ -1010,7 +1010,9 @@ export default function App() {
         <div style={{ position: 'relative', flex: 1, minWidth: 0 }}>
           {/* Toggle mode tampilan (File 1 Bagian 9.2) - disembunyikan di
               halaman Admin (tampilan khusus otoritas) */}
-          {activeView !== 'admin' && <ViewToggle view={activeView} onChange={setActiveView} />}
+          {activeView !== 'admin' && !(activeView === 'list' && detailReport) && (
+            <ViewToggle view={activeView} onChange={setActiveView} />
+          )}
 
           {activeView === 'admin' ? (
             <AdminView
@@ -1588,8 +1590,15 @@ export default function App() {
               }}
             />
           )}
-          {notifOpen && (
-            <NotifikasiModal onClose={() => setNotifOpen(false)} />
+  { notifOpen && (
+            <NotifikasiModal
+              onClose={() => setNotifOpen(false)}
+              reports={allReports}
+              onOpenReport={(r) => {
+                setNotifOpen(false);
+                if (r && r.location_name) setDetailReport(r);
+              }}
+            />
           )}
 
           {/* Dialog konfirmasi Keluar e.id (4 Sep 2026) */}
@@ -1749,7 +1758,16 @@ export default function App() {
                 </span>
               </div>
               <div style={{ fontSize: 11, opacity: 0.7, color: '#e2e8f0', marginTop: 3 }}>
-                © 2026 titikrusak.id oleh Arfhacorp - Hak cipta dilindungi
+                © 2026 titikrusak.id oleh{' '}
+                <a
+                  href="https://www.arfhacorp.com/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ color: '#facc15', textDecoration: 'underline' }}
+                >
+                  Arfhacorp
+                </a>{' '}
+                - Hak cipta dilindungi
               </div>
             </div>
           </div>

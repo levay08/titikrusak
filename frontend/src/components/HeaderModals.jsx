@@ -6,7 +6,7 @@
 // yang rusak, status kerusakan). Data berasal dari props reports (satu
 // sumber data yang sama dengan peta/daftar - di sini versi TANPA filter).
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   SEVERITIES,
   SEVERITY_COLORS,
@@ -554,24 +554,33 @@ export function PantauModal({ reports = [], onClose }) {
 // ---- Notifikasi (poin 9 + transparansi): feed aktivitas gabungan - laporan
 // baru (warga), perubahan status (otoritas), dan dukungan (warga) - dari
 // GET /api/activity, terurut terbaru. ----
-export function NotifikasiModal({ onClose }) {
+export function NotifikasiModal({ onClose, reports = [], onOpenReport }) {
   const [activities, setActivities] = useState(null); // null = memuat
   const [loadError, setLoadError] = useState(false);
+  const [tab, setTab] = useState('aktivitas'); // 'aktivitas' | 'diskusi'
+  const [groups, setGroups] = useState([]); // ringkasan diskusi per titik
+
+  const loadData = async (alive) => {
+    try {
+      const res = await fetch('/api/activity?limit=100');
+      if (!res.ok) throw new Error(String(res.status));
+      const body = await res.json();
+      if (!alive.v) return;
+      setActivities(Array.isArray(body.activities) ? body.activities : []);
+      setGroups(Array.isArray(body.commentGroups) ? body.commentGroups : []);
+    } catch (_e) {
+      if (!alive.v) return;
+      setLoadError(true);
+    }
+  };
 
   useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const res = await fetch('/api/activity?limit=100');
-        if (!res.ok) throw new Error(String(res.status));
-        const body = await res.json();
-        if (!cancelled) setActivities(Array.isArray(body.activities) ? body.activities : []);
-      } catch (_e) {
-        if (!cancelled) setLoadError(true);
-      }
-    })();
+    const alive = { v: true };
+    loadData(alive);
+    const timer = setInterval(() => loadData(alive), 12000);
     return () => {
-      cancelled = true;
+      alive.v = false;
+      clearInterval(timer);
     };
   }, []);
 
@@ -611,7 +620,42 @@ export function NotifikasiModal({ onClose }) {
   };
 
   return (
-    <ModalShell title="Notifikasi Aktivitas" onClose={onClose} maxWidth={600}>
+    <ModalShell title="Notifikasi" onClose={onClose} maxWidth={640}>
+      {/* Dua tab: Aktivitas (peristiwa peta) & Diskusi (per titik) */}
+      <div
+        style={{
+          display: 'flex',
+          gap: 6,
+          marginBottom: 6,
+          borderBottom: '1px solid #e2e8f0',
+          paddingBottom: 10,
+        }}
+      >
+        {[
+          ['aktivitas', 'Aktivitas'],
+          ['diskusi', 'Diskusi'],
+        ].map(([k, label]) => (
+          <button
+            key={k}
+            type="button"
+            onClick={() => setTab(k)}
+            style={{
+              padding: '6px 14px',
+              borderRadius: 999,
+              border: '1px solid #e2e8f0',
+              background: tab === k ? '#facc15' : '#fff',
+              color: tab === k ? '#1c1917' : '#475569',
+              fontWeight: 700,
+              fontSize: 12.5,
+              cursor: 'pointer',
+            }}
+          >
+            {label}
+            {k === 'diskusi' && groups.length > 0 ? ` (${groups.length})` : ''}
+          </button>
+        ))}
+      </div>
+      <div style={{ display: tab === 'aktivitas' ? undefined : 'none' }}>
       {activities === null && !loadError ? (
         <p style={{ margin: 0, fontSize: 13, color: '#64748b' }}>Memuat aktivitas…</p>
       ) : loadError ? (
@@ -726,6 +770,112 @@ export function NotifikasiModal({ onClose }) {
           );
         })
       )}
+      </div>
+      {tab === 'diskusi' && (
+        <DiscussionNotif
+          groups={groups}
+          loading={activities === null && !loadError}
+          error={loadError}
+          reports={reports}
+          onOpenReport={onOpenReport}
+        />
+      )}
     </ModalShell>
+  );
+}
+
+// ---- Notifikasi Diskusi: ringkasan per TITIK (bukan per komentar). ----
+// Satu titik ramai diskusi cukup tampil sekali dengan jumlah komentar yang
+// bertambah; animasi sederhana menandakan ada komentar baru (dari siapa &
+// kapan) sejak muat terakhir. Klik baris = buka detail laporan itu.
+function DiscussionNotif({ groups, loading, error, reports = [], onOpenReport }) {
+  const [flash, setFlash] = useState(null); // report_id yg baru dapat komentar
+  const seen = useRef(new Map()); // report_id -> last_id terakhir dilihat
+
+  useEffect(() => {
+    const fresh = [];
+    for (const g of groups) {
+      const prev = seen.current.get(g.report_id);
+      if (prev !== undefined && prev !== g.last_id) fresh.push(g.report_id);
+      seen.current.set(g.report_id, g.last_id);
+    }
+    if (fresh.length) {
+      setFlash(fresh[0]);
+      const t = setTimeout(() => setFlash(null), 1600);
+      return () => clearTimeout(t);
+    }
+    return undefined;
+  }, [groups]);
+
+  if (loading) {
+    return <p style={{ margin: 0, fontSize: 13, color: '#64748b' }}>Memuat diskusi…</p>;
+  }
+  if (error) {
+    return <p style={{ margin: 0, fontSize: 13, color: '#b91c1c' }}>Gagal memuat diskusi.</p>;
+  }
+  if (!groups.length) {
+    return <p style={{ margin: 0, fontSize: 13, color: '#64748b' }}>Belum ada diskusi. Buka detail laporan lalu tulis komentar untuk memulai.</p>;
+  }
+  return (
+    <div>
+      {groups.map((g) => {
+        const isFlash = flash === g.report_id;
+        const infra = INFRA_LABELS[g.infra_type] || g.infra_type;
+        const sev = SEVERITY_COLORS[g.severity] || '#64748b';
+        const open = () => {
+          if (!onOpenReport) return;
+          const found = reports.find((r) => r.id === g.report_id);
+          onOpenReport(found || { id: g.report_id });
+        };
+        return (
+          <div
+            key={g.report_id}
+            role="button"
+            tabIndex={0}
+            onClick={open}
+            onKeyDown={(e) => e.key === 'Enter' && open()}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+              padding: '10px 2px',
+              borderBottom: '1px solid #f1f5f9',
+              cursor: onOpenReport ? 'pointer' : 'default',
+              background: isFlash ? '#fffbeb' : undefined,
+              borderRadius: 8,
+              animation: isFlash ? 'tk-pop-row 1.6s ease' : undefined,
+            }}
+          >
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 13.5, fontWeight: 700, color: '#1c1917' }}>{g.location_name}</div>
+              <div style={{ display: 'flex', gap: 5, marginTop: 3, flexWrap: 'wrap' }}>
+                <span style={{ padding: '1px 7px', borderRadius: 999, fontSize: 10.5, fontWeight: 600, background: '#f1f5f9', color: '#334155' }}>{infra}</span>
+                <span style={{ padding: '1px 7px', borderRadius: 999, fontSize: 10.5, fontWeight: 600, background: `${sev}1a`, color: sev }}>{SEVERITY_LABELS[g.severity] || g.severity}</span>
+              </div>
+              <div style={{ fontSize: 11.5, color: '#64748b', marginTop: 4 }}>
+                Komentar terbaru dari <strong>{g.last_name}</strong> · {formatDateTime(g.last_at)}
+              </div>
+            </div>
+            <span
+              style={{
+                flexShrink: 0,
+                minWidth: 62,
+                textAlign: 'center',
+                padding: '5px 10px',
+                borderRadius: 999,
+                background: isFlash ? '#facc15' : '#f8fafc',
+                border: '1px solid #e2e8f0',
+                fontSize: 12.5,
+                fontWeight: 800,
+                color: '#1c1917',
+                animation: isFlash ? 'tk-pop-count 0.9s ease' : undefined,
+              }}
+            >
+              {g.count} komentar
+            </span>
+          </div>
+        );
+      })}
+    </div>
   );
 }

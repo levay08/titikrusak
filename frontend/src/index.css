@@ -232,6 +232,48 @@ body {
   .tk-logo-shine-band {
     animation: none;
   }
+  .tk-logo-spin {
+    animation: none !important;
+  }
+}
+
+/* Logo header: spin kecil berkala (sekali per 28 dtk, durasi ~1,4 dtk).
+   Logo tetap statis hampir sepanjang waktu — hanya menyapa sesekali. */
+.tk-logo-spin {
+  animation: tk-logo-spin-period 28s linear infinite;
+  transform-origin: 50% 50%;
+  will-change: transform;
+}
+@keyframes tk-logo-spin-period {
+  0%,
+  95% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Notifikasi Diskusi: baris baru komentar + badge jumlah komentar */
+@keyframes tk-pop-row {
+  0%,
+  100% {
+    background: #fffbeb;
+  }
+  30% {
+    background: #fef9c3;
+  }
+}
+@keyframes tk-pop-count {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.22);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
 /* Fokus keyboard yang jelas & konsisten (aksen kuning) — modern & aksesibel */

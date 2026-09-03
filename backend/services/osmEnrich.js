@@ -112,7 +112,7 @@ function textOf(c, reportInfra) {
 async function enrichOne(db, report) {
   try {
     const cands = await queryNear(report.lat, report.lng);
-    const pick = pickCandidate(cands, report.infra_type);
+    const pick = pickCandidate(cands.filter((c) => c.d <= 1000), report.infra_type);
     if (!pick) {
       db.prepare('UPDATE reports SET enriched_osm = ? WHERE id = ?').run(null, report.id);
       return 'kosong';

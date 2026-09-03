@@ -50,11 +50,41 @@ router.get('/', (req, res) => {
       )
       .all();
 
+    // 4) Diskusi: ringkasan per titik (nama + kerusakan + jumlah komentar +
+    //    komentar terbaru: dari siapa & kapan). Tanpa nama pribadi otoritas.
+    const commentRows = db
+      .prepare(
+        `SELECT c.id AS cid, c.report_id, r.location_name, r.infra_type,
+                r.severity, c.display_name, c.created_at
+         FROM comments c JOIN reports r ON r.id = c.report_id
+         ORDER BY c.id DESC LIMIT 500`
+      )
+      .all();
+    const groupMap = new Map();
+    for (const c of commentRows) {
+      const g = groupMap.get(c.report_id);
+      if (!g) {
+        groupMap.set(c.report_id, {
+          report_id: c.report_id,
+          location_name: c.location_name,
+          infra_type: c.infra_type,
+          severity: c.severity,
+          count: 1,
+          last_id: c.cid,
+          last_name: c.display_name || 'Anonim',
+          last_at: c.created_at,
+        });
+      } else {
+        g.count++;
+      }
+    }
+    const commentGroups = [...groupMap.values()].slice(0, 40);
+
     const activities = [...created, ...statuses, ...votes]
       .sort((a, b) => String(b.at).localeCompare(String(a.at)))
       .slice(0, limit);
 
-    res.json({ activities });
+    res.json({ activities, commentGroups });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Gagal memuat aktivitas' });
