@@ -10,6 +10,7 @@
 
 import Logo from './Logo.jsx';
 import useIsMobile from '../lib/useIsMobile.js';
+import useEscapeClose from '../lib/useEscapeClose.js';
 
 const SECTION_TITLE = { fontSize: 13.5, fontWeight: 700, color: '#1c1917', margin: '0 0 4px' };
 const SECTION_BODY = { fontSize: 12.5, lineHeight: 1.65, color: '#475569', margin: '0 0 12px' };
@@ -113,6 +114,8 @@ export default function WelcomeModal({
   ctaLabel = 'Mengerti',
 }) {
   const isMobile = useIsMobile();
+  // Tombol Escape menutup modal selamat datang (setara klik ✕).
+  useEscapeClose(onClose);
 
   return (
     <div

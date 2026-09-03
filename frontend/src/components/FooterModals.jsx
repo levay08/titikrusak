@@ -339,9 +339,9 @@ export function ContactModal({ onClose }) {
   return (
     <ModalShell title="Kontak" onClose={onClose} maxWidth={520}>
       <p style={{ margin: '0 0 14px', fontSize: 13, lineHeight: 1.55, color: '#334155' }}>
-        Ada masukan, pertanyaan, atau kerja sama? Isi form lalu tekan kirim - WhatsApp
-        terbuka dengan pesan Anda ke <strong>62818101990</strong>. Kami membalas
-        secepatnya.
+        Ada masukan, pertanyaan, atau ingin kerja sama? Silahkan isi form dibawah ini lalu
+        tekan tombol kirim. Setelahnya, WhatsApp akan terbuka dengan berisi pesan yang Anda
+        buat dan meneruskannya ke nomor support kami. Terima kasih!
       </p>
 
       {state === 'sent' && (

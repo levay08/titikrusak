@@ -14,6 +14,7 @@ import {
   SEVERITY_COLORS,
 } from '../lib/labels.js';
 import useIsMobile from '../lib/useIsMobile.js';
+import useEscapeClose from '../lib/useEscapeClose.js';
 
 // Kumpulkan seluruh teks yang bisa dicari dari satu laporan.
 function searchableText(r) {
@@ -39,6 +40,8 @@ export default function SearchModal({ reports = [], initialQuery = '', onClose, 
   const isMobile = useIsMobile();
   const [q, setQ] = useState(initialQuery);
   const keyword = q.trim().toLowerCase();
+  // Tombol Escape menutup modal pencarian (setara klik ✕).
+  useEscapeClose(onClose);
 
   const results = useMemo(() => {
     if (!keyword) return [];

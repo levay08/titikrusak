@@ -67,6 +67,23 @@ describe('FooterModals: Kontak (form -> buka WhatsApp 62818101990)', () => {
     window.open = origOpen;
   });
 
+  it('menampilkan penjelasan form kontak yang baru (nomor support, bukan nomor di teks)', () => {
+    render(<ContactModal onClose={vi.fn()} />);
+
+    expect(
+      screen.getByText(
+        (_c, el) =>
+          el.tagName === 'P' &&
+          el.textContent.includes('Ada masukan, pertanyaan, atau ingin kerja sama?') &&
+          el.textContent.includes('Silahkan isi form dibawah ini') &&
+          el.textContent.includes('nomor support kami') &&
+          el.textContent.includes('Terima kasih!')
+      )
+    ).toBeInTheDocument();
+    // Nomor WhatsApp TIDAK muncul lagi di teks penjelasan.
+    expect(screen.queryByText(/62818101990/)).not.toBeInTheDocument();
+  });
+
   it('validasi: nama & pesan wajib sebelum membuka WhatsApp', async () => {
     const user = (await import('@testing-library/user-event')).default;
     render(<ContactModal onClose={vi.fn()} />);

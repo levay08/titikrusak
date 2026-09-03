@@ -28,6 +28,7 @@ import { setEidSession, eidSessionHeaders } from '../lib/eidSession.js';
 import { beacon } from '../lib/interest.js';
 import useIsMobile from '../lib/useIsMobile.js';
 import useIsTouchDevice from '../lib/useIsTouchDevice.js';
+import useEscapeClose from '../lib/useEscapeClose.js';
 
 // Alur status laporan (File 1 Bagian 6.2): satu arah maju. Tombol tindakan
 // otoritas selalu menawarkan STATUS BERIKUTNYA dalam alur ini.
@@ -253,6 +254,9 @@ function WeatherBadge({ value }) {
 export default function DetailModal({ report, onClose, otoritas = null, onReportUpdated, origin = null, onOriginClick = null, mode = 'modal', ...restProps }) {
   const isSide = mode === 'side';
   const isMobile = useIsMobile();
+  // Tombol Escape menutup modal detail (setara klik ✕). Saat alur verifikasi
+  // e.id terbuka di dalamnya, VerificationFlow menangani Escape lebih dulu.
+  useEscapeClose(onClose);
   // Perangkat sentuh (ponsel/tablet): verifikasi e.id untuk fitur Dukung
   // lewat deep link wallet (tanpa scan QR) - lihat VerificationFlow.
   const isTouchDevice = useIsTouchDevice();
@@ -294,6 +298,9 @@ export default function DetailModal({ report, onClose, otoritas = null, onReport
   // Foto yang sedang dibuka dalam frame (lightbox dalam situs - tidak
   // membuka tab baru / tidak menutup layar; bisa ditutup).
   const [photoView, setPhotoView] = useState(null);
+  // Escape saat frame foto terbuka: tutup frame dulu (bukan seluruh modal),
+  // dengan capture agar modal detail tidak ikut tertutup.
+  useEscapeClose(() => setPhotoView(null), { capture: true, enabled: Boolean(photoView) });
 
   // Sinyal minat: user membuka detail sebuah laporan (tanpa data tambahan).
   useEffect(() => {

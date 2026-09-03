@@ -18,6 +18,7 @@ import {
 import { ISLAND_REGIONS, OTHER_ISLAND, detectIsland, detectProvince } from '../lib/regions.js';
 import useIsMobile from '../lib/useIsMobile.js';
 import WelcomeModal from './WelcomeModal.jsx';
+import useEscapeClose from '../lib/useEscapeClose.js';
 
 // ---- Utilitas kecil ----
 
@@ -44,6 +45,8 @@ export function formatDateTime(value) {
 // ---- Kerangka modal bersama (bottom sheet di mobile, kartu di desktop) ----
 export function ModalShell({ title, onClose, children, maxWidth = 640 }) {
   const isMobile = useIsMobile();
+  // Tombol Escape menutup modal (setara klik ✕).
+  useEscapeClose(onClose);
   return (
     <div
       className="tk-modal-backdrop"
@@ -611,12 +614,19 @@ export function NotifikasiModal({ onClose, reports = [], onOpenReport }) {
     return 'mendukung laporan';
   };
 
-  // Tanggal pertama titik diberitakan media (source_media_date: YYYY-MM-DD).
+  // Tanggal pertama titik diberitakan media (source_media_date: YYYY-MM-DD
+  // atau format RFC, mis. "Thu, 21 May 2026 07:00:00 GMT"). Tanggal dihitung
+  // konsisten sebagai UTC agar tidak bergeser karena zona waktu browser.
   const fmtMediaDate = (a) => {
     if (!a.source_media_date) return null;
-    const d = new Date(String(a.source_media_date).slice(0, 10) + 'T00:00:00');
+    const d = new Date(String(a.source_media_date));
     if (Number.isNaN(d.getTime())) return null;
-    return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+    return d.toLocaleDateString('id-ID', {
+      timeZone: 'UTC',
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    });
   };
 
   return (

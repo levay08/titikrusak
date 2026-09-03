@@ -18,6 +18,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import QRCode from 'react-qr-code';
+import useEscapeClose from '../lib/useEscapeClose.js';
 
 const STEPS = [
   'Permintaan verifikasi telah dikirim',
@@ -69,6 +70,10 @@ export default function VerificationFlow({
   const isOtoritasFlow = role === 'otoritas';
   const [agency, setAgency] = useState('');
   const agencyReady = !isOtoritasFlow || agency.trim().length >= 3;
+
+  // Escape = Batal: overlay verifikasi (di dalam modal) menangani Escape
+  // lebih dulu (capture) agar modal luarnya TIDAK ikut tertutup.
+  useEscapeClose(onCancel, { capture: true, enabled: Boolean(onCancel) });
 
   const deadlineRef = useRef(0);
   const sessionRef = useRef(null);

@@ -52,6 +52,9 @@ function SponsorLogo({ name, src, url }) {
   const [failed, setFailed] = useState(false);
   const [hover, setHover] = useState(false);
   const isMobile = useIsMobile();
+  // Logo IDCloudHost sengaja lebih besar di dalam frame yang sama (chip
+  // tidak ikut membesar) - ukuran gambar sponsor lain tetap.
+  const big = name === 'IDCloudHost';
   return (
     <a
       href={url}
@@ -116,8 +119,8 @@ function SponsorLogo({ name, src, url }) {
           alt={`Logo ${name}`}
           onError={() => setFailed(true)}
           style={{
-            height: isMobile ? 22 : 28,
-            maxWidth: isMobile ? 110 : 150,
+            height: isMobile ? (big ? 28 : 22) : big ? 34 : 28,
+            maxWidth: isMobile ? (big ? 150 : 110) : big ? 200 : 150,
             objectFit: 'contain',
           }}
         />
@@ -604,6 +607,21 @@ export default function App() {
     closeAllModals();
     setter(true);
   };
+
+  // Tombol Escape menutup modal formulir laporan dan dialog konfirmasi
+  // keluar e.id (modal lain memakai useEscapeClose masing-masing; saat alur
+  // verifikasi e.id terbuka di dalam modal, VerificationFlow yang menangani).
+  useEffect(() => {
+    if (!formOpen && !logoutAsk) return undefined;
+    const onKey = (e) => {
+      if (e.key !== 'Escape') return;
+      e.preventDefault();
+      if (logoutAsk) setLogoutAsk(null);
+      else setFormOpen(false);
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [formOpen, logoutAsk]);
 
   // Tombol floating disembunyikan saat kondisi hasil kosong Kondisi A
   // (database kosong) menampilkan tombol ajakannya sendiri - dan selama
@@ -1763,7 +1781,7 @@ export default function App() {
                   href="https://www.arfhacorp.com/"
                   target="_blank"
                   rel="noopener noreferrer"
-                  style={{ color: '#facc15', textDecoration: 'underline' }}
+                  style={{ color: 'inherit', textDecoration: 'none' }}
                 >
                   Arfhacorp
                 </a>{' '}

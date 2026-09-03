@@ -205,6 +205,8 @@ describe('NotifikasiModal (feed aktivitas gabungan - transparansi)', () => {
                 location_name: 'Jalan Trans Sulawesi Parimo',
                 actor: null,
                 source_type: 'media',
+                source_media_name: 'Kompas.com',
+                source_media_date: 'Thu, 21 May 2026 07:00:00 GMT',
                 severity: 'berat',
                 infra_type: 'jalan',
                 at: '2026-09-01 10:30:00',
@@ -244,6 +246,12 @@ describe('NotifikasiModal (feed aktivitas gabungan - transparansi)', () => {
     expect(screen.getByText('Warga')).toBeInTheDocument();
     expect(screen.getAllByText('Jembatan Cibeureum').length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText('Jalan Trans Sulawesi Parimo')).toBeInTheDocument();
+
+    // Titik media: nama media + TANGGAL pertama diberitakan (RFC date dari
+    // DB di-parse ke format Indonesia, mis. "21 Mei 2026").
+    expect(
+      screen.getByText(/Pertama diberitakan media oleh Kompas\.com pada 21 Mei 2026/i)
+    ).toBeInTheDocument();
 
     // Chip status perubahan + chip severity laporan.
     expect(screen.getByText('Terverifikasi')).toBeInTheDocument();
