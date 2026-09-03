@@ -680,10 +680,9 @@ export default function MapView({
       zoom: 5,             // sementara; disesuaikan fitBounds di bawah
       minZoom,
       maxZoom: 18,
-      // Kontrol zoom default Leaflet menempel di pojok KIRI-ATAS - tepat di
-      // bawah/sekitar tombol navigasi NavButtons (File 1 Bagian 9.1), sehingga
-      // di layar sempit tombol +/− terlihat "tumpang tindih" dengan ← dan ⟲.
-      // Matikan bawaan lalu pasang ulang di pojok kanan-atas (area kosong).
+      // Kontrol zoom default Leaflet dimatikan total - zoom dikelola kontrol
+      // vertikal kustom (+/− + slider) di kanan peta (3 Sep 2026), sehingga
+      // tidak ada +/− bawaan yang dobel.
       zoomControl: false,
       maxBounds: VIEW_LIMITS,        // batas geser: Indonesia + toleransi (9.1)
       maxBoundsViscosity: 1.0,       // "memantul" halus, tidak berhenti kaku
@@ -695,11 +694,6 @@ export default function MapView({
     const syncZoom = () => setZoomLevel(map.getZoom());
     map.on('zoomend', syncZoom);
     map.on('zoom', syncZoom);
-
-    // Kontrol zoom in/out standar - dipindah ke kanan-atas agar tidak pernah
-    // bertabrakan dengan NavButtons (kiri-atas) maupun toggle Peta/Daftar
-    // (tengah-atas) di semua ukuran layar.
-    L.control.zoom({ position: 'topright' }).addTo(map);
 
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,

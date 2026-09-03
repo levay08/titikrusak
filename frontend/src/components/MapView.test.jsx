@@ -12,8 +12,8 @@ import '@testing-library/jest-dom/vitest';
 import L from 'leaflet';
 import MapView from './MapView.jsx';
 
-describe('MapView: posisi kontrol zoom (tidak menabrak NavButtons)', () => {
-  it('membuat peta tanpa zoomControl bawaan (kiri-atas) dan memasang ulang di topright', () => {
+describe('MapView: kontrol zoom tunggal (tidak dobel dengan bawaan Leaflet)', () => {
+  it('zoomControl bawaan dimatikan dan TIDAK dipasang ulang (kontrol kustom saja)', () => {
     render(<MapView reports={[]} />);
 
     // Peta diinisialisasi dengan zoomControl dimatikan.
@@ -22,11 +22,9 @@ describe('MapView: posisi kontrol zoom (tidak menabrak NavButtons)', () => {
       expect.objectContaining({ zoomControl: false })
     );
 
-    // Kontrol zoom dipasang ulang di pojok kanan-atas, ditambahkan ke peta.
-    expect(L.control.zoom).toHaveBeenCalledWith({ position: 'topright' });
-    const mapInstance = L.map.mock.results[0].value;
-    const zoomControl = L.control.zoom.mock.results[0].value;
-    expect(zoomControl.addTo).toHaveBeenCalledWith(mapInstance);
+    // Bawaan Leaflet tidak boleh dipasang ulang (nanti dobel dengan kontrol
+    // vertikal kustom +/− + slider di kanan peta).
+    expect(L.control.zoom).not.toHaveBeenCalled();
   });
 });
 
