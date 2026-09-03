@@ -156,6 +156,7 @@ export default function ListView({
 }) {
   const [selected, setSelected] = useState(null);
   const otoritasMode = Boolean(otoritas);
+  const isMobile = useIsMobile();
 
   // Mode otoritas (File 1 Bagian 6.2/6.3): laporan dikelompokkan berdasarkan
   // prioritas - gabungan severity + validasi e.id + kelengkapan laporan
@@ -281,16 +282,41 @@ export default function ListView({
         </div>
       )}
 
-      {selected && (
-        <DetailModal
-          report={selected}
-          onClose={() => setSelected(null)}
-          otoritas={otoritas}
-          onReportUpdated={onReportUpdated}
-          origin="list"
-          onOriginClick={() => setSelected(null)}
-        />
-      )}
+      {selected &&
+        (isMobile ? (
+          <DetailModal
+            report={selected}
+            onClose={() => setSelected(null)}
+            otoritas={otoritas}
+            onReportUpdated={onReportUpdated}
+            origin="list"
+            onOriginClick={() => setSelected(null)}
+          />
+        ) : (
+          // Desktop: dua panel - daftar laporan tetap di kiri, detail +
+          // diskusi + bagikan di kanan (mode side).
+          <div
+            style={{
+              position: 'fixed',
+              top: 58,
+              right: 0,
+              bottom: 0,
+              width: 'min(580px, 62vw)',
+              zIndex: 900,
+              borderTop: '4px solid #facc15',
+            }}
+          >
+            <DetailModal
+              report={selected}
+              onClose={() => setSelected(null)}
+              otoritas={otoritas}
+              onReportUpdated={onReportUpdated}
+              origin="list"
+              onOriginClick={() => setSelected(null)}
+              mode="side"
+            />
+          </div>
+        ))}
     </div>
   );
 }

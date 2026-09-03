@@ -238,7 +238,8 @@ function WeatherBadge({ value }) {
   );
 }
 
-export default function DetailModal({ report, onClose, otoritas = null, onReportUpdated, origin = null, onOriginClick = null }) {
+export default function DetailModal({ report, onClose, otoritas = null, onReportUpdated, origin = null, onOriginClick = null, mode = 'modal', ...restProps }) {
+  const isSide = mode === 'side';
   const isMobile = useIsMobile();
   // Perangkat sentuh (ponsel/tablet): verifikasi e.id untuk fitur Dukung
   // lewat deep link wallet (tanpa scan QR) - lihat VerificationFlow.
@@ -441,32 +442,48 @@ export default function DetailModal({ report, onClose, otoritas = null, onReport
   return (
     <div
       className="tk-modal-backdrop"
-      style={{
-        position: 'fixed',
-        inset: 0,
-        zIndex: 1200,
-        background: 'rgba(15, 23, 42, 0.55)',
-        display: 'flex',
-        // Mobile: bottom sheet (File 1 Bagian 9.7) - sama dengan modal
-        // ReportForm & otoritas; desktop: kartu di tengah.
-        alignItems: isMobile ? 'flex-end' : 'center',
-        justifyContent: 'center',
-        padding: isMobile ? 0 : 16,
-      }}
-      onClick={onClose}
+      style={
+        isSide
+          ? { position: 'relative', inset: 0, background: 'transparent', display: 'flex', height: '100%' }
+          : {
+              position: 'fixed',
+              inset: 0,
+              zIndex: 1200,
+              background: 'rgba(15, 23, 42, 0.55)',
+              display: 'flex',
+              // Mobile: bottom sheet (File 1 Bagian 9.7) - sama dengan modal
+              // ReportForm & otoritas; desktop: kartu di tengah.
+              alignItems: isMobile ? 'flex-end' : 'center',
+              justifyContent: 'center',
+              padding: isMobile ? 0 : 16,
+            }
+      }
+      onClick={isSide ? undefined : onClose}
     >
       <div
         className="tk-modal-panel"
-        style={{
-          background: '#fff',
-          borderRadius: isMobile ? '14px 14px 0 0' : 12,
-          width: '100%',
-          maxWidth: 560,
-          maxHeight: isMobile ? '92dvh' : '85vh',
-          overflowY: 'auto',
-          padding: isMobile ? '18px 18px 24px' : '20px 24px',
-          boxShadow: '0 10px 40px rgba(0, 0, 0, 0.4)',
-        }}
+        style={
+          isSide
+            ? {
+                background: '#fff',
+                width: '100%',
+                height: '100%',
+                borderLeft: '1px solid #e2e8f0',
+                overflowY: 'auto',
+                padding: '16px 20px',
+                boxShadow: '-8px 0 24px rgba(15, 23, 42, 0.08)',
+              }
+            : {
+                background: '#fff',
+                borderRadius: isMobile ? '14px 14px 0 0' : 12,
+                width: '100%',
+                maxWidth: 560,
+                maxHeight: isMobile ? '92dvh' : '85vh',
+                overflowY: 'auto',
+                padding: isMobile ? '18px 18px 24px' : '20px 24px',
+                boxShadow: '0 10px 40px rgba(0, 0, 0, 0.4)',
+              }
+        }
         onClick={(e) => e.stopPropagation()}
       >
         {originLabel && (

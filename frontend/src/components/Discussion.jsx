@@ -5,7 +5,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import VerificationFlow from './VerificationFlow.jsx';
-import { getEidSession, eidSessionHeaders } from '../lib/eidSession.js';
+import { getEidSession, setEidSession, eidSessionHeaders } from '../lib/eidSession.js';
 import useIsTouchDevice from '../lib/useIsTouchDevice.js';
 
 const api = async (url, opts) => {
@@ -156,6 +156,9 @@ export default function Discussion({ report, onNeedVerify }) {
             } catch (_e) {
               /* abaikan */
             }
+            // Simpan ke kunci sesi resmi (dibaca getEidSession). Tanpa ini
+            // verifikasi dianggap belum pernah terjadi dan diminta lagi.
+            setEidSession({ session_id: result.session_id, role: 'warga' });
             setVerifyOpen(false);
             if (onNeedVerify) onNeedVerify();
           }}
