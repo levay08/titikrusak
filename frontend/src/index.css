@@ -206,6 +206,11 @@ body {
 .tk-logo:hover {
   transform: scale(1.06);
 }
+/* Link "Arfhacorp" di footer: teks menyatu dengan teks lain; hanya saat
+   mouse hover warnanya berubah menjadi kuning aksen (tanpa underline). */
+.tk-footer-arfha:hover {
+  color: #facc15;
+}
 /* Logo header: TETAP (statis) + efek kilau pantulan cahaya menyapu dari
    KANAN ke KIRI di atas tile logo (koreksi user — bukan pulse/denyut).
    Band kilau digambar di dalam SVG (Logo.jsx), digerakkan via CSS. */
@@ -232,25 +237,57 @@ body {
   .tk-logo-shine-band {
     animation: none;
   }
-  .tk-logo-spin {
+  .tk-crack-piece {
     animation: none !important;
   }
 }
 
-/* Logo header: spin kecil berkala (sekali per 28 dtk, durasi ~1,4 dtk).
-   Logo tetap statis hampir sepanjang waktu — hanya menyapa sesekali. */
-.tk-logo-spin {
-  animation: tk-logo-spin-period 28s linear infinite;
-  transform-origin: 50% 50%;
+/* Logo header: crosshair koordinat TERBELAH DUA (masking dua belahan),
+   esensi "rusak". Belahan menjauh membentuk celah retak, lalu perlahan
+   tersambung kembali, jeda lama, lalu berulang. */
+.tk-logo-crack .tk-crack-piece {
   will-change: transform;
 }
-@keyframes tk-logo-spin-period {
+.tk-logo-crack .tk-crack-a {
+  animation: tk-crack-a 8s ease-in-out infinite;
+}
+.tk-logo-crack .tk-crack-b {
+  animation: tk-crack-b 8s ease-in-out infinite;
+}
+@keyframes tk-crack-a {
   0%,
-  95% {
-    transform: rotate(0deg);
+  46% {
+    transform: translate(0, 0); /* utuh: diam */
+  }
+  55% {
+    transform: translate(-3.2px, -3.2px); /* terbelah dua */
+  }
+  62% {
+    transform: translate(-3.2px, -3.2px); /* sesaat retak */
+  }
+  92% {
+    transform: translate(0, 0); /* perlahan tersambung */
   }
   100% {
-    transform: rotate(360deg);
+    transform: translate(0, 0);
+  }
+}
+@keyframes tk-crack-b {
+  0%,
+  46% {
+    transform: translate(0, 0);
+  }
+  55% {
+    transform: translate(3.2px, 3.2px);
+  }
+  62% {
+    transform: translate(3.2px, 3.2px);
+  }
+  92% {
+    transform: translate(0, 0);
+  }
+  100% {
+    transform: translate(0, 0);
   }
 }
 

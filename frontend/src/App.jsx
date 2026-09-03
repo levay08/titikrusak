@@ -694,7 +694,7 @@ export default function App() {
               color: '#fff',
             }}
           >
-            <Logo size={30} animated spin />
+            <Logo size={30} animated crack />
             <h1 style={{ margin: 0, fontSize: 18, fontWeight: 700, whiteSpace: 'nowrap' }}>
               titikrusak.id
             </h1>
@@ -1781,6 +1781,7 @@ export default function App() {
                   href="https://www.arfhacorp.com/"
                   target="_blank"
                   rel="noopener noreferrer"
+                  className="tk-footer-arfha"
                   style={{ color: 'inherit', textDecoration: 'none' }}
                 >
                   Arfhacorp
