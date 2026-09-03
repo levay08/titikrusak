@@ -21,7 +21,8 @@ router.get('/', (req, res) => {
     const created = db
       .prepare(
         `SELECT 'report_created' AS type, id AS report_id, location_name,
-                reporter_display_name AS actor, source_type, severity, infra_type,
+                reporter_display_name AS actor, source_type,
+                source_media_name, source_media_date, severity, infra_type,
                 created_at AS at
          FROM reports`
       )

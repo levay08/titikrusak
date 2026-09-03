@@ -601,6 +601,14 @@ export function NotifikasiModal({ onClose }) {
     return 'mendukung laporan';
   };
 
+  // Tanggal pertama titik diberitakan media (source_media_date: YYYY-MM-DD).
+  const fmtMediaDate = (a) => {
+    if (!a.source_media_date) return null;
+    const d = new Date(String(a.source_media_date).slice(0, 10) + 'T00:00:00');
+    if (Number.isNaN(d.getTime())) return null;
+    return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+  };
+
   return (
     <ModalShell title="Notifikasi Aktivitas" onClose={onClose} maxWidth={600}>
       {activities === null && !loadError ? (
@@ -661,6 +669,13 @@ export function NotifikasiModal({ onClose }) {
                 >
                   {a.location_name}
                 </div>
+                {a.type === 'report_created' && a.source_type === 'media' && (
+                  <div style={{ fontSize: 11.5, color: '#64748b', marginTop: 3 }}>
+                    🗞 Pertama diberitakan media
+                    {a.source_media_name ? ` oleh ${a.source_media_name}` : ''}
+                    {fmtMediaDate(a) ? ` pada ${fmtMediaDate(a)}` : ''}.
+                  </div>
+                )}
                 <div style={{ display: 'flex', gap: 5, marginTop: 4, flexWrap: 'wrap' }}>
                   {a.type === 'report_created' && (
                     <>
