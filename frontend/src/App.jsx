@@ -694,9 +694,24 @@ export default function App() {
               color: '#fff',
             }}
           >
-            <Logo size={30} animated crack />
+            <Logo size={30} animated />
             <h1 style={{ margin: 0, fontSize: 18, fontWeight: 700, whiteSpace: 'nowrap' }}>
-              titikrusak.id
+              {/* "rusak" (bagian dari titikrusak) = dua lapis teks yang
+                  di-mask diagonal & digeser: efek retak/terbelah dua lalu
+                  perlahan tersambung (index.css .tk-rusak-*). Salinan
+                  visual aria-hidden; teks asli untuk pembaca layar ada di
+                  .tk-rusak-sr. */}
+              titik
+              <span className="tk-rusak-word">
+                <span className="tk-rusak-part tk-rusak-a" aria-hidden="true">
+                  rusak
+                </span>
+                <span className="tk-rusak-part tk-rusak-b" aria-hidden="true">
+                  rusak
+                </span>
+                <span className="tk-rusak-sr">rusak</span>
+              </span>
+              .id
             </h1>
           </button>
         </div>

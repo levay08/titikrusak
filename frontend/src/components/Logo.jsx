@@ -5,18 +5,10 @@
 // Warna KUNING (tema maintenance/perbaikan). SVG inline agar tidak
 // bergantung asset file; dipakai di header, footer, dan favicon
 // (public/favicon.svg memakai desain yang sama).
-//
-// Prop `crack` (header): PIN KUNING terbelah DUA secara DIAGONAL memakai
-// efek masking (clipPath dua belahan) - menampilkan esensi "rusak":
-// belahan menjauh membentuk celah patah, lalu perlahan tersambung
-// kembali, jeda, ulang. Lingkaran titik putih & crosshair tetap utuh.
+// Efek crack/terbelah tidak lagi ada di logo ini - sekarang diterapkan
+// pada TEKS "rusak" di judul "titikrusak" (lihat index.css .tk-rusak-*).
 
-export default function Logo({ size = 30, title = 'Logo titikrusak.id', animated = false, crack = false }) {
-  const cls = `tk-logo${animated ? ' tk-logo-animated' : ''}${crack ? ' tk-logo-crack' : ''}`;
-  // Bentuk pin lokasi (kuning) - digambar dua kali (belahan A dan B) saat
-  // mode crack; tiap belahan di-mask segitiga diagonal lewat pusat pin.
-  const pinPath =
-    'M32 10 C 23 10 16.5 17.5 16.5 26.5 C 16.5 39 32 54 32 54 C 32 54 47.5 39 47.5 26.5 C 47.5 17.5 41 10 32 10 Z';
+export default function Logo({ size = 30, title = 'Logo titikrusak.id', animated = false }) {
   return (
     <svg
       width={size}
@@ -24,34 +16,20 @@ export default function Logo({ size = 30, title = 'Logo titikrusak.id', animated
       viewBox="0 0 64 64"
       role="img"
       aria-label={title}
-      className={cls}
+      className={`tk-logo${animated ? ' tk-logo-animated' : ''}`}
       style={{ display: 'block', flexShrink: 0 }}
     >
       {/* Badge putih dengan bingkai kuning */}
       <rect x="2" y="2" width="60" height="60" rx="15" fill="#ffffff" stroke="#eab308" strokeWidth="4" />
-      {/* Pin lokasi kuning. Mode crack: DUA belahan yang di-mask diagonal;
-          mode biasa: pin utuh satu path. */}
-      {crack ? (
-        <>
-          <g clipPath="url(#tk-crack-a)">
-            <g className="tk-crack-piece tk-crack-a">
-              <path d={pinPath} fill="#facc15" />
-            </g>
-          </g>
-          <g clipPath="url(#tk-crack-b)">
-            <g className="tk-crack-piece tk-crack-b">
-              <path d={pinPath} fill="#facc15" />
-            </g>
-          </g>
-        </>
-      ) : (
-        <path d={pinPath} fill="#facc15" />
-      )}
-      {/* Lingkaran dalam putih = koordinat titik (tetap utuh di mode crack) */}
+      {/* Pin lokasi kuning */}
+      <path
+        d="M32 10 C 23 10 16.5 17.5 16.5 26.5 C 16.5 39 32 54 32 54 C 32 54 47.5 39 47.5 26.5 C 47.5 17.5 41 10 32 10 Z"
+        fill="#facc15"
+      />
+      {/* Lingkaran dalam putih = koordinat titik */}
       <circle cx="32" cy="27" r="9" fill="#ffffff" />
       {/* Crosshair koordinat (garis bidik N/E/S/W) - KUNING GELAP agar
-          kontras di atas pin kuning; frame tetap kuning #eab308. Tidak
-          ikut terbelah pada mode crack. */}
+          kontras di atas pin kuning; frame tetap kuning #eab308 */}
       <line x1="32" y1="14" x2="32" y2="20" stroke="#a16207" strokeWidth="3" strokeLinecap="round" />
       <line x1="32" y1="34" x2="32" y2="40" stroke="#a16207" strokeWidth="3" strokeLinecap="round" />
       <line x1="23" y1="27" x2="29" y2="27" stroke="#a16207" strokeWidth="3" strokeLinecap="round" />
@@ -86,20 +64,6 @@ export default function Logo({ size = 30, title = 'Logo titikrusak.id', animated
         <clipPath id="tk-logo-clip">
           <rect x="2" y="2" width="60" height="60" rx="15" />
         </clipPath>
-        {crack && (
-          <>
-            {/* Masking belahan pin: garis DIAGONAL y = -x + 59 lewat pusat
-                (32,27), membelah pin miring (kiri-atas vs kanan-bawah).
-                Overlap tipis di sekitar garis agar tanpa jahitan saat
-                kedua belahan tersambung kembali. */}
-            <clipPath id="tk-crack-a">
-              <polygon points="0,0 61,0 0,61" />
-            </clipPath>
-            <clipPath id="tk-crack-b">
-              <polygon points="59,0 64,0 64,64 0,64 0,59" />
-            </clipPath>
-          </>
-        )}
       </defs>
     </svg>
   );

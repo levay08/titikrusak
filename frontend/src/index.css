@@ -238,38 +238,61 @@ body {
     transform: translateX(-96px); /* jeda, lalu ulang */
   }
 }
-/* Aksesibilitas: kurangi gerak -> kilau dimatikan, logo tetap statis. */
+/* Aksesibilitas: kurangi gerak -> kilau & efek crack teks dimatikan. */
 @media (prefers-reduced-motion: reduce) {
   .tk-logo-shine-band {
     animation: none;
   }
-  .tk-crack-piece {
+  .tk-rusak-part {
     animation: none !important;
   }
 }
 
-/* Logo header: PIN KUNING TERBELAH DUA secara DIAGONAL (masking dua
-   belahan), esensi "rusak". Belahan menjauh membentuk celah patah, lalu
-   perlahan tersambung kembali, jeda lama, lalu berulang. */
-.tk-logo-crack .tk-crack-piece {
+/* Judul header "titikrusak": kata "rusak" retak/TERBELAH DUA secara
+   DIAGONAL (dua lapis teks identik yang masing-masing di-mask segitiga
+   diagonal dengan overlap tipis). Belahan menjauh membentuk celah patah,
+   lalu perlahan tersambung kembali, jeda lama, lalu berulang. */
+.tk-rusak-word {
+  position: relative;
+  display: inline-block;
+  white-space: nowrap;
+}
+.tk-rusak-part {
+  position: absolute;
+  top: 0;
+  left: 0;
+  white-space: nowrap;
+  user-select: none;
+  pointer-events: none;
   will-change: transform;
 }
-.tk-logo-crack .tk-crack-a {
-  animation: tk-crack-a 8s ease-in-out infinite;
+/* A = sisi kiri-atas (x+y <= 103%), B = kanan-bawah (x+y >= 97%) - band
+   tumpang tindih 97..103 agar tanpa jahitan saat kedua belahan utuh. */
+.tk-rusak-a {
+  clip-path: polygon(0 0, 103% 0, 0 103%);
+  animation: tk-rusak-a 8s ease-in-out infinite;
 }
-.tk-logo-crack .tk-crack-b {
-  animation: tk-crack-b 8s ease-in-out infinite;
+.tk-rusak-b {
+  clip-path: polygon(97% 0, 100% 0, 100% 100%, 0 100%, 0 97%);
+  animation: tk-rusak-b 8s ease-in-out infinite;
 }
-@keyframes tk-crack-a {
+/* Penjaga ruang + teks asli: tak terlihat tetapi tetap mengisi lebar
+   kata (layout h1 tidak berubah). Aksesibilitas nama tombol sudah
+   ditangani aria-label tombol header. */
+.tk-rusak-sr {
+  visibility: hidden;
+  white-space: nowrap;
+}
+@keyframes tk-rusak-a {
   0%,
   46% {
     transform: translate(0, 0); /* utuh: diam */
   }
   55% {
-    transform: translate(-3.2px, -3.2px); /* terbelah dua */
+    transform: translate(-1.5px, -1.5px); /* terbelah dua */
   }
   62% {
-    transform: translate(-3.2px, -3.2px); /* sesaat retak */
+    transform: translate(-1.5px, -1.5px); /* sesaat retak */
   }
   92% {
     transform: translate(0, 0); /* perlahan tersambung */
@@ -278,16 +301,16 @@ body {
     transform: translate(0, 0);
   }
 }
-@keyframes tk-crack-b {
+@keyframes tk-rusak-b {
   0%,
   46% {
     transform: translate(0, 0);
   }
   55% {
-    transform: translate(3.2px, 3.2px);
+    transform: translate(1.5px, 1.5px);
   }
   62% {
-    transform: translate(3.2px, 3.2px);
+    transform: translate(1.5px, 1.5px);
   }
   92% {
     transform: translate(0, 0);
