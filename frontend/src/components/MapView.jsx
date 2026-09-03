@@ -453,13 +453,13 @@ function ZoomSlider({ map }) {
         position: 'absolute',
         // Kanan peta (3 Sep 2026): tombol + / −, lalu slider VERTIKAL di
         // bawahnya, lalu ikon ⛶ (reset Indonesia) & ▼ (mobile).
+        // Latar 60% transparan (4 Sep 2026) agar peta tetap terlihat.
         top: isMobile ? 74 : 64,
         right: 10,
         zIndex: 1100,
-        background: 'rgba(255, 255, 255, 0.92)',
+        background: 'transparent',
         borderRadius: 10,
-        boxShadow: '0 1px 6px rgba(0, 0, 0, 0.3)',
-        padding: isMobile ? 5 : 6,
+        padding: 0,
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
@@ -474,10 +474,10 @@ function ZoomSlider({ map }) {
           flexDirection: 'column',
           alignItems: 'center',
           gap: isMobile ? 4 : 6,
-          background: 'rgba(255, 255, 255, 0.9)',
+          background: 'rgba(255, 255, 255, 0.4)', // 60% transparan
           borderRadius: 8,
           padding: isMobile ? 4 : 5,
-          boxShadow: '0 1px 6px rgba(0, 0, 0, 0.25)',
+          boxShadow: '0 1px 6px rgba(0, 0, 0, 0.2)',
         }}
       >
         <button
