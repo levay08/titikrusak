@@ -29,12 +29,14 @@ function normalize(desc) {
   const seen = new Set();
   const uniq = [];
   for (const seg of segs) {
-    const key = seg.inner.toLowerCase();
-    if (seen.has(key)) continue;
+    const inner = seg.inner.trim();
+    // buang embel-embel "— nama outlet" utk pembandingan isi
+    const innerKey = inner.replace(/\s*—\s*[^—\]]*$/u, '').toLowerCase();
+    if (seen.has(innerKey)) continue;
     // catatan yang isinya sama persis dengan teks dasar = artikel itu
     // meng-update dirinya sendiri — buang (redundan).
-    if (key === baseKey) continue;
-    seen.add(key);
+    if (innerKey === baseKey) continue;
+    seen.add(innerKey);
     uniq.push(seg.full);
   }
   let out = base;

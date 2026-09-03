@@ -109,6 +109,28 @@ export default function AdminView({
             laporan, memverifikasi laporan, dan mengeset tracking status tiap
             laporan yang masuk. Masuk terlebih dahulu dengan e.id Anda.
           </p>
+          <div
+            style={{
+              marginTop: 12,
+              padding: '11px 12px',
+              borderRadius: 8,
+              background: '#f8fafc',
+              border: '1px solid #e2e8f0',
+              textAlign: 'left',
+              fontSize: 12.5,
+              lineHeight: 1.55,
+              color: '#475569',
+            }}
+          >
+            <strong style={{ color: '#334155' }}>Siapa yang dimaksud otoritas:</strong>{' '}
+            perwakilan resmi lembaga yang bertanggung jawab atas infrastruktur publik —
+            misalnya dinas PUPR, BPBD, BPJN/Bina Marga, kementerian, BUMN/BUMD, atau
+            TNI/Polri di wilayah laporan.
+            <br />
+            Identitas diverifikasi penuh lewat e.id (KYC sesuai KTP), bukan akun anonim.
+            Setiap tindakan di panel ini tercatat atas nama Anda dan dapat
+            dipertanggungjawabkan.
+          </div>
           <button
             type="button"
             onClick={onRequestLogin}
