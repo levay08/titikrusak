@@ -294,9 +294,9 @@ export default function ReportManagePanel({ report, otoritas, onReportUpdated, o
             </div>
           )}
         </div>
-      )}
+        ) : null}
 
-      {isOtoritas && (
+        {isOtoritas && (
         <div style={{ marginBottom: 14 }}>
           <span style={sectionTitle}>Otoritas</span>
           {report.unverifiable ? (
