@@ -441,10 +441,17 @@ export default function VerificationFlow({
               >
                 Verifikasi langsung dari perangkat ini - tanpa pindai QR.
               </p>
+              {/* Tab SAMA (4 Sep 2026): buka wallet di halaman ini, bukan
+                  tab baru - setelah setujui, tekan kembali (←) browser;
+                  status diperiksa otomatis saat halaman kembali aktif. */}
               <a
                 href={qrValue}
-                target="_blank"
-                rel="noopener noreferrer"
+                onClick={(e) => {
+                  // Deep link wallet (eid://...) tidak bisa dipaksa di tab
+                  // sama oleh browser; biarkan navigasi default.
+                  e.preventDefault();
+                  window.location.href = qrValue;
+                }}
                 style={{
                   display: 'block',
                   width: '100%',
@@ -464,9 +471,9 @@ export default function VerificationFlow({
             </div>
             <p style={{ margin: '0 0 10px', fontSize: 12.5, lineHeight: 1.55, color: '#475569' }}>
               Aplikasi e.id akan terbuka untuk menyetujui verifikasi. Jika aplikasi
-              belum terpasang, halaman wallet e.id terbuka di browser - masuk ke akun
-              e.id lalu setujui. Setelah menyetujui, kembali ke halaman ini; status
-              diperbarui otomatis.
+              belum terpasang, halaman wallet e.id terbuka di halaman yang sama. Setelah
+              menyetujui, tekan kembali (←) di browser untuk kembali ke sini; status
+              diperiksa otomatis.
             </p>
             {countdownChip}
             <div style={{ marginTop: 12 }}>
