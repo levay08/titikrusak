@@ -451,49 +451,35 @@ function ZoomSlider({ map }) {
     <div
       style={{
         position: 'absolute',
-        // Mobile: naik ke ATAS area tombol "Lapor Kerusakan" (FAB) agar
-        // tidak bertumpuk; desktop: tepat di atas footer.
-        bottom: isMobile ? 78 : 14,
-        left: '50%',
-        transform: 'translateX(-50%)',
+        // Kanan peta (3 Sep 2026): tombol + / −, lalu slider VERTIKAL di
+        // bawahnya, lalu ikon ⛶ (reset Indonesia) & ▼ (mobile).
+        top: isMobile ? 74 : 64,
+        right: 10,
         zIndex: 1100,
-        background: 'rgba(255, 255, 255, 0.8)', // 80% opacity - transparan tapi tetap terbaca
-        borderRadius: 12,
+        background: 'rgba(255, 255, 255, 0.92)',
+        borderRadius: 10,
         boxShadow: '0 1px 6px rgba(0, 0, 0, 0.3)',
-        padding: isMobile ? '6px 8px' : '8px 12px',
+        padding: isMobile ? 5 : 6,
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         gap: isMobile ? 4 : 6,
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 5 : 8 }}>
-        <button
-          type="button"
-          aria-label="Zoom keluar"
-          title="Zoom keluar"
-          onClick={() => map.zoomOut()}
-          style={btnStyle}
-        >
-          −
-        </button>
-        <input
-          type="range"
-          aria-label="Zoom peta"
-          min={min}
-          max={max}
-          value={zoom}
-          onChange={(e) => map.setZoom(Number(e.target.value))}
-          onPointerDown={() => setDragging(true)}
-          onPointerUp={() => setDragging(false)}
-          onPointerLeave={() => setDragging(false)}
-          style={{
-            width: isMobile ? 110 : 160,
-            accentColor: '#eab308',
-            cursor: 'pointer',
-            margin: 0,
-          }}
-        />
+      {/* Zoom: + dan - vertikal, lalu slider VERTIKAL di bawahnya
+          (3 Sep 2026). */}
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: isMobile ? 4 : 6,
+          background: 'rgba(255, 255, 255, 0.9)',
+          borderRadius: 8,
+          padding: isMobile ? 4 : 5,
+          boxShadow: '0 1px 6px rgba(0, 0, 0, 0.25)',
+        }}
+      >
         <button
           type="button"
           aria-label="Zoom masuk"
@@ -503,58 +489,61 @@ function ZoomSlider({ map }) {
         >
           +
         </button>
-      </div>
-      <button
-        type="button"
-        onClick={() => map.fitBounds(HOME_BOUNDS, { padding: HOME_PADDING, maxZoom: HOME_MAX_ZOOM })}
-        style={{
-          background: '#1c1917',
-          border: 'none',
-          borderRadius: 999,
-          color: '#fff',
-          fontSize: isMobile ? 10 : 11,
-          fontWeight: 700,
-          padding: isMobile ? '4px 9px' : '5px 12px',
-          cursor: 'pointer',
-          display: 'flex',
-          alignItems: 'center',
-          gap: 5,
-        }}
-        title="Kembali ke tampilan seluruh Indonesia"
-      >
-        <span style={{ fontSize: isMobile ? 11 : 12, lineHeight: 1 }}>⛶</span> Fit Layar
-      </button>
-      {isMobile && (
         <button
           type="button"
-          onClick={() => setHidden(true)}
-          aria-label="Sembunyikan kontrol zoom"
-          title="Sembunyikan kontrol zoom"
-          style={{ ...toggleBtnStyle, width: 26, height: 26, fontSize: 13, boxShadow: 'none' }}
+          aria-label="Zoom keluar"
+          title="Zoom keluar"
+          onClick={() => map.zoomOut()}
+          style={btnStyle}
         >
-          ▼
+          −
         </button>
-      )}
-      {dragging && (
-        <span
+        <div
           style={{
-            position: 'absolute',
-            bottom: 'calc(100% + 6px)',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            background: '#1c1917',
-            color: '#fff',
-            fontSize: 11,
-            fontWeight: 700,
-            padding: '3px 8px',
-            borderRadius: 6,
-            whiteSpace: 'nowrap',
-            pointerEvents: 'none',
+            height: 1,
+            width: '70%',
+            background: '#e2e8f0',
+            margin: isMobile ? '1px 0' : '2px 0',
           }}
+        />
+        {/* Slider vertikal: zoom halus (pengganti slider horizontal lama) */}
+        <input
+          type="range"
+          aria-label="Zoom peta"
+          min={min}
+          max={max}
+          value={zoom}
+          onChange={(e) => map.setZoom(Number(e.target.value))}
+          style={{
+            writingMode: 'vertical-lr',
+            direction: 'rtl',
+            height: isMobile ? 84 : 110,
+            accentColor: '#eab308',
+            cursor: 'pointer',
+            margin: '2px 0',
+          }}
+        />
+        <button
+          type="button"
+          onClick={() => map.fitBounds(HOME_BOUNDS, { padding: HOME_PADDING, maxZoom: HOME_MAX_ZOOM })}
+          aria-label="Tampilan seluruh Indonesia"
+          title="Tampilan seluruh Indonesia (reset)"
+          style={btnStyle}
         >
-          {pct}%
-        </span>
-      )}
+          <span style={{ fontSize: isMobile ? 12 : 13, lineHeight: 1 }}>⛶</span>
+        </button>
+        {isMobile && (
+          <button
+            type="button"
+            onClick={() => setHidden(true)}
+            aria-label="Sembunyikan kontrol zoom"
+            title="Sembunyikan kontrol zoom"
+            style={{ ...btnStyle, fontSize: 10 }}
+          >
+            ▼
+          </button>
+        )}
+      </div>
     </div>
   );
 }

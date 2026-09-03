@@ -378,15 +378,15 @@ describe('MapView: slider zoom (tengah-bawah, geser untuk zoom in/out)', () => {
     expect(L.map.mock.results[0].value.setZoom).toHaveBeenCalledWith(10);
   });
 
-  it('persentase zoom tampil saat slider digeser', () => {
+  it('slider vertikal (kanan peta, di bawah tombol +/-) mengubah zoom', () => {
     render(<MapView reports={[]} />);
     const slider = screen.getByRole('slider', { name: /zoom peta/i });
-
-    fireEvent.pointerDown(slider);
-    // zoom 5 dari rentang 3-18 -> 13%.
-    expect(screen.getByText('13%')).toBeInTheDocument();
-    fireEvent.pointerUp(slider);
-    expect(screen.queryByText('13%')).not.toBeInTheDocument();
+    // Slider kini vertikal, di bawah tombol + dan - (bukan bubble persentase).
+    fireEvent.change(slider, { target: { value: '10' } });
+    expect(L.map.mock.results[0].value.setZoom).toHaveBeenCalledWith(10);
+    expect(screen.getByRole('button', { name: 'Zoom masuk' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Zoom keluar' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Tampilan seluruh Indonesia' })).toBeInTheDocument();
   });
 });
 
