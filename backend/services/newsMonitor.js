@@ -352,6 +352,14 @@ async function runMonitor({ dry = false, log = console.log } = {}) {
         if (s && s.over > bestScore) { bestScore = s.over; best = row; }
       }
       if (best) {
+        // Artikel yang URL-nya sama dgn sumber terakhir titik ini = berita
+        // yang sama muncul lagi di run berikutnya -> lewati (jangan menumpuk
+        // catatan [Update] identik berulang).
+        if (item.link && item.link === best.source_media_url) {
+          results.skipped += 1;
+          log(`  ~ sudah tercatat #${best.id} (sumber sama): ${title} — ${item.source}`);
+          continue;
+        }
         const isProgress = hasAny(low, DAMAGE_KEYWORDS) && COMPLETE_RE.test(low) === false
           ? hasAny(low, ['mulai diperbaiki', 'mulai dikerjakan', 'segera diperbaiki', 'diperbaiki', 'perbaikan', 'bangun', 'darurat', 'normalisasi', 'dikerjakan', 'terpasang', 'bakal', 'permanen'])
           : COMPLETE_RE.test(low);
@@ -359,9 +367,11 @@ async function runMonitor({ dry = false, log = console.log } = {}) {
         if (dry) {
           log(`  [${kind === 'progres' ? 'update' : 'cover'} -> #${best.id}] ${title} — ${item.source}`);
         } else if (kind === 'progres') {
-          results.updated += 1;
-          applyUpdate(best, item, { kind, log });
-          existing = existing.map((r) => (r.id === best.id ? best : r));
+          const applied = applyUpdate(best, item, { kind, log });
+          if (applied !== false) {
+            results.updated += 1;
+            existing = existing.map((r) => (r.id === best.id ? best : r));
+          }
         } else {
           // peristiwa SAMA (outlet lain): titik sudah mewakili -> jangan
           // menumpuk deskripsi, jangan membuat titik baru.
@@ -463,6 +473,11 @@ function applyUpdate(row, item, { kind, log } = {}) {
   const today = new Date().toISOString().slice(0, 10);
   const note = `[Update ${today}: ${item.title} — ${item.source}]`;
   const base = String(row.description || '').trim();
+  // catatan identik sudah pernah ditulis -> jangan append berulang
+  if (base && base.includes(item.title) && base.includes(item.source)) {
+    log(`  ~ catatan sudah ada #${row.id} (tidak diulang): ${item.title} — ${item.source}`);
+    return false;
+  }
   let desc = base ? `${base} ${note}` : `${item.title} ${note}`;
   if (desc.length > 4500) desc = base.length > 4500 ? base.slice(0, 4500) : desc;
   const sev = classifySeverity(item.title);
