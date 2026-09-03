@@ -84,7 +84,11 @@ const INDEX_HTML = pathMod.join(DIST, 'index.html');
 
 app.get('*', (req, res, next) => {
   if (req.path.startsWith('/api/')) return next();
-  if (fs.existsSync(INDEX_HTML)) return res.sendFile(INDEX_HTML);
+  // Hanya root yang dilayani index.html; path tak dikenal = 404 tegas
+  // (sebelumnya semua path dapat index -> soft-404 & polusi log bot).
+  if (req.path === '/' || req.path === '/index.html') {
+    if (fs.existsSync(INDEX_HTML)) return res.sendFile(INDEX_HTML);
+  }
   next();
 });
 
