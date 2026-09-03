@@ -447,6 +447,30 @@ function ZoomSlider({ map }) {
     );
   }
 
+  // Wheel mouse/touchpad di atas kontrol: teruskan ke peta agar zoom jalan
+  // & slider ikut bergeser (4 Sep 2026).
+  const forwardWheel = (e) => {
+    if (!map) return;
+    e.preventDefault();
+    e.stopPropagation();
+    try {
+      const cont = typeof map.getContainer === 'function' ? map.getContainer() : null;
+      if (cont && typeof WheelEvent !== 'undefined') {
+        cont.dispatchEvent(
+          new WheelEvent('wheel', {
+            deltaY: e.deltaY,
+            clientX: e.clientX,
+            clientY: e.clientY,
+            bubbles: true,
+            cancelable: true,
+          })
+        );
+      }
+    } catch (_err) {
+      // abaikan (browser tanpa WheelEvent)
+    }
+  };
+
   return (
     <div
       style={{
@@ -465,6 +489,7 @@ function ZoomSlider({ map }) {
         alignItems: 'center',
         gap: isMobile ? 4 : 6,
       }}
+      onWheel={forwardWheel}
     >
       {/* Zoom: + dan - vertikal, lalu slider VERTIKAL di bawahnya
           (3 Sep 2026). */}
@@ -684,6 +709,10 @@ export default function MapView({
       // vertikal kustom (+/− + slider) di kanan peta (3 Sep 2026), sehingga
       // tidak ada +/− bawaan yang dobel.
       zoomControl: false,
+      // Wheel mouse/touchpad tetap zoom peta; event wheel yang jatuh di
+      // atas kontrol zoom diteruskan ke peta (4 Sep 2026) agar slider ikut
+      // bergeser - tidak harus klik/geser manual.
+      scrollWheelZoom: true,
       maxBounds: VIEW_LIMITS,        // batas geser: Indonesia + toleransi (9.1)
       maxBoundsViscosity: 1.0,       // "memantul" halus, tidak berhenti kaku
     });
