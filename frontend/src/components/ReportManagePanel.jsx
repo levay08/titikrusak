@@ -273,7 +273,7 @@ export default function ReportManagePanel({ report, otoritas, onReportUpdated, o
   return (
     <div style={{ marginTop: 14, borderTop: '1px solid #e2e8f0', paddingTop: 14 }}>
       {/* ---- Tanda ✗ (otoritas) & status khusus ---- */}
-      {report.unverifiable && (
+      {report.unverifiable ? (
         <div
           style={{
             background: '#fef2f2',
