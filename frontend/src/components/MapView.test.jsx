@@ -303,29 +303,24 @@ describe('MapView: hover tooltip jumlah titik + provinsi', () => {
     expect(marker.bindTooltip.mock.calls[0][0]).toContain('Jawa Barat');
   });
 
-  it('hover cluster membuka tooltip jumlah titik + provinsi dan menutup saat keluar', () => {
+  it('hover cluster: tooltip via bindTooltip sticky (hilang otomatis saat kursor keluar)', () => {
     render(<MapView reports={[REPORT]} />);
 
     const clusterGroup = L.markerClusterGroup.mock.results[0].value;
-    const over = clusterGroup.on.mock.calls.find(([evt]) => evt === 'clustermouseover')[1];
-    const out = clusterGroup.on.mock.calls.find(([evt]) => evt === 'clustermouseout')[1];
-    expect(over).toBeTypeOf('function');
-    expect(out).toBeTypeOf('function');
-
-    act(() =>
-      over({ layer: { getChildCount: () => 5, getLatLng: () => ({ lat: -7.2, lng: 107.8 }) } })
+    // Tooltip cluster kini di-bind ke plugin (bukan openTooltip manual):
+    // sticky=true membuatnya hilang sendiri saat hover berakhir.
+    expect(clusterGroup.bindTooltip).toHaveBeenCalledWith(
+      expect.any(Function),
+      expect.objectContaining({ direction: 'top', sticky: true })
     );
 
-    const map = L.map.mock.results[0].value;
-    expect(map.openTooltip).toHaveBeenCalledWith(
-      expect.stringContaining('5 titik rusak'),
-      { lat: -7.2, lng: 107.8 },
-      expect.objectContaining({ direction: 'top' })
-    );
-    expect(map.openTooltip.mock.calls[0][0]).toContain('Jawa Barat');
-
-    act(() => out());
-    expect(map.closeTooltip).toHaveBeenCalled();
+    const contentFn = clusterGroup.bindTooltip.mock.calls[0][0];
+    const html = contentFn({
+      getChildCount: () => 5,
+      getLatLng: () => ({ lat: -7.2, lng: 107.8 }),
+    });
+    expect(html).toContain('5 titik rusak');
+    expect(html).toContain('Jawa Barat');
   });
 
   it('cluster memakai warna biru tua, bukan warna severity di legend', () => {

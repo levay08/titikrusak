@@ -94,6 +94,7 @@ vi.mock('leaflet', () => {
         remove: vi.fn(),
         on: vi.fn(),
         off: vi.fn(),
+        bindTooltip: vi.fn(),
       })),
     },
   };
