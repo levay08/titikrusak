@@ -343,10 +343,39 @@ export default function App() {
   const [pantauOpen, setPantauOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const [bookmarkOpen, setBookmarkOpen] = useState(false);
+
   // Status verifikasi e.id pengguna (poin Alur Inti 5) + modal verifikasi
   // warga dari sidebar FilterPanel.
   const [eidVerified, setEidVerified] = useState(() => Boolean(getStoredEidVerification()));
   const [eidFlowOpen, setEidFlowOpen] = useState(false);
+  // Resume verifikasi e.id yang tertunda (kembali dari wallet setelah
+  // halaman termuat ulang): dibaca dari sessionStorage, otomatis membuka
+  // modal & melanjutkan polling.
+  const [resumePending, setResumePending] = useState(() => {
+    try {
+      const raw = sessionStorage.getItem('tk_eid_pending');
+      return raw ? JSON.parse(raw) : null;
+    } catch (_e) {
+      return null;
+    }
+  });
+
+  // Buka modal verifikasi lagi bila ada sesi tertunda (pulang dari wallet).
+  useEffect(() => {
+    if (resumePending && resumePending.session_id) {
+      if (resumePending.role === 'otoritas') setOtoritasOpen(true);
+      else setEidFlowOpen(true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Begitu modal verifikasi tertutup (selesai/batal), buang sesi tertunda
+  // agar verifikasi berikutnya selalu mulai dari awal.
+  useEffect(() => {
+    if (!eidFlowOpen && !otoritasOpen && resumePending) {
+      setResumePending(null);
+    }
+  }, [eidFlowOpen, otoritasOpen, resumePending]);
   // Mode internal "preview": dipakai utk screenshot OG (peta bersih tanpa
   // modal welcome/sidebar/tooltip) - tidak berpengaruh ke pengguna biasa.
   const previewMode = typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('preview');
@@ -1442,6 +1471,11 @@ export default function App() {
                 <VerificationFlow
                   role="otoritas"
                   walletMode={isTouchDevice}
+                  resumeSessionId={
+                    resumePending && resumePending.role === 'otoritas'
+                      ? resumePending.session_id
+                      : null
+                  }
                   onComplete={(result) => {
                     setEidSession({ session_id: result.session_id, role: 'otoritas' });
                     setOtoritas({ displayName: result.displayName });
@@ -1517,6 +1551,11 @@ export default function App() {
                 <VerificationFlow
                   role="warga"
                   walletMode={isTouchDevice}
+                  resumeSessionId={
+                    resumePending && resumePending.role !== 'otoritas'
+                      ? resumePending.session_id
+                      : null
+                  }
                   onComplete={(result) => {
                     try {
                       localStorage.setItem('titikrusak_eid', JSON.stringify(result));
