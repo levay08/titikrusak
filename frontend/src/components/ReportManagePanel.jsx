@@ -12,8 +12,7 @@
 // 'x-eid-session'; tombol di sini hanya penyaji.
 
 import { useEffect, useState } from 'react';
-import VerificationFlow from './VerificationFlow.jsx';
-import { getEidSession, setEidSession, eidSessionHeaders } from '../lib/eidSession.js';
+import { getEidSession, eidSessionHeaders } from '../lib/eidSession.js';
 import { STATUS_LABELS, SEVERITIES } from '../lib/labels.js';
 
 const btnBase = {
@@ -32,7 +31,6 @@ export default function ReportManagePanel({ report, otoritas, onReportUpdated, o
   const [session, setSession] = useState(() => getEidSession());
   const [err, setErr] = useState('');
   const [busy, setBusy] = useState('');
-  const [verifyOpen, setVerifyOpen] = useState(false);
 
   // ---- Edit (milik sendiri) ----
   const [editOpen, setEditOpen] = useState(false);
@@ -115,17 +113,6 @@ export default function ReportManagePanel({ report, otoritas, onReportUpdated, o
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOtoritas, report.id]);
-
-  const handleVerifyDone = (result) => {
-    try {
-      localStorage.setItem('titikrusak_eid', JSON.stringify(result));
-    } catch (_e) {
-      /* abaikan */
-    }
-    setEidSession({ session_id: result.session_id, role: 'warga' });
-    setSession(getEidSession());
-    setVerifyOpen(false);
-  };
 
   // ---- Otoritas: tanda X (tolak) — WAJIB alasan ----
   const submitMark = async () => {
@@ -460,28 +447,13 @@ export default function ReportManagePanel({ report, otoritas, onReportUpdated, o
         </div>
       )}
 
-      {/* ---- Warga: kelola laporan milik sendiri + klaim perbaikan ---- */}
-      {!isOtoritas && (
+      {/* ---- Warga: kelola laporan milik sendiri + klaim perbaikan ----
+          Hanya tampil saat sesi warga terverifikasi aktif; pengunjung tanpa
+          sesi tidak melihat bagian ini (keterangan dukungan di atas sudah
+          cukup — CTA verifikasi ada di sidebar & alur jempol). */}
+      {isWarga && (
         <div>
           <span style={sectionTitle}>Warga</span>
-          {!isWarga && !verifyOpen && (
-            <p style={{ margin: '0 0 10px', fontSize: 12.5, color: '#64748b' }}>
-              Verifikasi e.id untuk bisa mengelola laporan Anda (edit/hapus) atau menandai
-              titik sudah diperbaiki dengan bukti foto.
-            </p>
-          )}
-          {!isWarga && !verifyOpen && (
-            <button type="button" style={btnBase} onClick={() => setVerifyOpen(true)}>
-              Verifikasi dengan e.id
-            </button>
-          )}
-          {verifyOpen && (
-            <VerificationFlow
-              role="warga"
-              onComplete={handleVerifyDone}
-              onCancel={() => setVerifyOpen(false)}
-            />
-          )}
 
           {isWarga && (
             <>
