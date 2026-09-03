@@ -53,7 +53,7 @@ async function queryNear(lat, lng) {
       for (const el of els) {
         if (el.type !== 'way' || !el.tags || !el.center) continue;
         const clat = Number(el.center.lat);
-        const clng = Number(el.center.lng);
+        const clng = Number(el.center.lon !== undefined ? el.center.lon : el.center.lng);
         if (!Number.isFinite(clat) || !Number.isFinite(clng)) continue;
         const dx = (clat - lat) * 111320;
         const dy = (clng - lng) * 111320 * Math.cos((lat * Math.PI) / 180);
