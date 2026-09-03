@@ -12,7 +12,7 @@ const HOSTS = [
   'https://overpass.kumi.systems/api/interpreter',
 ];
 const UA = 'titikrusak-id-osm-enrich/1.0 (portal kerusakan infrastruktur Indonesia; kontak wa.me/62818101990)';
-const RADIUS_M = 300;
+const RADIUS_M = 800;
 
 function ensureColumns(db) {
   const cols = db.prepare('PRAGMA table_info(reports)').all().map((c) => c.name);
