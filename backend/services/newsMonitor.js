@@ -9,8 +9,9 @@
 //   1. query RSS -> judul/url/sumber/tanggal;
 //   2. filter: harus mengandung kata KERUSAKAN + kata JENIS infrastruktur;
 //      buang berita internasional & non-Indonesia;
-//   3. deteksi lokasi: "Kabupaten/Kota X" (geocode Nominatim, cache)
-//      atau fallback nama provinsi (titik pusat);
+//   3. deteksi lokasi: "Kabupaten/Kota X" atau nama tempat (geocode
+//      Nominatim, cache). Provinsi hanya konteks geocode; TANPA lokasi
+//      spesifik artikel dilewati (tidak ada titik berlabel provinsi);
 //   4. dedupe: URL belum ada di DB + judul tidak mirip dgn titik yang ada;
 //   5. insert sbg laporan media (source_type='media').
 //
@@ -174,8 +175,12 @@ function detectLocations(text) {
   // 3) kata depan wilayah adat: Nagari/Desa/Kelurahan/Gampong/Kampung
   const m2 = t.match(/(?:Nagari|Desa|Kelurahan|Gampong|Kampung)\s+([A-Z][A-Za-z .'-]{2,45})/i);
   if (m2) geo(m2[1], 'lokasi');
-  // 4) fallback provinsi
-  if (province) geo(province, 'provinsi');
+  // NOTE (4 Sep 2026): TIDAK ada fallback "provinsi" sebagai calon lokasi.
+  // Titik baru hanya dibuat bila lokasinya SPECIFIC (kabupaten/kota/desa/
+  // nagari/dll dari judul). Provinsi hanya dipakai sebagai konteks geocode
+  // (q). Tanpa lokasi spesifik, artikel dilewati - mencegah titik bernama
+  // generik seperti "Lampung" / "Aceh" / "NTT" yang sebelumnya muncul dan
+  // membuat nama laporan tidak konsisten.
   return out.length ? out : null;
 }
 
@@ -290,7 +295,7 @@ function matchScore(row, title, locs) {
   const iInfra = classifyInfra(title);
   const infraOk = row.infra_type === iInfra || row.infra_type === 'prasarana_publik' || iInfra === 'prasarana_publik';
   if (!infraOk) return null;
-  const nameMatch = locs ? locs.some((l) => locContains(row.location_name, l.name)) : false;
+  const nameMatch = locs ? locs.some((l) => l.kind !== 'provinsi' && locContains(row.location_name, l.name)) : false;
   const shared = (() => {
     const st = specificTokens(title);
     const sr = specificTokens(hay);
