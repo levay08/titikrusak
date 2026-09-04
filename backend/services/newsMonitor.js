@@ -91,6 +91,64 @@ const MAX_PER_RUN = 10;
 const UA = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124 Safari/537.36';
 const FETCH_TIMEOUT = 10000;
 
+// Nama laporan yang FAKTUAL dari berita (bukan asumsi): pola
+// "{Jenis infrastruktur} {kata kerusakan} di {lokasi}", mis.
+// "Jalan rusak di Sukabumi" / "Jembatan putus di Pandeglang".
+const INFRA_NOUN = {
+  jembatan: 'Jembatan',
+  jalan: 'Jalan',
+  sekolah: 'Sekolah',
+  rumah_sakit: 'Rumah sakit',
+  prasarana_publik: 'Prasarana publik',
+  utilitas: 'Utilitas',
+  jaringan_listrik: 'Jaringan listrik',
+};
+const DAMAGE_WORDS = [
+  'ambruk', 'runtuh', 'roboh', 'jebol', 'ambles', 'longsor', 'hanyut',
+  'terputus', 'putus', 'terendam', 'tertimpa', 'melorot', 'terbelah',
+  'anjlok', 'retak', 'terisolir', 'rusak',
+];
+const SEV_FALLBACK = { ambruk: 'ambruk', berat: 'rusak berat', sedang: 'rusak', ringan: 'rusak ringan' };
+
+function damageWordOf(title, severity) {
+  const t = String(title || '').toLowerCase();
+  for (const w of DAMAGE_WORDS) {
+    if (t.includes(w)) return w;
+  }
+  return SEV_FALLBACK[severity] || 'rusak';
+}
+
+function buildReportName(infra, severity, title, place) {
+  const noun = INFRA_NOUN[infra] || 'Prasarana';
+  const dmg = damageWordOf(title, severity);
+  return `${noun} ${dmg} di ${place}`;
+}
+
+// Ambil foto RELEVAN dari halaman berita sumber (meta og:image artikel -
+// foto utama berita, fakta dari media yang dicatut). Bila media tidak
+// memuat foto / gagal, kembalikan null (foto TIDAK diisi - tidak mengarang).
+async function fetchOgImage(url) {
+  try {
+    const res = await fetch(url, {
+      headers: {
+        'User-Agent': UA,
+        Accept: 'text/html,application/xhtml+xml',
+      },
+      redirect: 'follow',
+      signal: AbortSignal.timeout(9000),
+    });
+    if (!res.ok) return null;
+    const html = (await res.text()).slice(0, 400000);
+    const m =
+      html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i) ||
+      html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i);
+    const img = m ? m[1].trim() : null;
+    return img && /^https?:\/\//i.test(img) ? img : null;
+  } catch (_e) {
+    return null;
+  }
+}
+
 function parseRss(xml) {
   const out = [];
   const blocks = String(xml || '').split('<item>').slice(1);
@@ -427,10 +485,17 @@ async function runMonitor({ dry = false, log = console.log } = {}) {
       infra: classifyInfra(item.title),
       severity: classifySeverity(item.title),
     };
+    // Nama laporan faktual: "{jenis} {kata kerusakan dari judul} di {lokasi}".
+    entry.locName = buildReportName(entry.infra, entry.severity, entry.title, cand.name);
     if (dry) {
       log(`  [kandidat] ${entry.severity}/${entry.infra} @ ${entry.locName} (${entry.lat.toFixed(3)}, ${entry.lng.toFixed(3)}): ${entry.title} - ${entry.source}`);
       continue;
     }
+    // Foto relevan dari halaman berita sumber (og:image). Best-effort:
+    // bila media tidak memuat foto / gagal diambil, laporan tanpa foto.
+    const og = await fetchOgImage(entry.url);
+    const photos = og ? JSON.stringify([og]) : null;
+    if (og) log(`  ~ foto dari sumber: ${og.slice(0, 90)}`);
     // geser sedikit bila bertabrakan dgn titik yang ada di koordinat itu
     const clash = db.prepare('SELECT id FROM reports WHERE ABS(lat - ?) < 0.02 AND ABS(lng - ?) < 0.02 LIMIT 1').get(entry.lat, entry.lng);
     const latFinal = clash ? entry.lat + (Math.random() * 0.02 - 0.01) : entry.lat;
@@ -438,13 +503,14 @@ async function runMonitor({ dry = false, log = console.log } = {}) {
 
     const stmt = db.prepare(
       `INSERT INTO reports (infra_type, severity, bridge_authority, vital_status, description,
-        location_name, lat, lng, source_type, source_media_name, source_media_url, source_media_date, status)
-       VALUES (?, ?, 'tidak_diketahui', '["akses_ekonomi"]', ?, ?, ?, ?, 'media', ?, ?, ?, 'dilaporkan')`
+        location_name, lat, lng, source_type, source_media_name, source_media_url, source_media_date,
+        photo_urls, status)
+       VALUES (?, ?, 'tidak_diketahui', '["akses_ekonomi"]', ?, ?, ?, ?, 'media', ?, ?, ?, ?, 'dilaporkan')`
     );
     stmt.run(
       entry.infra, entry.severity,
       entry.title, entry.locName, latFinal, lngFinal,
-      entry.source, entry.url, entry.pubDate || null
+      entry.source, entry.url, entry.pubDate || null, photos
     );
     results.inserted += 1;
     const newRow = {
@@ -452,6 +518,7 @@ async function runMonitor({ dry = false, log = console.log } = {}) {
       lat: latFinal, lng: lngFinal, severity: entry.severity, status: 'dilaporkan',
       infra_type: entry.infra, source_media_url: entry.url,
       source_media_name: entry.source, source_media_date: entry.pubDate,
+      photo_urls: photos,
     };
     existing.push(newRow);
     existingUrls.add(entry.url);
