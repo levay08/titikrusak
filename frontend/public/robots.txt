@@ -7,6 +7,19 @@ User-agent: *
 Allow: /
 Disallow: /api/
 
+# ---- Googlebot: boleh ambil API publik laporan agar konten peta ----
+# ter-render (aplikasi SPA memuat data via JS dari /api/reports).
+# Aturan longest-match: Allow /api/reports menang atas Disallow /api/.
+# Endpoint lain (/api/verify, /api/otoritas, /api/admin, dll) tetap
+# diblokir dari crawl.
+User-agent: Googlebot
+Allow: /
+Allow: /api/reports
+Disallow: /api/
+
+User-agent: Googlebot-Image
+Allow: /
+
 # ---- Crawler AI / LLM: diblokir total ----
 User-agent: GPTBot
 Disallow: /

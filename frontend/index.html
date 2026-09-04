@@ -8,7 +8,7 @@
     <title>Peta Laporan Kerusakan Infrastruktur di Indonesia | titikrusak.id</title>
     <meta
       name="description"
-      content="Peta laporan kerusakan infrastruktur di Indonesia."
+      content="Peta interaktif kerusakan infrastruktur publik di Indonesia: jembatan putus, jalan rusak, sekolah, dan fasilitas umum. Laporkan dan pantau perbaikan bersama warga dan otoritas."
     />
     <meta name="robots" content="index, follow" />
     <meta name="googlebot" content="index, follow" />
@@ -74,6 +74,27 @@
   </head>
   <body>
     <div id="root"></div>
+    <!-- Fallback untuk crawler/pranala tanpa JavaScript: ringkasan konten
+         situs tetap terbaca (Google merender JS, tetapi fallback ini
+         membantu indeksasi awal & berbagi tautan tanpa JS). -->
+    <noscript>
+      <div style="max-width:720px;margin:40px auto;font-family:sans-serif;line-height:1.6;color:#1c1917">
+        <h1>Peta Laporan Kerusakan Infrastruktur di Indonesia</h1>
+        <p>
+          titikrusak.id adalah peta partisipatif kerusakan infrastruktur publik di Indonesia:
+          jembatan putus, jalan ambles, sekolah rusak, hingga jaringan listrik padam.
+          Warga dapat melapor, otoritas lokal dapat memverifikasi dan memantau perbaikan,
+          dengan lapisan kepercayaan verifikasi identitas e.id.
+        </p>
+        <p>Aktifkan JavaScript untuk melihat peta interaktif, daftar laporan, dan mengirim laporan baru.</p>
+        <ul>
+          <li>Lapor kerusakan infrastruktur di lokasi Anda</li>
+          <li>Lihat laporan warga dan media di seluruh Indonesia</li>
+          <li>Pantau status perbaikan: Dilaporkan, Terverifikasi, Dalam Perbaikan, Selesai Diperbaiki</li>
+        </ul>
+        <p><a href="https://titikrusak.id/">https://titikrusak.id/</a></p>
+      </div>
+    </noscript>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
