@@ -5,7 +5,8 @@
 // sama; lihat App.jsx). FilterPanel di sidebar tetap dipakai bersama.
 //
 // Setiap baris: badge warna severity, nama/lokasi singkat, jenis
-// infrastruktur, status laporan. Klik baris membuka modal detail berisi
+// infrastruktur, status laporan, dan tanggal dilaporkan (quick view).
+// Klik baris membuka modal detail berisi
 // seluruh field laporan dari database (DetailModal.jsx - dipakai juga oleh
 // MapView, modal pencarian, dan halaman Admin).
 
@@ -28,10 +29,32 @@ import useIsMobile from '../lib/useIsMobile.js';
 import EmptyResults from './EmptyResults.jsx';
 import DetailModal from './DetailModal.jsx';
 
-// Satu baris ringkas laporan: severity badge, nama lokasi, jenis, status.
-// Saat mode otoritas (otoritasMode), ditambah chip validasi e.id dan
-// tingkat kelengkapan - bahan penilaian prioritas (File 1 Bagian 6.2/6.3).
+// Satu baris ringkas laporan: severity badge, nama lokasi, jenis, status,
+// dan tanggal laporan (kapan dilaporkan) sebagai quick view. Saat mode
+// otoritas (otoritasMode), ditambah chip validasi e.id dan tingkat
+// kelengkapan - bahan penilaian prioritas (File 1 Bagian 6.2/6.3).
 // Diexport untuk dipakai bersama halaman Admin (AdminView.jsx).
+
+// Tanggal DB (UTC "YYYY-MM-DD HH:MM:SS") -> "31 Agu 2026" lokal id-ID,
+// dengan +Z agar tanggal tidak bergeser karena zona browser (pola sama
+// dengan formatDateTime di HeaderModals.jsx).
+function formatReportDate(value) {
+  if (!value) return '';
+  const t = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(value)
+    ? new Date(`${value.replace(' ', 'T')}Z`)
+    : new Date(value);
+  if (Number.isNaN(t.getTime())) return value;
+  try {
+    return t.toLocaleDateString('id-ID', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    });
+  } catch (_e) {
+    return value;
+  }
+}
+
 export function ReportRow({ report, onClick, otoritasMode = false }) {
   const sev = SEVERITIES.find((s) => s.value === report.severity);
   const severityColor = sev?.color || '#64748b';
@@ -88,6 +111,14 @@ export function ReportRow({ report, onClick, otoritasMode = false }) {
           Kategori {INFRA_LABELS[report.infra_type] || report.infra_type} - Kerusakan{' '}
           {SEVERITY_LABELS[report.severity] || report.severity}
         </span>
+        {/* Quick view: kapan laporan dibuat/dilaporkan (File 1: default
+            sort created_at desc = Terbaru Dilaporkan, jadi tanggal wajib
+            terlihat langsung di baris). */}
+        {report.created_at && (
+          <span style={{ display: 'block', fontSize: 11, color: '#94a3b8', marginTop: 1 }}>
+            Dilaporkan {formatReportDate(report.created_at)}
+          </span>
+        )}
       </span>
 
       {/* Chip mode otoritas: validasi e.id pelapor */}

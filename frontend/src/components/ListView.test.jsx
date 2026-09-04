@@ -97,6 +97,17 @@ describe('ListView', () => {
     expect(screen.getByText(/Kategori Sekolah - Kerusakan Ringan/)).toBeInTheDocument();
     // Badge status laporan.
     expect(screen.getAllByText('Dilaporkan')).toHaveLength(2);
+    // Quick view tanggal dilaporkan di tiap baris (created_at; dihitung
+    // dari nilai UTC agar tidak bergantung zona waktu mesin test).
+    const fmtRowDate = (v) =>
+      new Date(`${v.replace(' ', 'T')}Z`).toLocaleDateString('id-ID', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+      });
+    const expectedDate = fmtRowDate('2026-08-31 09:56:52');
+    // Kedua laporan sampel dibuat tanggal sama -> dua baris menampilkannya.
+    expect(screen.getAllByText(`Dilaporkan ${expectedDate}`)).toHaveLength(2);
     // Jumlah laporan.
     expect(screen.getByText('2 laporan')).toBeInTheDocument();
   });
