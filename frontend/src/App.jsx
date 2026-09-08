@@ -27,6 +27,7 @@ import {
 } from './components/HeaderModals.jsx';
 import useIsMobile from './lib/useIsMobile.js';
 import useIsTouchDevice from './lib/useIsTouchDevice.js';
+import useKeyboardNav from './lib/useKeyboardNav.js';
 import { setEidSession, clearEidSession, getEidSession } from './lib/eidSession.js';
 import SearchModal from './components/SearchModal.jsx';
 import AdminView from './components/AdminView.jsx';
@@ -669,6 +670,52 @@ export default function App() {
     // Otoritas tidak bisa lapor kerusakan (harus keluar dulu dari e.id).
     !otoritas;
 
+  // ---- Navigasi keyboard (← kembali, → laporan berikutnya, Spasi =
+  // tombol Lapor Kerusakan). Semua tombol nonaktif saat fokus di kolom
+  // teks - lihat lib/useKeyboardNav.js. Tanpa indikator visual apa pun. ----
+  // Data "berikutnya" = daftar yang sedang dilihat pengguna: urutan hasil
+  // filter/sort (`reports`) bila laporan itu ada di sana, selain itu
+  // (detail dari hasil pencarian/bookmark/notifikasi/deep link) memakai
+  // seluruh laporan tanpa filter (`allReports`).
+  const keyboardDetailList = detailReport
+    ? reports.some((r) => Number(r.id) === Number(detailReport.id))
+      ? reports
+      : allReports
+    : [];
+  // Spasi hanya berlaku bila tombol "Lapor Kerusakan" benar-benar tampil
+  // dan tidak tertutup lapisan lain (modal/drawer/detail yang di atasnya).
+  const fabClickable =
+    showFloatingLapor &&
+    !formOpen &&
+    !otoritasOpen &&
+    !aboutOpen &&
+    !statsOpen &&
+    !pantauOpen &&
+    !notifOpen &&
+    !bookmarkOpen &&
+    !eidFlowOpen &&
+    !searchOpen &&
+    !detailReport &&
+    !docOpen &&
+    !termsOpen &&
+    !contactOpen &&
+    !welcomeOpen &&
+    !logoutAsk &&
+    !filtersOpen &&
+    !menuOpen &&
+    // Bottom-sheet detail mobile menutupi tombol; panel samping desktop
+    // (z-index di bawah tombol) tidak.
+    !(isMobile && listDetailOpen);
+  useKeyboardNav({
+    detailOpen: Boolean(detailReport),
+    currentId: detailReport ? Number(detailReport.id) : null,
+    dataset: keyboardDetailList,
+    onSelect: (r) => setDetailReport(r),
+    onBack: () => setDetailReport(null),
+    onSpace: openReportForm,
+    spaceEnabled: fabClickable,
+  });
+
   // ---- Footer tengah: tanggal hari ini + kebaruan data + jumlah titik ----
   const footerToday = new Date().toLocaleDateString('id-ID', {
     weekday: 'long',
@@ -1115,6 +1162,9 @@ export default function App() {
               otoritas={otoritas}
               onReportUpdated={handleSubmitted}
               onDetailOpenChange={setListDetailOpen}
+              // Detail laporan lain terbuka di atas (mis. dari hasil
+              // pencarian header): tombol panah milik lapisan atas itu.
+              externalDetailOpen={Boolean(detailReport)}
             />
           )}
 
@@ -1624,6 +1674,7 @@ export default function App() {
               "Lihat Detail" di popup peta (satu modal detail, poin 18) */}
           {detailReport && (
             <DetailModal
+              key={detailReport.id}
               report={detailReport}
               onClose={() => setDetailReport(null)}
               otoritas={otoritas}

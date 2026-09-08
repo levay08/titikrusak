@@ -369,3 +369,113 @@ describe('App: alur lapor kerusakan end-to-end', () => {
     expect(screen.getByAltText('Logo IDCloudHost')).toBeInTheDocument();
   });
 });
+
+describe('App: navigasi keyboard (Spasi = Lapor, ← kembali, → laporan berikutnya)', () => {
+  const KEY_REPORTS = [
+    { id: 31, location_name: 'Lokasi Panah A', status: 'dilaporkan', severity: 'sedang', infra_type: 'jalan', created_at: '2026-09-01 08:00:00', vote_count: 0 },
+    { id: 32, location_name: 'Lokasi Panah B', status: 'dilaporkan', severity: 'berat', infra_type: 'jembatan', created_at: '2026-09-02 08:00:00', vote_count: 0 },
+  ];
+
+  afterEach(() => {
+    setMobile(false);
+    // Bersihkan parameter URL yang dipasang tes deep link.
+    window.history.replaceState({}, '', '/');
+  });
+
+  // Stub fetch yang toleran terhadap seluruh panggilan modal detail
+  // (riwayat status, komentar, enrichment BMKG) + data laporan.
+  const stubFetch = (total = KEY_REPORTS) =>
+    vi.fn((url) => {
+      const u = String(url);
+      if (u.startsWith('/api/reports?')) {
+        return Promise.resolve({ ok: true, status: 200, json: async () => [] });
+      }
+      if (u === '/api/reports') {
+        return Promise.resolve({ ok: true, status: 200, json: async () => total });
+      }
+      if (u.startsWith('/api/activity/report/')) {
+        return Promise.resolve({ ok: true, status: 200, json: async () => ({ history: [] }) });
+      }
+      if (u.startsWith('/api/comments/')) {
+        return Promise.resolve({ ok: true, status: 200, json: async () => ({ comments: [] }) });
+      }
+      if (u.startsWith('/api/enrichment/')) {
+        return Promise.resolve({ ok: true, status: 200, json: async () => ({ data: null }) });
+      }
+      return Promise.resolve({ ok: true, status: 200, json: async () => [] });
+    });
+
+  it('Spasi memanggil tombol Lapor Kerusakan di halaman utama (membuka form)', async () => {
+    const fetchMock = stubFetch();
+    vi.stubGlobal('fetch', fetchMock);
+    const user = userEvent.setup();
+
+    render(<App />);
+    await waitFor(() => expect(fetchMock).toHaveBeenCalled());
+
+    // Tanpa klik apa pun: tekan Spasi -> form laporan terbuka (intro alur
+    // verifikasi = layar pertama ReportForm, sama seperti klik tombol).
+    await user.keyboard(' ');
+    expect(
+      await screen.findByRole('button', { name: /lanjut tanpa verifikasi/i })
+    ).toBeInTheDocument();
+  });
+
+  it('Spasi & panah TIDAK bekerja saat fokus di kolom teks (pencarian header) - ketikan normal', async () => {
+    const fetchMock = stubFetch();
+    vi.stubGlobal('fetch', fetchMock);
+    const user = userEvent.setup();
+
+    render(<App />);
+    await waitFor(() => expect(fetchMock).toHaveBeenCalled());
+
+    const search = screen.getByRole('searchbox', { name: /cari titik rusak/i });
+    await user.click(search);
+
+    // Spasi di kolom pencarian = karakter spasi, bukan membuka form.
+    await user.keyboard(' ');
+    expect(search).toHaveValue(' ');
+    expect(
+      screen.queryByRole('button', { name: /lanjut tanpa verifikasi/i })
+    ).not.toBeInTheDocument();
+
+    // Panah di kolom teks tidak memicu navigasi apa pun.
+    await user.keyboard('{ArrowRight}{ArrowLeft}');
+    expect(search).toHaveValue(' ');
+    expect(
+      screen.queryByRole('heading', { level: 2, name: 'Lokasi Panah A' })
+    ).not.toBeInTheDocument();
+  });
+
+  it('detail terbuka (deep link ?laporan=): → laporan berikutnya, ← kembali menutup', async () => {
+    window.history.pushState({}, '', '/?laporan=31');
+    const fetchMock = stubFetch();
+    vi.stubGlobal('fetch', fetchMock);
+    const user = userEvent.setup();
+
+    render(<App />);
+
+    // Deep link membuka detail laporan pertama.
+    expect(
+      await screen.findByRole('heading', { level: 2, name: 'Lokasi Panah A' })
+    ).toBeInTheDocument();
+
+    // → laporan berikutnya (data tanpa filter; laporan tak ada di hasil filter).
+    await user.keyboard('{ArrowRight}');
+    expect(
+      await screen.findByRole('heading', { level: 2, name: 'Lokasi Panah B' })
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('heading', { level: 2, name: 'Lokasi Panah A' })
+    ).not.toBeInTheDocument();
+
+    // ← kembali: detail tertutup (heading detail hilang; halaman tetap utuh).
+    await user.keyboard('{ArrowLeft}');
+    expect(
+      screen.queryByRole('heading', { level: 2, name: 'Lokasi Panah B' })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('heading', { level: 2, name: 'Lokasi Panah A' })
+    ).not.toBeInTheDocument();
+  });
+});

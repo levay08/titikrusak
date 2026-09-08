@@ -26,6 +26,7 @@ import {
   priorityScore,
 } from '../lib/priority.js';
 import useIsMobile from '../lib/useIsMobile.js';
+import useKeyboardNav from '../lib/useKeyboardNav.js';
 import EmptyResults from './EmptyResults.jsx';
 import DetailModal from './DetailModal.jsx';
 
@@ -185,6 +186,7 @@ export default function ListView({
   otoritas = null, // sesi otoritas aktif (null = warga biasa)
   onReportUpdated = () => {},
   onDetailOpenChange, // App: sembunyikan toggle Peta/Daftar saat detail terbuka
+  externalDetailOpen = false, // detail laporan lain terbuka di atasnya (milik App)
 }) {
   const [selected, setSelected] = useState(null);
   const otoritasMode = Boolean(otoritas);
@@ -214,6 +216,21 @@ export default function ListView({
           }),
       })).filter((g) => g.reports.length > 0)
     : [];
+
+  // Navigasi keyboard panel detail: → laporan berikutnya, ← kembali.
+  // Urutan "berikutnya" = urutan visual baris di layar (daftar biasa, atau
+  // urutan grup prioritas saat mode otoritas). Hanya aktif bila panel
+  // detail milik ListView ini yang terbuka (externalDetailOpen = lapisan
+  // detail milik App sedang di atas; panah menjadi milik lapisan itu).
+  const detailList = otoritasMode ? groups.flatMap((g) => g.reports) : reports;
+  useKeyboardNav({
+    detailOpen: Boolean(selected) && !externalDetailOpen,
+    currentId: selected ? Number(selected.id) : null,
+    dataset: detailList,
+    onSelect: (r) => setSelected(r),
+    onBack: () => setSelected(null),
+    // Spasi/tombol Lapor ditangani App (tombol floating milik App).
+  });
 
   return (
     <div
@@ -324,6 +341,7 @@ export default function ListView({
       {selected &&
         (isMobile ? (
           <DetailModal
+            key={selected.id}
             report={selected}
             onClose={() => setSelected(null)}
             otoritas={otoritas}
@@ -346,6 +364,7 @@ export default function ListView({
             }}
           >
             <DetailModal
+              key={selected.id}
               report={selected}
               onClose={() => setSelected(null)}
               otoritas={otoritas}

@@ -190,6 +190,78 @@ describe('ListView', () => {
   });
 });
 
+describe('ListView: navigasi keyboard panah pada panel detail (← kembali, → laporan berikutnya)', () => {
+  // Daftar singkat urutan tampil = urutan laporan yang diklik user.
+  const NAV = [
+    { id: 21, location_name: 'Jembatan Uji A', severity: 'berat', infra_type: 'jembatan', status: 'dilaporkan', created_at: '2026-09-01 08:00:00', vote_count: 0 },
+    { id: 22, location_name: 'Jalan Uji B', severity: 'sedang', infra_type: 'jalan', status: 'dilaporkan', created_at: '2026-09-02 08:00:00', vote_count: 0 },
+    { id: 23, location_name: 'SDN Uji C', severity: 'ringan', infra_type: 'sekolah', status: 'dilaporkan', created_at: '2026-09-03 08:00:00', vote_count: 0 },
+  ];
+
+  afterEach(() => {
+    setMobile(false);
+  });
+
+  it('desktop: → membuka laporan berikutnya (urutan daftar), ← kembali menutup panel', async () => {
+    const user = userEvent.setup();
+    render(<ListView reports={NAV} onResetFilters={vi.fn()} onDetailOpenChange={vi.fn()} />);
+
+    // Buka detail baris pertama (klik baris = seperti biasa).
+    await user.click(screen.getByRole('button', { name: /Jembatan Uji A/ }));
+    expect(screen.getByRole('heading', { level: 2, name: 'Jembatan Uji A' })).toBeInTheDocument();
+
+    // → laporan berikutnya dalam urutan daftar yang tampil.
+    await user.keyboard('{ArrowRight}');
+    expect(await screen.findByRole('heading', { level: 2, name: 'Jalan Uji B' })).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { level: 2, name: 'Jembatan Uji A' })).not.toBeInTheDocument();
+
+    await user.keyboard('{ArrowRight}');
+    expect(await screen.findByRole('heading', { level: 2, name: 'SDN Uji C' })).toBeInTheDocument();
+
+    // Di laporan terakhir: ArrowRight tidak melakukan apa-apa (tetap di C).
+    await user.keyboard('{ArrowRight}');
+    expect(screen.getByRole('heading', { level: 2, name: 'SDN Uji C' })).toBeInTheDocument();
+
+    // ← = kembali: panel detail tertutup, kembali ke daftar.
+    await user.keyboard('{ArrowLeft}');
+    expect(screen.queryByRole('heading', { level: 2, name: 'SDN Uji C' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Jalan Uji B/ })).toBeInTheDocument(); // baris daftar utuh
+
+    // Tanpa panel detail terbuka, panah tidak melakukan apa pun.
+    await user.keyboard('{ArrowLeft}');
+    await user.keyboard('{ArrowRight}');
+    expect(screen.queryByRole('heading', { level: 2 })).not.toBeInTheDocument();
+  });
+
+  it('mobile: bottom sheet detail ikut navigasi panah yang sama', async () => {
+    setMobile(true);
+    const user = userEvent.setup();
+    render(<ListView reports={NAV} onResetFilters={vi.fn()} onDetailOpenChange={vi.fn()} />);
+
+    await user.click(screen.getByRole('button', { name: /Jalan Uji B/ }));
+    expect(screen.getByRole('heading', { level: 2, name: 'Jalan Uji B' })).toBeInTheDocument();
+
+    await user.keyboard('{ArrowRight}');
+    expect(await screen.findByRole('heading', { level: 2, name: 'SDN Uji C' })).toBeInTheDocument();
+
+    await user.keyboard('{ArrowLeft}');
+    expect(screen.queryByRole('heading', { level: 2 })).not.toBeInTheDocument();
+  });
+
+  it('externalDetailOpen=true: panah milik lapisan detail lain (di atasnya) - panel ListView tidak ikut bereaksi', async () => {
+    const user = userEvent.setup();
+    render(<ListView reports={NAV} onResetFilters={vi.fn()} externalDetailOpen />);
+
+    await user.click(screen.getByRole('button', { name: /SDN Uji C/ }));
+    expect(screen.getByRole('heading', { level: 2, name: 'SDN Uji C' })).toBeInTheDocument();
+
+    await user.keyboard('{ArrowRight}');
+    await user.keyboard('{ArrowLeft}');
+    // Panel milik ListView tidak boleh berpindah/tertutup oleh panah.
+    expect(screen.getByRole('heading', { level: 2, name: 'SDN Uji C' })).toBeInTheDocument();
+  });
+});
+
 describe('ListView: mode otoritas - pengelompokan prioritas (poin Alur Inti 7)', () => {
   const OTORITAS = { displayName: 'Dinas PU Garut' };
 
