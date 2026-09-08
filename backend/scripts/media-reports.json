@@ -1,53 +1,5 @@
 [
  {
-  "location_name": "Jembatan Jalan Nasional Tarutung–Sipirok, Tapanuli Utara (Sumatera Utara)",
-  "description": "Jembatan penghubung jalan nasional Tarutung–Sipirok di Kecamatan Simangumban/Adian Koting, Kabupaten Tapanuli Utara, putus total akibat banjir dan longsor pada 25 November 2025. Hujan intensitas tinggi memicu pergerakan tanah; lima titik longsor terjadi di Adian Koting (Desa Parsingkaman dan Pagaran Lambung I) dan akses ke satu desa di Purbatua terputus. Jembatan ini merupakan jalur vital yang menghubungkan Tarutung menuju Sipirok.",
-  "source_name": "detikNews",
-  "source_url": "https://news.detik.com/berita/d-8228923/jembatan-di-jalan-nasional-tapanuli-utara-sumut-ambruk-akibat-banjir-longsor",
-  "source_date": "2025-11-25",
-  "severity": "ambruk",
-  "infra_type": "jembatan",
-  "vital_status": [
-   "akses_antar_kampung",
-   "akses_ekonomi"
-  ],
-  "geocode_query": "Adian Koting, Tapanuli Utara, Sumatera Utara",
-  "fallback_lat": 1.97,
-  "fallback_lng": 98.98
- },
- {
-  "location_name": "Jembatan Penghubung Desa Pangadegan–Situhiang, Pagelaran, Cianjur (Jawa Barat)",
-  "description": "Jembatan utama sepanjang 12 meter selebar 4 meter yang menghubungkan Desa Pangadegan dan Situhiang di Kecamatan Pagelaran, Cianjur, putus pada Minggu 26 Oktober 2025 setelah longsor dan tergerus arus sungai deras. Ribuan warga di dua desa terisolir karena tidak ada jalur alternatif; kendaraan tidak bisa melintas sama sekali.",
-  "source_name": "detikJabar",
-  "source_url": "https://www.detik.com/jabar/berita/d-8180395/jembatan-ambruk-ribuan-warga-di-2-desa-cianjur-terisolir",
-  "source_date": "2025-10-26",
-  "severity": "ambruk",
-  "infra_type": "jembatan",
-  "vital_status": [
-   "akses_antar_kampung",
-   "akses_sekolah"
-  ],
-  "geocode_query": "Pagelaran, Cianjur, Jawa Barat",
-  "fallback_lat": -7.28,
-  "fallback_lng": 107.05
- },
- {
-  "location_name": "Jembatan Penghubung Kecamatan Baraka–Bungin, Enrekang (Sulawesi Selatan)",
-  "description": "Jembatan penghubung antar kecamatan di Desa Baruka, Kecamatan Bungin, Kabupaten Enrekang, mengalami retakan parah dengan pondasi yang menganga dan miring setelah tergerus air. Kondisi memburuk sejak banjir bandang 2024; jembatan peninggalan zaman Belanda ini dikhawatirkan warga ambruk jika tidak segera diperbaiki (Oktober 2025).",
-  "source_name": "detikSulsel",
-  "source_url": "https://www.detik.com/sulsel/berita/d-8161887/jembatan-penghubung-kecamatan-di-enrekang-retak-parah-warga-khawatir-ambruk",
-  "source_date": "2025-10-15",
-  "severity": "berat",
-  "infra_type": "jembatan",
-  "vital_status": [
-   "akses_antar_kampung",
-   "akses_ekonomi"
-  ],
-  "geocode_query": "Enrekang, Sulawesi Selatan",
-  "fallback_lat": -3.56,
-  "fallback_lng": 119.76
- },
- {
   "location_name": "Jembatan Gantung Pongpet, Desa Margacinta, Cijulang, Pangandaran (Jawa Barat)",
   "description": "Jembatan Merah Putih Pongpet di Desa Margacinta, Kecamatan Cijulang, Pangandaran, miring/ambruk saat diresmikan pada 30 Agustus 2026. Lebih dari 50 orang melintas bersamaan melampaui kapasitas sehingga tali sling sisi kiri terlepas dari pengikat utama dan jembatan miring; sejumlah orang di atasnya terjatuh, rombongan Bupati Pangandaran selamat.",
   "source_name": "CNN Indonesia",
@@ -61,22 +13,6 @@
   "geocode_query": "Cijulang, Pangandaran, Jawa Barat",
   "fallback_lat": -7.68,
   "fallback_lng": 108.65
- },
- {
-  "location_name": "Jembatan Lahat–Muaraenim, Lintas Sumatera (Sumatera Selatan)",
-  "description": "Jembatan di jalur Lahat–Muaraenim, Sumatera Selatan, ambruk tengah malam 30 Juni 2025 setelah diduga dilewati truk batu bara. Ambruknya jembatan membuat jalur lintas Sumatera lumpuh; sebuah truk terjun dan rel kereta api ikut tertimpa material jembatan.",
-  "source_name": "suara.com",
-  "source_url": "https://sumsel.suara.com/read/2025/06/30/074733/jembatan-lahat-ambruk-tengah-malam-truk-batu-bara-diduga-jadi-biang-kerok",
-  "source_date": "2025-06-30",
-  "severity": "ambruk",
-  "infra_type": "jembatan",
-  "vital_status": [
-   "akses_ekonomi",
-   "akses_antar_kampung"
-  ],
-  "geocode_query": "Lahat, Sumatera Selatan",
-  "fallback_lat": -3.79,
-  "fallback_lng": 103.54
  },
  {
   "location_name": "Jembatan Gempol, Perbatasan Klaten–Gunungkidul (Jawa Tengah)",
@@ -111,22 +47,6 @@
   "fallback_lng": 114.01
  },
  {
-  "location_name": "Jembatan Desa Tuwuna, Mandrehe, Nias Barat (Sumatera Utara)",
-  "description": "Jembatan di Desa Tuwuna, Kecamatan Mandrehe, Kabupaten Nias Barat, ambruk diterjang sungai yang meluap pada awal Maret 2025. Gubernur Sumatera Utara meninjau lokasi dan berjanji membangun ulang jembatan tahun tersebut dengan lama pengerjaan 9-10 bulan.",
-  "source_name": "suara.com",
-  "source_url": "https://sumut.suara.com/read/2025/03/10/123130/bobby-nasution-janji-bangun-jembatan-ambruk-di-nias-barat-tahun-ini",
-  "source_date": "2025-03-10",
-  "severity": "ambruk",
-  "infra_type": "jembatan",
-  "vital_status": [
-   "akses_antar_kampung",
-   "akses_ekonomi"
-  ],
-  "geocode_query": "Mandrehe, Nias Barat, Sumatera Utara",
-  "fallback_lat": 1.03,
-  "fallback_lng": 97.3
- },
- {
   "location_name": "Jembatan Gantung Sukabumi (Jawa Barat)",
   "description": "Jembatan gantung di Sukabumi putus pada April 2026; lima warga yang sedang melintas terjatuh ke sungai. Peristiwa terekam video dan menjadi perhatian publik.",
   "source_name": "20detik",
@@ -140,54 +60,6 @@
   "geocode_query": "Sukabumi, Jawa Barat",
   "fallback_lat": -6.92,
   "fallback_lng": 106.93
- },
- {
-  "location_name": "Jalan Nasional Padangsidimpuan–Medan, Sipirok (Tapanuli Selatan, Sumatera Utara)",
-  "description": "Longsor dua titik di Kecamatan Sipirok (Desa Marsada dan Aek Latong) pada 25 November 2025 menutup seluruh badan jalan nasional lintas tengah Sumatera, memutus akses Padangsidimpuan–Medan via Tarutung secara total. Tebing belasan meter runtuh dan kendaraan terjebak di antara dua titik longsor; evakuasi menunggu alat berat.",
-  "source_name": "ANTARA News",
-  "source_url": "https://sumut.antaranews.com/berita/646309/longsor-sipirok-putuskan-akses-jalan-nasional-padangsidimpuan-medan",
-  "source_date": "2025-11-25",
-  "severity": "berat",
-  "infra_type": "jalan",
-  "vital_status": [
-   "akses_ekonomi",
-   "akses_kesehatan"
-  ],
-  "geocode_query": "Sipirok, Tapanuli Selatan, Sumatera Utara",
-  "fallback_lat": 1.6,
-  "fallback_lng": 99.28
- },
- {
-  "location_name": "Jalan Nasional Kutacane–Blangkejeren, Gayo Lues (Aceh)",
-  "description": "Jalan nasional Kutacane–Blangkejeren, penghubung utama Tanah Alas dan Gayo Lues, lumpuh total hampir dua pekan sejak longsor 27 November 2025. Lebih dari 90 persen kebutuhan pokok masyarakat Gayo Lues dipasok dari Medan melalui jalur ini; kendaraan roda empat tak bisa melintas dan hanya ada jalur setapak.",
-  "source_name": "Prohaba/Serambi Indonesia",
-  "source_url": "https://prohaba.tribunnews.com/nanggroe/45824/akses-terputus-akibat-longsor-jalan-nasional-kutacaneblangkejeren-lumpuh-dua-pekan",
-  "source_date": "2025-11-27",
-  "severity": "berat",
-  "infra_type": "jalan",
-  "vital_status": [
-   "akses_ekonomi",
-   "akses_kesehatan"
-  ],
-  "geocode_query": "Kutacane, Aceh Tenggara",
-  "fallback_lat": 3.49,
-  "fallback_lng": 97.81
- },
- {
-  "location_name": "Jalan Lintas Sumatera Tarutung–Sibolga, Parsikaman (Tapanuli Utara, Sumatera Utara)",
-  "description": "Jalan lintas Sumatera penghubung Tarutung–Sibolga putus total akibat longsor tebing setinggi 100 meter di Desa Parsikaman, Kecamatan Adian Koting, Tapanuli Utara, sejak 24 November 2025. Longsor menimbun badan jalan hingga menutup akses utama; tim gabungan BBJN Sumut membersihkan material untuk evakuasi.",
-  "source_name": "iNews.id",
-  "source_url": "https://www.inews.id/regional/sumut/jalan-lintas-sumatera-putus-total-akibat-longsor-di-tapanuli-utara",
-  "source_date": "2025-11-24",
-  "severity": "berat",
-  "infra_type": "jalan",
-  "vital_status": [
-   "akses_ekonomi",
-   "akses_kesehatan"
-  ],
-  "geocode_query": "Adian Koting, Tapanuli Utara",
-  "fallback_lat": 1.98,
-  "fallback_lng": 98.97
  },
  {
   "location_name": "Jalan Nasional Lembah Anai, Bukittinggi–Padang (Sumatera Barat)",
@@ -204,38 +76,6 @@
   "geocode_query": "Lembah Anai, Tanah Datar, Sumatera Barat",
   "fallback_lat": -0.39,
   "fallback_lng": 100.39
- },
- {
-  "location_name": "Jalur Pengastian–Pendem, Jembrana (Bali)",
-  "description": "Tanah longsor terjadi pada Senin malam (29/9/2025) di jalur Pengastian–Pendem, Kabupaten Jembrana, Bali, merusak badan jalan hingga nyaris memutus total akses warga. Jalur ini merupakan rute utama yang sehari-hari digunakan ratusan warga, termasuk siswa sekolah di sekitarnya. Bupati Jembrana menyebut siswa menjadi pihak paling terdampak karena akses utama mereka terputus.",
-  "source_name": "Kompas.com",
-  "source_url": "https://denpasar.kompas.com/read/2025/09/30/151918478/jalan-longsor-di-jembrana-akibatkan-akses-utama-terputus-bupati-siswa",
-  "source_date": "2025-09-30",
-  "severity": "berat",
-  "infra_type": "jalan",
-  "vital_status": [
-   "akses_antar_kampung",
-   "akses_sekolah",
-   "akses_ekonomi"
-  ],
-  "geocode_query": "Kabupaten Jembrana, Bali",
-  "fallback_lat": -8.35,
-  "fallback_lng": 114.68
- },
- {
-  "location_name": "Jalan Denpasar–Gilimanuk, Selemadeg, Tabanan (Bali)",
-  "description": "Jalan nasional di depan Pasar Bajera, Desa Bajera, Kecamatan Selemadeg, Kabupaten Tabanan, Bali, ambles sedalam sekitar delapan meter pada Senin (7/7/2025). Longsor dipicu runtuhnya saluran irigasi di bawah badan jalan dan menyisakan lubang besar yang menutup hampir seluruh badan jalan. Akibatnya, jalur utama Denpasar–Gilimanuk ditutup total dan Pemprov Bali melakukan penanganan darurat selama 30 hari.",
-  "source_name": "Kompas.com",
-  "source_url": "https://denpasar.kompas.com/read/2025/07/08/200735978/longsor-di-tabanan-lumpuhkan-jalur-denpasar-gilimanuk-pemprov-bali-lakukan",
-  "source_date": "2025-07-08",
-  "severity": "berat",
-  "infra_type": "jalan",
-  "vital_status": [
-   "akses_ekonomi"
-  ],
-  "geocode_query": "Selemadeg, Tabanan, Bali",
-  "fallback_lat": -8.51,
-  "fallback_lng": 115.02
  },
  {
   "location_name": "Jalan wisata Pusuk–Sembalun, Lombok Timur (Nusa Tenggara Barat)",
@@ -299,68 +139,6 @@
   "geocode_query": "Nagekeo, Nusa Tenggara Timur",
   "fallback_lat": -8.55,
   "fallback_lng": 121.33
- },
- {
-  "location_name": "Kabupaten Nabire (Papua Tengah)",
-  "description": "Gempa bumi magnitudo 6,6 yang mengguncang Kabupaten Nabire, Papua Tengah, pada Jumat (19/9/2025) menyebabkan jaringan listrik dan komunikasi sempat terganggu. Kepala BNPB menyebut listrik dan sinyal GSM sempat tidak berfungsi dan mulai berangsur pulih pada Jumat pagi. BNPB juga mencatat jembatan putus serta bandara dan kantor bupati mengalami kerusakan akibat gempa tersebut.",
-  "source_name": "CNN Indonesia",
-  "source_url": "https://www.cnnindonesia.com/nasional/20250919115502-20-1275418/jaringan-listrik-dan-komunikasi-di-nabire-mulai-pulih-usai-gempa",
-  "source_date": "2025-09-19",
-  "severity": "sedang",
-  "infra_type": "jaringan_listrik",
-  "vital_status": [
-   "aset_utilitas"
-  ],
-  "geocode_query": "Nabire, Papua Tengah",
-  "fallback_lat": -3.37,
-  "fallback_lng": 135.5
- },
- {
-  "location_name": "Jalan Trans Papua KM 352, Distrik Benawa, Yalimo (Papua Pegunungan)",
-  "description": "Jalan Trans Papua penghubung Provinsi Papua dan Papua Pegunungan di KM 352, Distrik Benawa, Kabupaten Yalimo, putus akibat longsor pada Kamis (30/10/2025). Jalan vital ini menjadi jalur logistik truk pengangkut barang dari Jayapura menuju Wamena sehingga mobilitas dan distribusi terganggu saat putus. PJN Wilayah IV Wamena menurunkan dua alat berat untuk perbaikan darurat hingga jalan kembali dapat dilalui.",
-  "source_name": "Kompas.com",
-  "source_url": "https://regional.kompas.com/read/2025/11/01/132440778/sempat-putus-akibat-longsor-jalan-trans-papua-penghubung-papua-dan-papua",
-  "source_date": "2025-11-01",
-  "severity": "berat",
-  "infra_type": "jalan",
-  "vital_status": [
-   "akses_ekonomi"
-  ],
-  "geocode_query": "Benawa, Yalimo, Papua Pegunungan",
-  "fallback_lat": -3.86,
-  "fallback_lng": 139.35
- },
- {
-  "location_name": "Kota Ambon (Maluku)",
-  "description": "Bencana tanah longsor dan pohon tumbang yang terjadi pada Sabtu (21/6/2025) di Kota Ambon, Maluku, menyebabkan 78 unit rumah warga rusak tertimpa material longsor dan pohon tumbang. Akses jalan di sejumlah lokasi terputus akibat bencana tersebut. Gubernur Maluku meninjau lokasi longsor di Desa Naku, Kecamatan Leitimur Selatan, dan menyerahkan bantuan bagi warga korban bencana.",
-  "source_name": "Kompas.com",
-  "source_url": "https://regional.kompas.com/read/2025/06/22/195727278/update-bencana-alam-di-ambon-78-rumah-rusak-dan-akses-jalan-putus",
-  "source_date": "2025-06-22",
-  "severity": "berat",
-  "infra_type": "jalan",
-  "vital_status": [
-   "akses_antar_kampung",
-   "akses_kesehatan"
-  ],
-  "geocode_query": "Kota Ambon, Maluku",
-  "fallback_lat": -3.68,
-  "fallback_lng": 128.17
- },
- {
-  "location_name": "Jembatan Dusun Laala, Huamual, Seram Bagian Barat (Maluku)",
-  "description": "Dua jembatan di Dusun Laala, Kecamatan Huamual, Kabupaten Seram Bagian Barat, Maluku, ambruk dan putus diterjang banjir luapan Sungai Wae Laala pada awal Februari 2025. Hujan deras yang mengguyur sejak malam membuat sungai meluap dan menghancurkan dua jembatan penghubung. Akibatnya, akses transportasi darat yang menghubungkan desa-desa di Huamual dengan Piru, ibu kota kabupaten, lumpuh total.",
-  "source_name": "Kompas.com",
-  "source_url": "https://regional.kompas.com/read/2025/02/03/123723678/jembatan-putus-akses-transportasi-di-seram-barat-maluku-lumpuh",
-  "source_date": "2025-02-03",
-  "severity": "ambruk",
-  "infra_type": "jembatan",
-  "vital_status": [
-   "akses_antar_kampung",
-   "akses_ekonomi"
-  ],
-  "geocode_query": "Huamual, Seram Bagian Barat, Maluku",
-  "fallback_lat": -3.2,
-  "fallback_lng": 127.9
  },
  {
   "location_name": "Ruas Jalan Nasional Ruteng–Reo–Kedindi, Manggarai (NTT)",
@@ -478,22 +256,6 @@
   "related_earthquake": "Gempa Laut Flores M7,7 (15/8/2026)"
  },
  {
-  "location_name": "Jembatan di Kecamatan Cisarua, Puncak, Kabupaten Bogor (Jawa Barat)",
-  "description": "Sebuah jembatan di Kecamatan Cisarua, kawasan Puncak Bogor, putus akibat banjir dan longsor yang dipicu hujan deras pada Minggu (2/3/2025). Putusnya jembatan disertai longsor yang menutup sebagian Jalan Raya Puncak serta satu warga Desa Citeko dilaporkan hilang terseret arus banjir.",
-  "source_name": "suara.com",
-  "source_url": "https://www.suara.com/news/2025/03/03/053744/hujan-deras-picu-banjir-dan-longsor-di-puncak-bogor-hingga-jembatan-putus",
-  "source_date": "2025-03-03",
-  "severity": "ambruk",
-  "infra_type": "jembatan",
-  "vital_status": [
-   "akses_antar_kampung",
-   "akses_ekonomi"
-  ],
-  "geocode_query": "Cisarua, Bogor, Jawa Barat",
-  "fallback_lat": -6.68,
-  "fallback_lng": 106.94
- },
- {
   "location_name": "Jembatan Cikolomeran penghubung Desa Hegarmanah–Bantarkalong, Warungkiara, Sukabumi (Jawa Barat)",
   "description": "Jembatan Cikolomeran yang menghubungkan Desa Hegarmanah dan Bantarkalong, Kecamatan Warungkiara, ambruk saat banjir-longsor melanda sembilan kecamatan di Sukabumi pada 15-16 Desember 2025. Material longsor juga menutup akses jalan kabupaten, termasuk di sekitar Jembatan Cimandiri Leuwi Lalay, dan jalan desa di Kampung Bojonghaur ambles sehingga tidak dapat dilalui kendaraan.",
   "source_name": "Kompas.com",
@@ -510,22 +272,6 @@
   "fallback_lng": 106.74
  },
  {
-  "location_name": "Tanggul Kali Srengseng Hilir, Desa Sukamanah, Sukatani, Bekasi (Jawa Barat)",
-  "description": "Tiga titik tanggul Kali Srengseng Hilir jebol di Desa Sukamanah, Kecamatan Sukatani, Kabupaten Bekasi pada Senin (3/11/2025) akibat debit air tinggi dari luapan Kali Cikarang yang tidak tertahan pintu air Bendungan Srengseng Hilir. Ribuan rumah warga terendam banjir dan di Desa Sukarukun sebanyak 210 KK atau 815 jiwa terdampak; sejumlah titik tanggul lain dalam kondisi kritis.",
-  "source_name": "TribunBekasi.com",
-  "source_url": "https://bekasi.tribunnews.com/kabupaten-bekasi/56885/tiga-titik-tanggul-jebol-ribuan-rumah-warga-sukatani-bekasi-terendam-banjir",
-  "source_date": "2025-11-03",
-  "severity": "berat",
-  "infra_type": "tanggul",
-  "vital_status": [
-   "aset_utilitas",
-   "akses_ekonomi"
-  ],
-  "geocode_query": "Sukatani, Bekasi, Jawa Barat",
-  "fallback_lat": -6.22,
-  "fallback_lng": 107.13
- },
- {
   "location_name": "Jaringan listrik Kampung Babakan Junti, Desa Warjabakti, Cimaung, Bandung (Jawa Barat)",
   "description": "Hujan deras disertai angin kencang merobohkan beberapa tiang listrik di Kampung Babakan Junti, Desa Warjabakti, Kecamatan Cimaung, Kabupaten Bandung pada Rabu (10/12/2025) sekitar pukul 15.00 WIB. Aliran listrik di sejumlah lingkungan warga langsung padam, beberapa rumah mengalami kerusakan ringan akibat kabel yang tertarik, dan kabel yang menjuntai dinilai membahayakan keselamatan warga.",
   "source_name": "JabarOnline",
@@ -539,69 +285,6 @@
   "geocode_query": "Cimaung, Bandung, Jawa Barat",
   "fallback_lat": -7.09,
   "fallback_lng": 107.57
- },
- {
-  "location_name": "Jalan Cipanas–Ciparay, Desa Majasari, Sobang, Lebak (Banten)",
-  "description": "Longsor pada Sabtu (8/3/2025) malam menutup badan Jalan Cipanas–Ciparay di Desa Majasari, Kecamatan Sobang, Kabupaten Lebak sehingga akses menuju objek wisata 'Negeri di Atas Awan' Gunung Luhur Citorek terputus. Kendaraan roda dua maupun roda empat tidak dapat melintas dan Dinas PUPR Banten mengerahkan alat berat untuk membersihkan material longsor, dengan jalur alternatif melalui Majasari–Ciparasi Sobang menuju Citorek.",
-  "source_name": "Radar Banten",
-  "source_url": "https://www.radarbanten.co.id/2025/03/09/jalan-menuju-negeri-di-atas-awan-di-lebak-terputus-pupr-banten-kerahkan-alat-berat/",
-  "source_date": "2025-03-09",
-  "severity": "berat",
-  "infra_type": "jalan",
-  "vital_status": [
-   "akses_ekonomi",
-   "akses_antar_kampung"
-  ],
-  "geocode_query": "Sobang, Lebak, Banten",
-  "fallback_lat": -6.75,
-  "fallback_lng": 106.42
- },
- {
-  "location_name": "Jalan Raya Palima–Cinangka, Desa Kadukempong dan Batukuwung, Padarincang, Serang (Banten)",
-  "description": "Jalan Raya Palima–Cinangka di Kabupaten Serang, Banten, yang merupakan jalur alternatif menuju kawasan wisata Pantai Anyer putus akibat tertutup tanah longsor pada Jumat (7/3/2025) sekitar pukul 01.00 WIB. Longsor terjadi di dua titik, Desa Kadukempong dan Batukuwung, dan hingga siang jalan belum dapat dilalui kendaraan; tiga alat berat dari Pemprov Banten dan Pemkab Serang dikerahkan untuk membersihkan material.",
-  "source_name": "ANTARA News",
-  "source_url": "https://megapolitan.antaranews.com/berita/368393/jalan-palima-cinangka-serang-putus-akibat-longsor",
-  "source_date": "2025-03-07",
-  "severity": "berat",
-  "infra_type": "jalan",
-  "vital_status": [
-   "akses_ekonomi",
-   "akses_antar_kampung"
-  ],
-  "geocode_query": "Padarincang, Serang, Banten",
-  "fallback_lat": -6.21,
-  "fallback_lng": 106.07
- },
- {
-  "location_name": "Jalan Basuki Rahmat, Jatinegara, Jakarta Timur (DKI Jakarta)",
-  "description": "Jalan Basuki Rahmat tepat setelah Underpass DI Panjaitan, Jatinegara, Jakarta Timur ambles dengan lubang besar yang memungkinkan orang masuk ke dalamnya, viral di media sosial pada Oktober 2025. Jalan yang sudah beberapa kali ambles tersebut baru diberi water barrier dan rambu peringatan setelah viral, dan warga khawatir lubang semakin melebar karena jalan ramai dilalui kendaraan.",
-  "source_name": "Kompas.com",
-  "source_url": "https://megapolitan.kompas.com/read/2025/10/03/11303531/video-jalan-ambles-di-jatinegara-viral-begini-kondisinya-saat-ini",
-  "source_date": "2025-10-03",
-  "severity": "sedang",
-  "infra_type": "jalan",
-  "vital_status": [
-   "akses_ekonomi"
-  ],
-  "geocode_query": "Jatinegara, Jakarta Timur, DKI Jakarta",
-  "fallback_lat": -6.22,
-  "fallback_lng": 106.86
- },
- {
-  "location_name": "Jembatan antarkampung Desa Babadan, Klaten (Jawa Tengah)",
-  "description": "Jembatan antarkampung di Desa Babadan, Klaten, ambruk diterjang derasnya arus sungai pada Kamis (3/4/2025) malam. Ambruknya jembatan memutus jalur antarkampung sehingga warga harus memutar sejauh 600 meter hingga 1 kilometer. Akses menuju jembatan ditutup dengan kayu dan bambu karena talud sisi kiri juga ikut longsor.",
-  "source_name": "Kompas TV",
-  "source_url": "https://www.kompas.tv/regional/584870/detik-detik-jembatan-di-klaten-ambruk-diterjang-arus-sungai-warga-panik",
-  "source_date": "2025-04-05",
-  "severity": "ambruk",
-  "infra_type": "jembatan",
-  "vital_status": [
-   "akses_antar_kampung",
-   "akses_ekonomi"
-  ],
-  "geocode_query": "Klaten, Jawa Tengah",
-  "fallback_lat": -7.7048,
-  "fallback_lng": 110.5924
  },
  {
   "location_name": "Jalan Desa Danasari, Kecamatan Karangjambu, Purbalingga (Jawa Tengah)",
@@ -620,23 +303,6 @@
   "fallback_lng": 109.42
  },
  {
-  "location_name": "Jalan antar dusun Petungkriyono, Pekalongan (Jawa Tengah)",
-  "description": "Tanah longsor di Kecamatan Petungkriyono, Pekalongan (Januari 2025) memutus sejumlah ruas jalan dan membuat tujuh dusun di tiga desa terisolir. Warga Dusun Karanggondang terpaksa berjalan kaki 4-5 jam untuk mencapai pusat kecamatan, termasuk ibu hamil yang batal kontrol ke puskesmas. Tim gabungan mengerahkan alat berat untuk membuka akses dan menyalurkan logistik.",
-  "source_name": "detikJateng",
-  "source_url": "https://www.detik.com/jateng/berita/d-7750811/alat-berat-dikerahkan-buka-akses-jalan-dusun-terisolir-longsor-petungkriyono",
-  "source_date": "2025-01-26",
-  "severity": "berat",
-  "infra_type": "jalan",
-  "vital_status": [
-   "akses_antar_kampung",
-   "akses_ekonomi",
-   "akses_kesehatan"
-  ],
-  "geocode_query": "Petungkriyono, Pekalongan, Jawa Tengah",
-  "fallback_lat": -7.12,
-  "fallback_lng": 109.72
- },
- {
   "location_name": "MTs Muhammadiyah 4 Bulu, Sambungmacan, Sragen (Jawa Tengah)",
   "description": "Atap ruang kelas VII MTs Muhammadiyah 4 Bulu, Kecamatan Sambungmacan, Sragen ambruk saat kegiatan belajar mengajar Selasa (12/5/2026) sekitar pukul 08.00 WIB. Tujuh orang terdiri dari enam murid dan satu guru terluka dan dilarikan ke RSUD Sragen serta RSI Amal Sehat, satu siswa mengalami patah kaki. Atap roboh diduga karena kayu penyangga lapuk pada bangunan tua yang sudah sekitar 26 tahun tidak direnovasi.",
   "source_name": "detikJateng",
@@ -650,84 +316,6 @@
   "geocode_query": "Sambungmacan, Sragen, Jawa Tengah",
   "fallback_lat": -7.36,
   "fallback_lng": 111.03
- },
- {
-  "location_name": "Desa Sumbaga, Kecamatan Bumijawa, Tegal (Jawa Tengah)",
-  "description": "Tanah bergerak atau longsor di Desa Sumbaga, Bumijawa, Tegal (17/6/2025) memutus sambungan pipa air minum milik PDAB Tirta Utama Jateng dan Perumda Air Minum Tirta Bahari Kota Tegal. Pasokan air ke sekitar 5.000 pelanggan di Tegal Timur, Randugunting, hingga Rumah Dinas Wali Kota Tegal terganggu. Pipa bergeser hingga 20 meter dari titik awal dan perbaikan ditargetkan selesai 19 Juni 2025.",
-  "source_name": "Tribunjateng",
-  "source_url": "https://banyumas.tribunnews.com/2025/06/19/longsor-sumbaga-tegal-putus-pipa-pdam-pasokan-air-ke-5000-pelanggan-dan-rumdin-wali-kota-terganggu",
-  "source_date": "2025-06-19",
-  "severity": "sedang",
-  "infra_type": "jaringan_air",
-  "vital_status": [
-   "aset_utilitas"
-  ],
-  "geocode_query": "Bumijawa, Tegal, Jawa Tengah",
-  "fallback_lat": -7.18,
-  "fallback_lng": 109.13
- },
- {
-  "location_name": "Jembatan Srandakan Lama, perbatasan Kulon Progo–Bantul (DI Yogyakarta)",
-  "description": "Jembatan Srandakan lama (Srandakan 1) penghubung Kulon Progo dan Bantul di Sungai Progo putus total Kamis (6/2/2025) sekitar pukul 22.30 WIB setelah terdengar bunyi gemuruh dua kali. Tiang penyangga jembatan tergerus imbas kerusakan groundsill Jembatan Srandakan 2, dan akses dari arah Kulon Progo ditutup dengan pemasangan garis polisi oleh Polsek Galur. Warga khawatir jembatan baru yang masih digunakan juga terancam putus.",
-  "source_name": "detikJogja",
-  "source_url": "https://www.detik.com/jogja/berita/d-7767045/jembatan-srandakan-lama-putus-akses-kulon-progo-bantul-dipasang-garis-polisi",
-  "source_date": "2025-02-07",
-  "severity": "ambruk",
-  "infra_type": "jembatan",
-  "vital_status": [
-   "akses_antar_kampung",
-   "akses_ekonomi"
-  ],
-  "geocode_query": "Galur, Kulon Progo, DI Yogyakarta",
-  "fallback_lat": -7.92,
-  "fallback_lng": 110.22
- },
- {
-  "location_name": "Jembatan Dung Buceng, Desa Bangun, Munjungan, Trenggalek (Jawa Timur)",
-  "description": "Jembatan Dung Buceng penghubung Kecamatan Munjungan dan Watulimo, Trenggalek, putus diterjang banjir bandang Rabu (4/6/2025) sekitar pukul 22.00 WIB; tiang penyangga tengah roboh lebih dulu disusul runtuhnya badan jembatan. Akses mobilitas warga dan distribusi sampah lintas kecamatan lumpuh karena jalur alternatif hanya bisa dilewati kendaraan ringan. Pemkab Trenggalek mengusulkan pemasangan jembatan darurat tipe bailey ke Pemprov Jatim.",
-  "source_name": "RRI",
-  "source_url": "https://rri.co.id/regional/1570423/banjir-trenggalek-warga-butuh-jembatan-darurat-munjungan-watulimo",
-  "source_date": "2025-06-08",
-  "severity": "ambruk",
-  "infra_type": "jembatan",
-  "vital_status": [
-   "akses_antar_kampung",
-   "akses_ekonomi"
-  ],
-  "geocode_query": "Munjungan, Trenggalek, Jawa Timur",
-  "fallback_lat": -8.32,
-  "fallback_lng": 111.58
- },
- {
-  "location_name": "Jaringan listrik PLN, Lumajang (Jawa Timur)",
-  "description": "Cuaca ekstrem berupa hujan disertai angin selama Oktober 2025 menyebabkan 12 kejadian konsleting listrik di Kabupaten Lumajang, termasuk satu tiang listrik PLN roboh di Jogoyudan. PLN ULP Lumajang terpaksa melakukan pemadaman di wilayah terdampak hingga jaringan listrik sepanjang 430 km diperbaiki. Penyebab utama adalah ranting dan pohon tumbang yang menimpa jaringan listrik di wilayah dataran tinggi.",
-  "source_name": "beritajatim.com",
-  "source_url": "https://beritajatim.com/kurun-sebulan-cuaca-ekstrem-di-lumajang-sebabkan-tiang-pln-roboh-dan-12-kejadian-konsleting-listrik",
-  "source_date": "2025-10-22",
-  "severity": "sedang",
-  "infra_type": "jaringan_listrik",
-  "vital_status": [
-   "aset_utilitas"
-  ],
-  "geocode_query": "Lumajang, Jawa Timur",
-  "fallback_lat": -8.13,
-  "fallback_lng": 113.22
- },
- {
-  "location_name": "Jembatan Kutablang, Kecamatan Kuta Blang (Bireuen, Aceh)",
-  "description": "Banjir bandang menerjang Kabupaten Bireuen pada 25-27 November 2025 dan memutus total sembilan jembatan, termasuk jembatan rangka baja Rancong, Kutablang di lintasan Jalan Nasional Banda Aceh-Medan, Pante Lhong, serta sejumlah jembatan gantung di Peusangan dan Juli. Akibatnya transportasi dua arah Medan-Banda Aceh maupun Bireuen-Takengon lumpuh total, dengan puluhan kendaraan terjebak di sepanjang jalan. Jembatan rangka baja Rancong bahkan hilang terbawa arus banjir bandang.",
-  "source_name": "Serambinews/Tribun Aceh",
-  "source_url": "https://aceh.tribunnews.com/nanggroe/1000002/banjir-bandang-bireuen-sembilan-jembatan-putus-total",
-  "source_date": "2025-11-28",
-  "severity": "ambruk",
-  "infra_type": "jembatan",
-  "vital_status": [
-   "akses_ekonomi",
-   "akses_kesehatan"
-  ],
-  "geocode_query": "Kuta Blang, Bireuen, Aceh",
-  "fallback_lat": 5.22,
-  "fallback_lng": 96.83
  },
  {
   "location_name": "SDN 12 Bintang, Kecamatan Bintang (Aceh Tengah, Aceh)",
@@ -793,85 +381,6 @@
   "fallback_lng": 102.65
  },
  {
-  "location_name": "Jalan Lintas Jambi-Sumatera Barat KM 58, Dusun Sirih Sekapur (Bungo, Jambi)",
-  "description": "Jalan Lintas Jambi-Sumatera Barat di Dusun Sirih Sekapur, Kecamatan Jujuhan, Kabupaten Bungo, amblas diterjang banjir pada 2 Maret 2025. Jalan nasional yang menjadi satu-satunya akses utama transportasi antarprovinsi itu masih belum bisa dilalui hingga awal Maret, dengan pengerjaan jembatan bailey darurat baru mencapai 40 persen. Pengendara dialihkan ke jalur alternatif sementara aktivitas ekonomi lintas provinsi terganggu.",
-  "source_name": "detikSumbagsel",
-  "source_url": "https://www.detik.com/sumbagsel/berita/d-7809134/jalan-jambi-sumbar-masih-putus-progres-jembatan-bailey-baru-40-persen",
-  "source_date": "2025-03-06",
-  "severity": "berat",
-  "infra_type": "jalan",
-  "vital_status": [
-   "akses_ekonomi",
-   "akses_kesehatan"
-  ],
-  "geocode_query": "Jujuhan, Bungo, Jambi",
-  "fallback_lat": -1.6,
-  "fallback_lng": 101.75
- },
- {
-  "location_name": "Jembatan Muara Lawai, Kecamatan Merapi (Lahat, Sumatera Selatan)",
-  "description": "Jembatan Muara Lawai di Desa Muara Lawai, Kecamatan Merapi, Kabupaten Lahat, Sumatera Selatan, ambruk pada 29 Juni 2025 sekitar pukul 23.10 WIB saat dilintasi kendaraan. Empat truk pengangkut batu bara terjebak di atas jembatan dan empat orang mengalami luka di bagian kepala dan kaki. Jembatan penghubung Lahat-Muara Enim itu lumpuh total sehingga arus lalu lintas dialihkan ke jembatan alternatif.",
-  "source_name": "detikSumbagsel",
-  "source_url": "https://www.detik.com/sumbagsel/berita/d-7988225/4-orang-terluka-akibat-insiden-jembatan-muara-lawai-di-lahat-ambruk",
-  "source_date": "2025-06-30",
-  "severity": "ambruk",
-  "infra_type": "jembatan",
-  "vital_status": [
-   "akses_ekonomi"
-  ],
-  "geocode_query": "Merapi, Lahat, Sumatera Selatan",
-  "fallback_lat": -3.62,
-  "fallback_lng": 103.5
- },
- {
-  "location_name": "Jalan Lintas Manna-Pagar Alam, Desa Kayu Ajaran (Bengkulu Selatan, Bengkulu)",
-  "description": "Tanah longsor menutup seluruh badan Jalan Lintas Manna-Pagar Alam di Desa Kayu Ajaran, Kecamatan Ulu Manna, Kabupaten Bengkulu Selatan, pada 16 September 2025. Material longsor setinggi sekitar satu meter, lebar delapan meter, dan panjang 75 meter membuat jalan nasional penghubung Bengkulu Selatan dengan Sumatera Selatan lumpuh total. Polisi menutup jalan dan mengimbau pengendara mencari jalur alternatif hingga alat berat membersihkan material.",
-  "source_name": "TribunBengkulu.com",
-  "source_url": "https://bengkulu.tribunnews.com/breaking-news/88272/breaking-news-tertimbun-longsor-jalan-lintas-bengkulu-selatan-pagar-alam-sumsel-lumpuh-total",
-  "source_date": "2025-09-16",
-  "severity": "berat",
-  "infra_type": "jalan",
-  "vital_status": [
-   "akses_ekonomi",
-   "akses_kesehatan"
-  ],
-  "geocode_query": "Ulu Manna, Bengkulu Selatan, Bengkulu",
-  "fallback_lat": -4.35,
-  "fallback_lng": 102.95
- },
- {
-  "location_name": "Jembatan terdampak banjir Way Lunik (Bandar Lampung, Lampung)",
-  "description": "Banjir akibat hujan deras melanda Kota Bandar Lampung pada 17 Januari 2025 dan menyebabkan dua warga meninggal dunia. Sejumlah jembatan ambruk dan mobil hanyut terbawa arus di berbagai titik, sementara tim SAR mengevakuasi korban termasuk seorang ibu dan anak yang terjebak banjir di Way Lunik. Kerusakan infrastruktur dan kerugian besar tercatat di sejumlah wilayah kota.",
-  "source_name": "VIVA",
-  "source_url": "https://www.viva.co.id/berita/nasional/1790958-2-orang-tewas-akibat-banjir-di-bandar-lampung-jembatan-ambruk-mobil-hanyut",
-  "source_date": "2025-01-18",
-  "severity": "ambruk",
-  "infra_type": "jembatan",
-  "vital_status": [
-   "akses_antar_kampung",
-   "akses_ekonomi"
-  ],
-  "geocode_query": "Bandar Lampung, Lampung",
-  "fallback_lat": -5.45,
-  "fallback_lng": 105.26
- },
- {
-  "location_name": "Jembatan Desa Kelumu, Kecamatan Lingga (Lingga, Kepulauan Riau)",
-  "description": "Jembatan dan akses jalan Desa Kelumu, Kecamatan Lingga, Kabupaten Lingga, Kepulauan Riau, putus akibat longsor pada Maret 2025. Warga dibantu TNI-Polri dan BPBD Lingga bergotong royong membangun jembatan darurat pada malam hari agar akses kembali terbuka. BPBD mengingatkan risiko longsor susulan yang lebih parah jika hujan deras kembali terjadi dan menunggu perhitungan teknis Dinas PUTR untuk pembangunan jembatan permanen.",
-  "source_name": "TribunBatam.id",
-  "source_url": "https://batam.tribunnews.com/2025/03/25/jembatan-dan-akses-jalan-desa-kelumu-lingga-kepri-putus-tni-polri-bersama-warga-gotong-royong",
-  "source_date": "2025-03-25",
-  "severity": "sedang",
-  "infra_type": "jembatan",
-  "vital_status": [
-   "akses_antar_kampung",
-   "akses_sekolah"
-  ],
-  "geocode_query": "Lingga, Kabupaten Lingga, Kepulauan Riau",
-  "fallback_lat": -0.16,
-  "fallback_lng": 104.65
- },
- {
   "location_name": "Jembatan Saka Harang, Kelurahan Mantuil, Banjarmasin Selatan (Kalimantan Selatan)",
   "description": "Jembatan Saka Harang di kawasan Mantuil, Banjarmasin Selatan, ambruk pada Minggu (30/8/2026) setelah sebuah truk dump terperosok saat melintas sekitar pukul 13.30 WITA. Tidak ada korban jiwa, namun akses utama warga Mantuil dan ribuan pekerja perusahaan terputus karena belum ada jalur alternatif resmi. Sebagian konstruksi jembatan runtuh dan berpotensi ambruk seluruhnya.",
   "source_name": "KBK News",
@@ -886,118 +395,6 @@
   "geocode_query": "Banjarmasin Selatan, Banjarmasin, Kalimantan Selatan",
   "fallback_lat": -3.33,
   "fallback_lng": 114.58
- },
- {
-  "location_name": "Jalan Talisayan–Tanjung Redeb, Desa Mantaritif, Sambaliung, Berau (Kalimantan Timur)",
-  "description": "Badan Jalan Talisayan–Tanjung Redeb di sekitar Desa Mantaritif, Kecamatan Sambaliung, Kabupaten Berau, Kalimantan Timur, putus akibat longsor pada Sabtu malam (3/5/2025). Curah hujan tinggi membuat arus air menggerus badan jalan hingga amblas, sehingga jalur transportasi utama di Berau tidak dapat dilalui kendaraan. Tidak ada korban, namun DPUPR Kaltim mengirim box culvert dan alat berat untuk penanganan darurat.",
-  "source_name": "ANTARA News",
-  "source_url": "https://kaltim.antaranews.com/berita/237209/jalan-talisayan-tanjung-redep-putus-akibat-longsor",
-  "source_date": "2025-05-04",
-  "severity": "berat",
-  "infra_type": "jalan",
-  "vital_status": [
-   "akses_ekonomi",
-   "akses_antar_kampung"
-  ],
-  "geocode_query": "Sambaliung, Berau, Kalimantan Timur",
-  "fallback_lat": 1.9,
-  "fallback_lng": 117.3
- },
- {
-  "location_name": "Jalan Lingkar Krayan Tengah, Krayan, Nunukan (Kalimantan Utara)",
-  "description": "Jalan Lingkar Krayan Tengah yang menghubungkan Long Padi dan Long Rungan di Kabupaten Nunukan, Kalimantan Utara, longsor selebar 30 meter pada Selasa (20/5/2025). Akibatnya lima desa di Krayan Tengah terisolasi total dan warga terpaksa meniti tebing curam untuk melintas. Aktivitas ekonomi dan logistik lumpuh karena pasokan bahan pokok, BBM, dan layanan dasar tidak dapat masuk.",
-  "source_name": "Kompas.com",
-  "source_url": "https://regional.kompas.com/read/2025/05/23/134140478/akses-jalan-putus-akibat-longsor-warga-krayan-meniti-tebing",
-  "source_date": "2025-05-23",
-  "severity": "berat",
-  "infra_type": "jalan",
-  "vital_status": [
-   "akses_antar_kampung",
-   "akses_ekonomi",
-   "akses_kesehatan"
-  ],
-  "geocode_query": "Krayan Tengah, Nunukan, Kalimantan Utara",
-  "fallback_lat": 3.95,
-  "fallback_lng": 115.85
- },
- {
-  "location_name": "Jembatan Busui, Desa Busui, Batu Sopang, Paser (Kalimantan Timur)",
-  "description": "Jembatan Busui di Desa Busui, Kecamatan Batu Sopang, Kabupaten Paser, Kalimantan Timur, ambruk dan terbelah dua setelah ditabrak truk bermuatan pada Kamis (16/1/2025) dini hari. Jalan darat lintas Kalimantan Timur–Kalimantan Selatan lumpuh total sehingga kendaraan dialihkan ke jalur hauling alternatif. Dua orang terluka dalam kejadian ini.",
-  "source_name": "ANTARA News",
-  "source_url": "https://kaltim.antaranews.com/berita/230250/pemkab-paser-siapkan-jalur-alternatif-ambruknya-jembatan-busui",
-  "source_date": "2025-01-20",
-  "severity": "ambruk",
-  "infra_type": "jembatan",
-  "vital_status": [
-   "akses_ekonomi",
-   "akses_antar_kampung"
-  ],
-  "geocode_query": "Batu Sopang, Paser, Kalimantan Timur",
-  "fallback_lat": -1.3,
-  "fallback_lng": 115.93
- },
- {
-  "location_name": "Tanggul Desa Masiraan, Kecamatan Pandawan, Hulu Sungai Tengah (Kalimantan Selatan)",
-  "description": "Tanggul di RT 02 Desa Masiraan, Kecamatan Pandawan, Kabupaten Hulu Sungai Tengah, Kalimantan Selatan, jebol pada Rabu (29/1/2025) karena tidak kuat menahan banjir. Areal persawahan warga terendam dan tanggul yang juga berfungsi sebagai akses penghubung ke RT 03 hingga RT 04 putus. Ini merupakan banjir ketiga yang menerjang desa tersebut.",
-  "source_name": "suarindonesia.com",
-  "source_url": "https://suarindonesia.com/tanggul-jebol-persawahan-terendam/",
-  "source_date": "2025-01-29",
-  "severity": "berat",
-  "infra_type": "tanggul",
-  "vital_status": [
-   "akses_antar_kampung",
-   "aset_utilitas"
-  ],
-  "geocode_query": "Pandawan, Hulu Sungai Tengah, Kalimantan Selatan",
-  "fallback_lat": -2.58,
-  "fallback_lng": 115.38
- },
- {
-  "location_name": "Gardu listrik PLN Desa Mara dan Long Beluah, Tanjung Palas Barat, Bulungan (Kalimantan Utara)",
-  "description": "Banjir luapan Sungai Kayan di Kabupaten Bulungan, Kalimantan Utara, membuat 38 dari 64 gardu listrik PLN masih dipadamkan per 20 Mei 2025 karena terendam. Sebanyak 576 dari 1.478 pelanggan belum dapat dialiri listrik. PLN melakukan pengamanan pasokan listrik sementara demi keselamatan warga di Desa Mara, Long Beluah, dan sekitarnya.",
-  "source_name": "Nusantara Terkini",
-  "source_url": "https://nusantaraterkini.id/pln-nyalakan-listrik-bertahap-ini-titik-pelanggan-yang-masih-padam-di-bulungan/",
-  "source_date": "2025-05-20",
-  "severity": "sedang",
-  "infra_type": "jaringan_listrik",
-  "vital_status": [
-   "aset_utilitas"
-  ],
-  "geocode_query": "Tanjung Palas Barat, Bulungan, Kalimantan Utara",
-  "fallback_lat": 2.88,
-  "fallback_lng": 117.32
- },
- {
-  "location_name": "Jembatan Desa Binturu–Bukit Sutra, Kecamatan Larompong, Luwu (Sulawesi Selatan)",
-  "description": "Jembatan penghubung Desa Binturu dan Bukit Sutra, Kecamatan Larompong, Kabupaten Luwu, Sulawesi Selatan, ambruk pada Minggu (27/4/2025) setelah tergerus derasnya arus air di bawah jembatan. Warga tidak dapat melintas dengan kendaraan roda dua maupun roda empat dan dialihkan ke jalan alternatif melalui Dusun Baledo. Ketua DPRD Luwu mengusulkan penggunaan dana BTT untuk penanganannya.",
-  "source_name": "Kompas.com",
-  "source_url": "https://makassar.kompas.com/read/2025/04/27/144748378/jembatan-desa-binturu-kabupaten-luwu-ambrol-warga-dialihkan-ke-jalur",
-  "source_date": "2025-04-27",
-  "severity": "ambruk",
-  "infra_type": "jembatan",
-  "vital_status": [
-   "akses_antar_kampung",
-   "akses_ekonomi"
-  ],
-  "geocode_query": "Larompong, Luwu, Sulawesi Selatan",
-  "fallback_lat": -3.45,
-  "fallback_lng": 120.3
- },
- {
-  "location_name": "Jalan Trans Sulawesi ruas Togulu–Tentena, Desa Watuawu, Lage, Poso (Sulawesi Tengah)",
-  "description": "Jalan Trans Sulawesi ruas Togulu–Tentena di Desa Watuawu, Kecamatan Lage, Kabupaten Poso, Sulawesi Tengah, putus akibat tanah longsor pada Kamis (23/1/2025) setelah hujan deras sejak Rabu sore. Badan jalan terkikis luapan arus Sungai Poso sehingga akses jalan utama terputus total. Longsor juga merobohkan satu rumah warga.",
-  "source_name": "ANTARA News",
-  "source_url": "https://sulteng.antaranews.com/berita/338274/ini-penyebab-jalan-trans-sulawesi-di-poso-putus",
-  "source_date": "2025-01-23",
-  "severity": "berat",
-  "infra_type": "jalan",
-  "vital_status": [
-   "akses_ekonomi",
-   "akses_antar_kampung"
-  ],
-  "geocode_query": "Lage, Poso, Sulawesi Tengah",
-  "fallback_lat": -1.77,
-  "fallback_lng": 120.62
  },
  {
   "location_name": "Jalan poros Tampunabale–Kolese, Pasi Kolaga, Muna (Sulawesi Tenggara)",
@@ -1015,23 +412,6 @@
   "geocode_query": "Pasi Kolaga, Muna, Sulawesi Tenggara",
   "fallback_lat": -4.7,
   "fallback_lng": 122.78
- },
- {
-  "location_name": "Jembatan Pulubala, Kecamatan Pulubala, Kabupaten Gorontalo (Provinsi Gorontalo)",
-  "description": "Jembatan Pulubala yang menjadi satu-satunya akses penghubung Desa Pulubala, Ilomata, Molowahu, dan Bakti di Kabupaten Gorontalo putus diterjang banjir pada pertengahan April 2025. Warga terpaksa berjalan kaki dan menyeberangi sungai melalui jalur darurat untuk ke pasar dan sekolah. Pemerintah merelokasi Pasar Hewan Pulubala sementara karena akses terputus.",
-  "source_name": "Tribun Gorontalo",
-  "source_url": "https://gorontalo.tribunnews.com/2025/04/24/gara-gara-jembatan-putus-warga-pulubala-gorontalo-jalan-kaki-menyebrang-sungai",
-  "source_date": "2025-04-24",
-  "severity": "ambruk",
-  "infra_type": "jembatan",
-  "vital_status": [
-   "akses_sekolah",
-   "akses_ekonomi",
-   "akses_antar_kampung"
-  ],
-  "geocode_query": "Pulubala, Gorontalo, Gorontalo",
-  "fallback_lat": 0.55,
-  "fallback_lng": 122.88
  },
  {
   "location_name": "Desa Gitgit, Sukasada, Buleleng (Bali)",
@@ -1067,21 +447,6 @@
   "fallback_lng": 116.48
  },
  {
-  "location_name": "Desa Lekong, Alas Barat, Sumbawa (Nusa Tenggara Barat)",
-  "description": "Tanggul sungai jebol akibat hujan deras sehingga banjir bandang menghantam permukiman warga Desa Lekong, Kecamatan Alas Barat, Kabupaten Sumbawa, NTB, pada 17 Maret 2025. Puluhan rumah terendam air yang naik dengan cepat saat warga tertidur, namun tidak ada korban jiwa. BPBD Sumbawa melakukan asesmen dampak serta meninjau tanggul dan saluran irigasi yang jebol.",
-  "source_name": "Kompas.com",
-  "source_url": "https://regional.kompas.com/read/2025/03/17/191004778/hujan-deras-tanggul-jebol-banjir-datang-saat-warga-sumbawa-tidur-lelap",
-  "source_date": "2025-03-17",
-  "severity": "berat",
-  "infra_type": "tanggul",
-  "vital_status": [
-   "aset_utilitas"
-  ],
-  "geocode_query": "Sumbawa, Nusa Tenggara Barat",
-  "fallback_lat": -8.49,
-  "fallback_lng": 117.42
- },
- {
   "location_name": "Pulau Solor, Flores Timur (Nusa Tenggara Timur)",
   "description": "Gempa bumi magnitudo 4,7 yang mengguncang Flores Timur pada dini hari 9 April 2026 merusak dua sekolah di Pulau Solor. Gedung MAN 2 Flores Timur mengalami kerusakan berat pada plafon, atap dan plafon ruang kelas ambruk, sehingga siswa diliburkan. Total lima bangunan rusak di Desa Motonwutun, terdiri dari dua fasilitas umum dan tiga rumah warga, sementara 79 rumah rusak di Pulau Adonara.",
   "source_name": "MetroTV News",
@@ -1095,22 +460,6 @@
   "geocode_query": "Solor Timur, Flores Timur, Nusa Tenggara Timur",
   "fallback_lat": -8.47,
   "fallback_lng": 122.98
- },
- {
-  "location_name": "Jembatan Wai Besi IV, Seram Utara, Maluku Tengah (Maluku)",
-  "description": "Jembatan Wai Besi IV Km 89 di Kecamatan Seram Utara, Kabupaten Maluku Tengah, Maluku, ambruk pada 21 September 2025 akibat tingginya curah hujan dan beban kendaraan berat. Jembatan yang merupakan jalan nasional penghubung utama ruas trans Pulau Seram itu membuat arus transportasi ke Seram Bagian Timur lumpuh dan tidak bisa dilewati truk bermuatan berat. DPRD Maluku meminta BPJN segera memperbaiki dan menyiapkan jembatan darurat.",
-  "source_name": "ANTARA News",
-  "source_url": "https://ambon.antaranews.com/berita/292248/dprd-maluku-minta-bpjn-segera-perbaiki-jembatan-wai-besi-yang-ambruk",
-  "source_date": "2025-09-22",
-  "severity": "ambruk",
-  "infra_type": "jembatan",
-  "vital_status": [
-   "akses_ekonomi",
-   "akses_kesehatan"
-  ],
-  "geocode_query": "Seram Utara, Maluku Tengah, Maluku",
-  "fallback_lat": -2.95,
-  "fallback_lng": 129.1
  },
  {
   "location_name": "Jalan Trans Papua, Yalimo (Papua Pegunungan)",
@@ -1127,22 +476,6 @@
   "geocode_query": "Yalimo, Papua Pegunungan",
   "fallback_lat": -3.86,
   "fallback_lng": 139.45
- },
- {
-  "location_name": "SMAN 21 Bekasi, Pondok Gede Permai, Jatiasih, Kota Bekasi, Jawa Barat",
-  "description": "Banjir besar Jabodetabek 4 Maret 2025 merendam SMAN 21 Bekasi hingga fasilitas KBM rusak: ruang kelas XII hancur, atap berlubang diameter sekitar 1,5 meter, serta jendela, toilet, meja, kursi, papan tulis, dan mushala ikut rusak sehingga ujian PSAJ 278 siswa kelas 12 ditunda.",
-  "source_name": "Kompas.com",
-  "source_url": "https://megapolitan.kompas.com/read/2025/03/10/13254881/sman-21-bekasi-diterjang-banjir-ruang-kelas-hancur-hingga-toilet-rusak",
-  "source_date": "2025-03-10",
-  "severity": "sedang",
-  "infra_type": "sekolah",
-  "vital_status": [
-   "akses_sekolah"
-  ],
-  "geocode_query": "SMAN 21 Bekasi, Jatiasih, Kota Bekasi, Jawa Barat",
-  "fallback_lat": -6.317,
-  "fallback_lng": 106.956,
-  "photo_url": "https://asset.kompas.com/crops/l3PxpSr-k6Px9pIOYdFrEMIBogo=/0x0:0x0/1200x675/filters:watermark(data/photo/2026/01/30/697c815a5f0b9.png,0,-0,1)/data/photo/2025/03/10/67ce7d58371cb.jpeg"
  },
  {
   "location_name": "Tzu Chi School, Pantai Indah Kapuk (PIK), Penjaringan, Jakarta Utara, DKI Jakarta",
@@ -1224,103 +557,6 @@
   "photo_url": "https://akcdn.detik.net.id/api/wm/2026/01/16/tanggul-irigasi-kalimalang-di-desa-margakaya-jebol-1768563561254_169.jpeg?wid=54&w=1200&v=1&t=jpeg"
  },
  {
-  "location_name": "SMA Negeri 1 Toroh, Kabupaten Grobogan, Jawa Tengah",
-  "description": "Banjir akibat luapan Sungai Lusi, Serang, dan Tuntang yang melanda Grobogan pada 21 Januari 2025 menggenangi 23 ruang kelas, tiga ruang laboratorium, dan ruang kantor SMA Negeri 1 Toroh dengan ketinggian air 30-60 cm sehingga kegiatan belajar terganggu.",
-  "source_name": "detikcom",
-  "source_url": "https://www.detik.com/jateng/berita/d-7742065/grobogan-banjir-puluhan-warga-mengungsi",
-  "source_date": "2025-01-21",
-  "severity": "ringan",
-  "infra_type": "sekolah",
-  "vital_status": [
-   "akses_sekolah"
-  ],
-  "geocode_query": "SMA Negeri 1 Toroh, Grobogan, Jawa Tengah",
-  "fallback_lat": -7.1634,
-  "fallback_lng": 110.903,
-  "photo_url": "https://akcdn.detik.net.id/api/wm/2018/11/30/66e4dd89-c4f6-4a91-9f82-f5065a953e29_169.jpeg?wid=54&w=1200&v=1&t=jpeg"
- },
- {
-  "location_name": "RA Nurul Hikmah, Desa Alasbulu, Kabupaten Bondowoso, Jawa Timur",
-  "description": "Banjir dan tanah longsor di Kecamatan Wringin pada 23 Januari 2025 membuat satu sisi tembok sekolah RA Nurul Hikmah di Desa Alasbulu jebol tertimpa material longsor; empat rumah warga ikut terdampak banjir akibat tanggul sungai jebol.",
-  "source_name": "ANTARA News",
-  "source_url": "https://www.antaranews.com/berita/4605126/sejumlah-rumah-dan-sekolah-terdampak-banjir-dan-longsor-di-bondowoso",
-  "source_date": "2025-01-23",
-  "severity": "sedang",
-  "infra_type": "sekolah",
-  "vital_status": [
-   "akses_sekolah"
-  ],
-  "geocode_query": "RA Nurul Hikmah, Desa Alasbulu, Wringin, Bondowoso, Jawa Timur",
-  "fallback_lat": -7.8199,
-  "fallback_lng": 113.7573,
-  "photo_url": "https://cdn.antaranews.com/cache/1200x800/2025/01/23/IMG-20250123-WA0151.jpg"
- },
- {
-  "location_name": "Tanggul Sungai Cabean dan Sungai Tuntang, Kabupaten Demak, Jawa Tengah",
-  "description": "Tanggul Sungai Cabean di Desa Tlogoweru dan Sungai Tuntang di Desa Kebonagung jebol pada 21 Januari 2025 sehingga banjir menggenangi tiga desa di Demak, merendam 1.006 rumah, satu balai desa, lima sekolah, dan 540 hektare lahan pertanian, serta menimbulkan 4.024 jiwa terdampak.",
-  "source_name": "detikcom",
-  "source_url": "https://www.detik.com/jateng/berita/d-7743507/3-desa-di-demak-banjir-imbas-tanggul-jebol-4-024-jiwa-terdampak",
-  "source_date": "2025-01-21",
-  "severity": "berat",
-  "infra_type": "tanggul",
-  "vital_status": [
-   "akses_sekolah",
-   "akses_ekonomi"
-  ],
-  "geocode_query": "Tanggul Sungai Cabean, Desa Tlogoweru, Guntur, Demak, Jawa Tengah",
-  "fallback_lat": -6.9787,
-  "fallback_lng": 110.6145,
-  "photo_url": "https://akcdn.detik.net.id/api/wm/2025/01/21/penampakan-banjir-imbas-tanggul-jebol-di-demak-selasa-2112025_169.jpeg?wid=54&w=1200&v=1&t=jpeg"
- },
- {
-  "location_name": "Jembatan Jimat 2, Desa Kayupuring, Kabupaten Pekalongan, Jawa Tengah",
-  "description": "Jembatan Jimat 2 di Desa Kayupuring roboh diterjang banjir bandang Sungai Weloh dan Sungai Kasimpar saat longsor besar melanda Kecamatan Petungkriyono pada 20 Januari 2025, memutus akses jalan antardesa; Kementerian PU memasang jembatan bailey 30 meter sebagai pengganti sementara.",
-  "source_name": "ANTARA News",
-  "source_url": "https://www.antaranews.com/berita/4614758/menteri-pu-percepat-pembukaan-akses-pada-penanganan-longsor-pekalongan",
-  "source_date": "2025-01-30",
-  "severity": "ambruk",
-  "infra_type": "jembatan",
-  "vital_status": [
-   "akses_antar_kampung"
-  ],
-  "geocode_query": "Jembatan Jimat 2, Desa Kayupuring, Petungkriyono, Pekalongan, Jawa Tengah",
-  "fallback_lat": -7.1082,
-  "fallback_lng": 109.7316,
-  "photo_url": "https://img.antaranews.com/cache/1200x800/2025/01/30/WhatsApp-Image-2025-01-29-at-21.59.00.jpg"
- },
- {
-  "location_name": "Puskesmas II Negara, Desa Pengambengan, Kabupaten Jembrana, Bali",
-  "description": "Gempa M 5,7 yang berpusat di timur laut Banyuwangi pada 25 September 2025 membuat tembok Ruang Gurita di lantai dua Puskesmas II Negara, Desa Pengambengan, Jembrana retak; empat pasien dievakuasi ke ruang lain dan ruangan untuk sementara tidak dapat digunakan.",
-  "source_name": "Kompas.com",
-  "source_url": "https://denpasar.kompas.com/read/2025/09/26/160604878/dampak-gempa-di-banyuwangi-puskesmas-dan-rumah-di-jembrana-bali-rusak",
-  "source_date": "2025-09-26",
-  "severity": "ringan",
-  "infra_type": "rumah_sakit",
-  "vital_status": [
-   "akses_kesehatan"
-  ],
-  "geocode_query": "Puskesmas II Negara, Desa Pengambengan, Negara, Jembrana, Bali",
-  "fallback_lat": -8.36,
-  "fallback_lng": 114.62,
-  "photo_url": "https://asset.kompas.com/crops/ZJV7DxBRMz6mN3n_XePgztsMF_4=/0x0:0x0/1200x675/filters:watermark(data/photo/2026/01/30/697c815a5f0b9.png,0,-0,1)/data/photo/2025/09/26/68d64d925a4b1.jpg"
- },
- {
-  "location_name": "Tower SUTT 150 kV, Desa Mlese, Kabupaten Klaten, Jawa Tengah",
-  "description": "Hujan deras dan angin kencang pada 17 Oktober 2025 merobohkan dua tower transmisi listrik SUTT di Desa Mlese, Kecamatan Ceper, dan Desa Ketandan, Kecamatan Klaten Utara; atap sejumlah bangunan di dekat tower rusak tertimpa kabel yang jatuh, dan PLN menargetkan tower darurat beroperasi sebelum Senin (20/10/2025).",
-  "source_name": "Tribunnews",
-  "source_url": "https://jogja.tribunnews.com/klaten-keren/1196986/bupati-hamenang-tinjau-tower-sutt-roboh-akibat-diterjang-angin-kencang-di-mlese-klaten",
-  "source_date": "2025-10-19",
-  "severity": "berat",
-  "infra_type": "jaringan_listrik",
-  "vital_status": [
-   "aset_utilitas"
-  ],
-  "geocode_query": "Tower SUTT 150 kV, Desa Mlese, Ceper, Klaten, Jawa Tengah",
-  "fallback_lat": -7.6851,
-  "fallback_lng": 110.6438,
-  "photo_url": "https://asset.tribunnews.com/MUNViVrLkTNu4V7lt7vE2-x34zI=/1200x675/filters:upscale():quality(30):format(webp):focal(0.5x0.5:0.5x0.5)/jogja/foto/bank/originals/Hamenang-tinjau-tower-roboh.jpg"
- },
- {
   "location_name": "SMAN 1 Batang Anai, Padang Pariaman, Sumatera Barat",
   "description": "Banjir disertai lumpur pada 27 November 2025 merendam SMAN 1 Batang Anai hingga ketinggian 2 meter sehingga 15 dari 29 ruang kelas belum bisa digunakan dan kegiatan belajar mengajar lumpuh. Sekolah yang berada di tepi Sungai Batang Anai ini direncanakan direlokasi karena rawan banjir.",
   "source_name": "ANTARA News",
@@ -1335,22 +571,6 @@
   "fallback_lat": -0.63,
   "fallback_lng": 100.38,
   "photo_url": "https://img.antaranews.com/cache/1200x800/2025/12/04/IMG_20251204_163844.jpg"
- },
- {
-  "location_name": "MTsN 4 Tapanuli Selatan, Sumatera Utara",
-  "description": "Banjir bandang pada Rabu 26 November 2025 merusak enam dari 18 ruang kelas MTsN 4 Tapanuli Selatan sehingga proses kegiatan belajar mengajar terhenti. Banjir terjadi setelah hujan deras melanda wilayah Tapsel saat bencana hidrometeorologi Sumatera akhir November 2025.",
-  "source_name": "ANTARA Sumatera Utara",
-  "source_url": "https://sumut.antaranews.com/berita/646793/mtsn-4-tapanuli-selatan-dihantam-banjir-bandang-siswa-tak-bisa-lagi-belajar",
-  "source_date": "2025-11-27",
-  "severity": "sedang",
-  "infra_type": "sekolah",
-  "vital_status": [
-   "akses_sekolah"
-  ],
-  "geocode_query": "MTsN 4 Tapanuli Selatan, Sumatera Utara",
-  "fallback_lat": 1.62,
-  "fallback_lng": 99.27,
-  "photo_url": "https://img.antaranews.com/cache/1200x800/2025/11/27/Screenshot_20251127_192138_WhatsApp_copy_1600x880.jpg"
  },
  {
   "location_name": "Fasilitas kesehatan terdampak banjir (terparah Aceh Tamiang), Aceh",
@@ -1383,22 +603,6 @@
   "fallback_lat": -0.23,
   "fallback_lng": 100.62,
   "photo_url": "https://img.antaranews.com/cache/1200x800/2025/12/02/IMG_9360.jpg"
- },
- {
-  "location_name": "Jembatan gantung Sungai Malus, Lubuklinggau, Sumatera Selatan",
-  "description": "Jembatan gantung di objek wisata Sungai Malus, Kelurahan Petanang Ilir, Lubuklinggau putus pada Rabu 1 Januari 2025 sekitar pukul 13.00 WIB saat sekitar 50 pengunjung melintas karena kelebihan beban. Puluhan wisatawan terjatuh ke sungai dan delapan orang mengalami luka berat.",
-  "source_name": "Detik.com",
-  "source_url": "https://www.detik.com/sumbagsel/berita/d-7713482/tragedi-jembatan-wisata-malus-lubuklinggau-putus-hingga-8-orang-luka-berat",
-  "source_date": "2025-01-02",
-  "severity": "ambruk",
-  "infra_type": "jembatan",
-  "vital_status": [
-   "akses_ekonomi"
-  ],
-  "geocode_query": "Jembatan Sungai Malus, Lubuklinggau, Sumatera Selatan",
-  "fallback_lat": -3.3,
-  "fallback_lng": 102.86,
-  "photo_url": "https://akcdn.detik.net.id/api/wm/2025/01/01/jembatan-gantung-sungai-malus-lubuklinggau-putus_169.jpeg?wid=54&w=1200&v=1&t=jpeg"
  },
  {
   "location_name": "Jembatan besi Lubuk Rukam-Muara Kumbang, Ogan Ilir, Sumatera Selatan",
@@ -1497,22 +701,6 @@
   "photo_url": "https://asset.tribunnews.com/iP0RAHKPu6aGrVENAsEcjTcamvM=/1200x675/filters:upscale():quality(30):format(webp):focal(0.5x0.5:0.5x0.5)/tribunnews/foto/bank/originals/Tim-SAR-Perluas-Pencarian-Korban-Gempa-NTT_20260816_110026.jpg"
  },
  {
-  "location_name": "Desa Leppangeng, Kecamatan Pitu Riase, Kabupaten Sidenreng Rappang, Sulawesi Selatan",
-  "description": "Tanah longsor pada Jumat 26 September 2025 memutus akses jalan antardesa di Desa Leppangeng, Kecamatan Pitu Riase, Sidenreng Rappang, Sulawesi Selatan, sehingga 858 jiwa dari tujuh dusun terisolasi tanpa jalur alternatif; tidak ada korban jiwa dan pembersihan material longsor masih berlangsung.",
-  "source_name": "Antara News",
-  "source_url": "https://jambi.antaranews.com/berita/632285/bnpb-858-jiwa-terisolasi-akibat-longsor-di-sulawesi-selatan",
-  "source_date": "2025-09-29",
-  "severity": "berat",
-  "infra_type": "jalan",
-  "vital_status": [
-   "akses_antar_kampung"
-  ],
-  "geocode_query": "Desa Leppangeng, Pitu Riase, Sidenreng Rappang, Sulawesi Selatan",
-  "fallback_lat": -3.85,
-  "fallback_lng": 120.05,
-  "photo_url": "https://img.antaranews.com/cache/1200x800/2025/07/08/1000619866.jpg"
- },
- {
   "location_name": "SMAN 3 Martapura, Kabupaten Banjar, Kalimantan Selatan",
   "description": "Banjir yang melanda Kalimantan Selatan sejak akhir Desember 2025 merendam akses masuk SMAN 3 Martapura hingga 60-70 cm sehingga pembelajaran tatap muka terganggu dan dialihkan ke PJJ/daring. Disdikbud Kalsel mencatat sekitar 20 SMA/SMK/SLB negeri terdampak banjir di Hulu Sungai Utara, Banjar, Banjarmasin, Barito Kuala, dan Tanah Laut.",
   "source_name": "Antara News",
@@ -1529,41 +717,6 @@
   "photo_url": "https://cdn.antaranews.com/cache/1200x800/2026/01/09/IMG_20260109_154718.jpg"
  },
  {
-  "location_name": "Desa Tumbang Manyarung, Kecamatan Mandau Talawang, Kabupaten Kapuas, Kalimantan Tengah",
-  "description": "Banjir bandang pada Rabu (20/8/2025) di Desa Tumbang Manyarung, Mandau Talawang, Kapuas merusak fasilitas umum desa: 3 bangunan sekolah, 2 fasilitas kesehatan, dan 4 titik akses jalan terdampak, serta 39 rumah warga rusak berat dan 18 rusak ringan.",
-  "source_name": "Antara News Kalteng",
-  "source_url": "https://kalteng.antaranews.com/berita/775177/sebanyak-719-jiwa-terdampak-banjir-bandang-di-desa-tumbang-manyarung-kapuas",
-  "source_date": "2025-08-22",
-  "severity": "sedang",
-  "infra_type": "sekolah",
-  "vital_status": [
-   "akses_sekolah",
-   "akses_kesehatan"
-  ],
-  "geocode_query": "Desa Tumbang Manyarung, Mandau Talawang, Kapuas, Kalimantan Tengah",
-  "fallback_lat": -0.782,
-  "fallback_lng": 114.059,
-  "photo_url": "https://img.antaranews.com/cache/800x533/2025/08/22/Banjir-bandang-Desa-Tumbang-Manyarung-Kecamatan-Mandau-Talawang-Kabupaten-Kapuas-Kalimantan-Tengah-Kalteng-Kapuas.jpg"
- },
- {
-  "location_name": "Jembatan Sungai Bude, Krayan Selatan, Kabupaten Nunukan, Kalimantan Utara",
-  "description": "Jembatan Sungai Bude, satu-satunya penghubung antar kecamatan di dataran tinggi Krayan (Krayan Selatan-Krayan Tengah) di perbatasan RI-Malaysia, hanyut diterjang banjir awal 2025; masa tanggap darurat diperpanjang hingga hari ke-34 dan pelajar SMAN 1 Krayan terpaksa meniti jembatan darurat. Pasokan sembako dan BBM terhambat serta ongkos angkutan melonjak.",
-  "source_name": "Kompas.com",
-  "source_url": "https://regional.kompas.com/read/2025/02/20/134559878/status-tanggap-darurat-di-krayan-diperpanjang-masyarakat-masih-kesulitan",
-  "source_date": "2025-02-20",
-  "severity": "ambruk",
-  "infra_type": "jembatan",
-  "vital_status": [
-   "akses_antar_kampung",
-   "akses_sekolah",
-   "akses_ekonomi"
-  ],
-  "geocode_query": "Krayan Selatan, Nunukan, Kalimantan Utara",
-  "fallback_lat": 3.6184,
-  "fallback_lng": 115.7008,
-  "photo_url": "https://asset.kompas.com/crops/C8GxzdHzPHuVauj9ahbuTVgObNo=/0x0:0x0/1200x675/filters:watermark(data/photo/2026/01/30/697c815a5f0b9.png,0,-0,1)/data/photo/2025/02/20/67b6cd87d84af.jpg"
- },
- {
   "location_name": "Jembatan di Distrik Senggi, Kabupaten Keerom, Papua",
   "description": "Banjir yang menerjang Distrik Senggi, Keerom, Papua pada Rabu (17/12/2025) membawa gelondongan kayu dan memutus total jembatan penghubung warga sehingga masyarakat tidak bisa melintas; Polres Keerom menyatakan jembatan yang rusak segera diperbaiki.",
   "source_name": "detikcom",
@@ -1578,22 +731,6 @@
   "fallback_lat": -3.4435,
   "fallback_lng": 140.7767,
   "photo_url": "https://akcdn.detik.net.id/api/wm/2025/12/20/viral-gelondongan-kayu-terbawa-banjir-putus-jembatan-di-keerom-papua-1766224638369_169.jpeg?wid=54&w=1200&v=1&t=jpeg"
- },
- {
-  "location_name": "Puskesmas Desa Namtabung, Kecamatan Selaru, Kabupaten Kepulauan Tanimbar, Maluku",
-  "description": "Hujan lebat disertai angin kencang dan gelombang tinggi di Desa Namtabung, Selaru, Kepulauan Tanimbar pada awal Februari 2025 merusak 18 rumah berat, 13 rumah ringan, satu gedung sekolah dasar, dan satu unit puskesmas; dua warga mengalami luka-luka.",
-  "source_name": "Antara News Ambon",
-  "source_url": "https://ambon.antaranews.com/berita/253297/bpbd-maluku-mendata-31-rumah-sekolah-dan-puskesmas-rusak-akibat-bencana-angin-kencang-di-kkt",
-  "source_date": "2025-02-11",
-  "severity": "sedang",
-  "infra_type": "rumah_sakit",
-  "vital_status": [
-   "akses_kesehatan"
-  ],
-  "geocode_query": "Desa Namtabung, Selaru, Kepulauan Tanimbar, Maluku",
-  "fallback_lat": -8.2107,
-  "fallback_lng": 130.9718,
-  "photo_url": "https://img.antaranews.com/cache/1200x800/2025/02/11/IMG_9508.jpeg"
  },
  {
   "location_name": "Jalan utama Kecamatan Karangan, Kabupaten Landak, Kalimantan Barat",
