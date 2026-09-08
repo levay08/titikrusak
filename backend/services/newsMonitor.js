@@ -161,11 +161,19 @@ function parseRss(xml) {
     const srcIdx = title.lastIndexOf(' - ');
     const source = srcIdx > 0 ? title.slice(srcIdx + 3).trim() : '';
     if (srcIdx > 0) title = title.slice(0, srcIdx).trim();
+    const rawDate = dateM ? dateM[1].trim() : null;
+    // Normalisasi tanggal ke YYYY-MM-DD (WIB, UTC+7) agar konsisten dgn data
+    // lain; RFC 822 ("Sun, 30 Aug 2026 ...") dari RSS tidak disimpan mentah.
+    let pubDate = null;
+    if (rawDate) {
+      const t = Date.parse(rawDate);
+      if (!isNaN(t)) pubDate = new Date(t + 7 * 3600 * 1000).toISOString().slice(0, 10);
+    }
     out.push({
       title,
       link: linkM[1].trim(),
       source,
-      pubDate: dateM ? dateM[1].trim() : null,
+      pubDate,
     });
   }
   return out;
