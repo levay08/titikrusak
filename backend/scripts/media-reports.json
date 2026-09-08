@@ -1,20 +1,5 @@
 [
  {
-  "location_name": "Jembatan Gantung Pongpet, Desa Margacinta, Cijulang, Pangandaran (Jawa Barat)",
-  "description": "Jembatan Merah Putih Pongpet di Desa Margacinta, Kecamatan Cijulang, Pangandaran, miring/ambruk saat diresmikan pada 30 Agustus 2026. Lebih dari 50 orang melintas bersamaan melampaui kapasitas sehingga tali sling sisi kiri terlepas dari pengikat utama dan jembatan miring; sejumlah orang di atasnya terjatuh, rombongan Bupati Pangandaran selamat.",
-  "source_name": "CNN Indonesia",
-  "source_url": "https://www.cnnindonesia.com/nasional/20260831121221-24-1398211/detik-detik-jembatan-merah-putih-pangandaran-ambruk-saat-bupati-lewat",
-  "source_date": "2026-08-30",
-  "severity": "berat",
-  "infra_type": "jembatan",
-  "vital_status": [
-   "akses_antar_kampung"
-  ],
-  "geocode_query": "Cijulang, Pangandaran, Jawa Barat",
-  "fallback_lat": -7.68,
-  "fallback_lng": 108.65
- },
- {
   "location_name": "Jembatan Gempol, Perbatasan Klaten–Gunungkidul (Jawa Tengah)",
   "description": "Jembatan penghubung Klaten ke Gunungkidul (jembatan Gempol) mengalami retakan yang makin parah hingga ditutup; Dinas PUPR Klaten berencana merobohkannya agar tidak membahayakan dan menghalangi arus banjir jika ambrol ke sungai (Januari 2026).",
   "source_name": "detikJateng",
@@ -29,37 +14,6 @@
   "geocode_query": "Klaten, Jawa Tengah",
   "fallback_lat": -7.78,
   "fallback_lng": 110.51
- },
- {
-  "location_name": "Jembatan Limpas Kotakan–Siliwung, Situbondo (Jawa Timur)",
-  "description": "Jembatan penghubung Desa Kotakan (Kecamatan Situbondo) dan Desa Siliwung (Kecamatan Panji) ambrol dan putus pada 31 Maret 2026 akibat derasnya air Sungai Sampean Baru dari hulu Bondowoso; rumpun bambu tersangkut di badan jembatan sehingga tak mampu menahan gerusan. Akses antar-desa terputus total, warga harus memutar belasan kilometer.",
-  "source_name": "detikJatim",
-  "source_url": "https://www.detik.com/jatim/berita/d-8423013/dihantam-banjir-jembatan-penghubung-2-kecamatan-di-situbondo-putus",
-  "source_date": "2026-03-31",
-  "severity": "ambruk",
-  "infra_type": "jembatan",
-  "vital_status": [
-   "akses_antar_kampung",
-   "akses_sekolah"
-  ],
-  "geocode_query": "Situbondo, Jawa Timur",
-  "fallback_lat": -7.7,
-  "fallback_lng": 114.01
- },
- {
-  "location_name": "Jembatan Gantung Sukabumi (Jawa Barat)",
-  "description": "Jembatan gantung di Sukabumi putus pada April 2026; lima warga yang sedang melintas terjatuh ke sungai. Peristiwa terekam video dan menjadi perhatian publik.",
-  "source_name": "20detik",
-  "source_url": "https://20.detik.com/detikupdate/20260404-260404009/video-jembatan-gantung-di-sukabumi-putus-5-warga-terjun-ke-sungai",
-  "source_date": "2026-04-04",
-  "severity": "ambruk",
-  "infra_type": "jembatan",
-  "vital_status": [
-   "akses_antar_kampung"
-  ],
-  "geocode_query": "Sukabumi, Jawa Barat",
-  "fallback_lat": -6.92,
-  "fallback_lng": 106.93
  },
  {
   "location_name": "Jalan Nasional Lembah Anai, Bukittinggi–Padang (Sumatera Barat)",
@@ -108,21 +62,6 @@
   "geocode_query": "Oelamasi, Kupang, Nusa Tenggara Timur",
   "fallback_lat": -10.32,
   "fallback_lng": 123.78
- },
- {
-  "location_name": "MIN 1 Manggarai, Reo, Kabupaten Manggarai (Nusa Tenggara Timur)",
-  "description": "Gempa bumi magnitudo 7,7 yang mengguncang kawasan Flores pada Agustus 2026 menyebabkan 1.378 sekolah di Pulau Flores, NTT, mengalami kerusakan. Bangunan MIN 1 Manggarai di kawasan Reo, Kabupaten Manggarai, rusak akibat gempa tersebut. Hingga Kamis (20/8/2026), BNPB mencatat 804 fasilitas pendidikan terdampak dan 923 sekolah masih meliburkan siswa sementara.",
-  "source_name": "ANTARA News",
-  "source_url": "https://kupang.antaranews.com/berita/197757/bnpb-1378-sekolah-di-flores-ntt-terdampak-gempa-m77",
-  "source_date": "2026-08-21",
-  "severity": "berat",
-  "infra_type": "sekolah",
-  "vital_status": [
-   "akses_sekolah"
-  ],
-  "geocode_query": "Reo, Manggarai, Nusa Tenggara Timur",
-  "fallback_lat": -8.32,
-  "fallback_lng": 120.49
  },
  {
   "location_name": "Jalan Trans Flores Ende–Bajawa, Nangaba, Nagekeo (Nusa Tenggara Timur)",
@@ -188,22 +127,6 @@
   "geocode_query": "Boawae, Nagekeo, Nusa Tenggara Timur",
   "fallback_lat": -8.8,
   "fallback_lng": 121.27,
-  "related_earthquake": "Gempa Laut Flores M7,7 (15/8/2026)"
- },
- {
-  "location_name": "SMPN Satap Wae Nunung, Manggarai (NTT)",
-  "description": "SMPN Satap Wae Nunung rusak akibat gempa M7,7 Laut Flores (15/8/2026). Bangunan sekolah yang hancur membuat pembelajaran tatap muka tidak bisa dilaksanakan dengan standar aman; pemerintah menyiapkan 50 tenda ruang kelas darurat untuk sekolah-sekolah rusak berat di NTT.",
-  "source_name": "Kompas.com",
-  "source_url": "https://www.kompas.com/edu/read/2026/08/19/093600171/gempa-rusak-sekolah-di-ntt-pemerintah-diminta-segera-perbaiki",
-  "source_date": "2026-08-19",
-  "severity": "berat",
-  "infra_type": "sekolah",
-  "vital_status": [
-   "akses_sekolah"
-  ],
-  "geocode_query": "Wae Nunung, Manggarai, Nusa Tenggara Timur",
-  "fallback_lat": -8.55,
-  "fallback_lng": 120.4,
   "related_earthquake": "Gempa Laut Flores M7,7 (15/8/2026)"
  },
  {
@@ -303,52 +226,6 @@
   "fallback_lng": 109.42
  },
  {
-  "location_name": "MTs Muhammadiyah 4 Bulu, Sambungmacan, Sragen (Jawa Tengah)",
-  "description": "Atap ruang kelas VII MTs Muhammadiyah 4 Bulu, Kecamatan Sambungmacan, Sragen ambruk saat kegiatan belajar mengajar Selasa (12/5/2026) sekitar pukul 08.00 WIB. Tujuh orang terdiri dari enam murid dan satu guru terluka dan dilarikan ke RSUD Sragen serta RSI Amal Sehat, satu siswa mengalami patah kaki. Atap roboh diduga karena kayu penyangga lapuk pada bangunan tua yang sudah sekitar 26 tahun tidak direnovasi.",
-  "source_name": "detikJateng",
-  "source_url": "https://www.detik.com/jateng/berita/d-8485302/atap-mts-muhammadiyah-bulu-sragen-ambruk-6-murid-dilarikan-ke-rs",
-  "source_date": "2026-05-12",
-  "severity": "berat",
-  "infra_type": "sekolah",
-  "vital_status": [
-   "akses_sekolah"
-  ],
-  "geocode_query": "Sambungmacan, Sragen, Jawa Tengah",
-  "fallback_lat": -7.36,
-  "fallback_lng": 111.03
- },
- {
-  "location_name": "SDN 12 Bintang, Kecamatan Bintang (Aceh Tengah, Aceh)",
-  "description": "Banjir bandang dan longsor akhir November 2025 merusak parah sejumlah sekolah di dataran tinggi Gayo. Bangunan kelas SDN 12 Bintang, Aceh Tengah, rusak berat karena tertimbun longsor sehingga siswa terpaksa belajar di tenda darurat yang didirikan Kemendikdasmen. Sebanyak 36 sekolah di Aceh Tengah dan 17 sekolah di Bener Meriah kemudian direvitalisasi, sementara SMP Negeri 22 direncanakan direlokasi karena bangunannya tak layak pakai.",
-  "source_name": "detikSumut",
-  "source_url": "https://www.detik.com/sumut/berita/d-8331096/mendikdasmen-resmikan-revitalisasi-sekolah-terdampak-bencana-di-gayo",
-  "source_date": "2026-01-29",
-  "severity": "berat",
-  "infra_type": "sekolah",
-  "vital_status": [
-   "akses_sekolah"
-  ],
-  "geocode_query": "Bintang, Aceh Tengah, Aceh",
-  "fallback_lat": 4.43,
-  "fallback_lng": 96.86
- },
- {
-  "location_name": "Tanggul Sungai Sei Wampu, Kecamatan Gebang (Langkat, Sumatera Utara)",
-  "description": "Jebolnya tanggul Sungai Sei Wampu menjadi penyebab banjir besar yang merendam Kabupaten Langkat pada 26 November 2025. Di Kecamatan Gebang, banjir melanda enam desa dan memaksa hampir seribu warga mengungsi dengan air sempat mencapai ketinggian 1,5 meter. Gubernur Sumatera Utara Bobby Nasution memastikan tanggul yang jebol segera diperbaiki agar banjir tidak terulang.",
-  "source_name": "Kompas.com",
-  "source_url": "https://medan.kompas.com/read/2025/12/06/191950878/tanggul-jebol-jadi-penyebab-banjir-di-langkat-bobby-segera-diperbaiki",
-  "source_date": "2025-12-06",
-  "severity": "berat",
-  "infra_type": "tanggul",
-  "vital_status": [
-   "akses_antar_kampung",
-   "akses_ekonomi"
-  ],
-  "geocode_query": "Gebang, Langkat, Sumatera Utara",
-  "fallback_lat": 3.98,
-  "fallback_lng": 98.38
- },
- {
   "location_name": "Sumber air Perumda Mual Nauli, Kota Pandan (Tapanuli Tengah, Sumatera Utara)",
   "description": "Banjir bandang dan longsor 25 November 2025 merusak berat 25 sumber air milik Perumda Air Minum Mual Nauli yang tersebar di 10 kecamatan di Kabupaten Tapanuli Tengah, termasuk pipa transmisi yang putus, hilang hanyut, atau tertimbun longsor. Akibatnya sekitar 90 persen distribusi air bersih ke pelanggan mati total. Perumda mendistribusikan air melalui mobil tangki sambil memperbaiki jaringan dan sumber air secara bertahap.",
   "source_name": "MedanBisnisDaily",
@@ -445,21 +322,6 @@
   "geocode_query": "Masbagik, Lombok Timur, Nusa Tenggara Barat",
   "fallback_lat": -8.62,
   "fallback_lng": 116.48
- },
- {
-  "location_name": "Pulau Solor, Flores Timur (Nusa Tenggara Timur)",
-  "description": "Gempa bumi magnitudo 4,7 yang mengguncang Flores Timur pada dini hari 9 April 2026 merusak dua sekolah di Pulau Solor. Gedung MAN 2 Flores Timur mengalami kerusakan berat pada plafon, atap dan plafon ruang kelas ambruk, sehingga siswa diliburkan. Total lima bangunan rusak di Desa Motonwutun, terdiri dari dua fasilitas umum dan tiga rumah warga, sementara 79 rumah rusak di Pulau Adonara.",
-  "source_name": "MetroTV News",
-  "source_url": "https://www.metrotvnews.com/read/kWDCzp5X-gempa-flores-timur-rusak-2-sekolah-di-pulau-solor-siswa-diliburkan",
-  "source_date": "2026-04-10",
-  "severity": "sedang",
-  "infra_type": "sekolah",
-  "vital_status": [
-   "akses_sekolah"
-  ],
-  "geocode_query": "Solor Timur, Flores Timur, Nusa Tenggara Timur",
-  "fallback_lat": -8.47,
-  "fallback_lng": 122.98
  },
  {
   "location_name": "Jalan Trans Papua, Yalimo (Papua Pegunungan)",
@@ -621,22 +483,6 @@
   "photo_url": "https://akcdn.detik.net.id/api/wm/2026/01/23/jembatan-besi-penghubung-dua-desa-di-ogan-ilir-ambruk-1769131733789_169.jpeg?wid=54&w=1200&v=1&t=jpeg"
  },
  {
-  "location_name": "Kabupaten Nagekeo (328 sekolah terdampak), Nusa Tenggara Timur",
-  "description": "Sebanyak 328 sekolah di Kabupaten Nagekeo, NTT, rusak akibat gempa bumi magnitudo 7,7 pada 15 Agustus 2026, 123 di antaranya rusak berat; selama masa tanggap darurat 15-28 Agustus 2026 siswa belajar dari rumah dan di pos pengungsian karena bangunan sekolah rusak belum aman digunakan.",
-  "source_name": "Detik.com",
-  "source_url": "https://www.detik.com/bali/nusra/d-8633537/328-sekolah-di-nagekeo-rusak-akibat-gempa-siswa-belajar-di-pengungsian",
-  "source_date": "2026-08-25",
-  "severity": "berat",
-  "infra_type": "sekolah",
-  "vital_status": [
-   "akses_sekolah"
-  ],
-  "geocode_query": "Kabupaten Nagekeo, Nusa Tenggara Timur",
-  "fallback_lat": -8.8,
-  "fallback_lng": 121.25,
-  "photo_url": "https://akcdn.detik.net.id/api/wm/2026/08/24/mendikdasmen-abdul-muti-saat-meninjau-sdk-rowa-kecamatan-boawae-kabupaten-nagekeo-ntt-senin-2482026-foto-yufengki-briadetikbal-1787564673664_169.jpeg?wid=54&w=1200&v=1&t=jpeg"
- },
- {
   "location_name": "Sekolah terdampak gempa M7,7 Laut Flores, Kabupaten Manggarai & Pulau Flores (NTT)",
   "description": "BNPB mencatat 1.378 sekolah di Pulau Flores, NTT, terdampak gempa magnitudo 7,7 (15/8/2026): 5.521 ruang kelas dan 502 unit bangunan sekolah rusak berat, 923 sekolah masih meliburkan siswa, serta 177.678 siswa terdampak. Kabupaten Manggarai menjadi wilayah terbanyak: 104 satuan pendidikan rusak dari total 253 di tujuh kabupaten Pulau Flores; ribuan ruang kelas di NTT rusak hingga pembelajaran dialihkan ke tenda darurat. Salah satu sekolah yang rusak adalah MIN 1 Manggarai di Reo (dilaporkan terpisah).",
   "source_name": "Kompas.com",
@@ -651,38 +497,6 @@
   "fallback_lat": -8.611,
   "fallback_lng": 120.467,
   "photo_url": "https://asset.kompas.com/crops/e2YoIf1dgprxEjXbE7K8LN3NOl8=/12x0:6000x3992/1200x675/filters:watermark(data/photo/2026/01/30/697c815a5f0b9.png,0,-0,1)/data/photo/2026/08/21/6a8853a931660.jpg"
- },
- {
-  "location_name": "RSUD Nagekeo, Mbay, Kabupaten Nagekeo, Nusa Tenggara Timur",
-  "description": "RSUD Nagekeo mengalami kerusakan berat akibat gempa magnitudo 7,7 yang mengguncang NTT pada 15 Agustus 2026; Kementerian Kesehatan menyiapkan satu unit rumah sakit mobil berfasilitas operasi beserta rumah sakit lapangan agar layanan medis tetap berjalan selama pemulihan, dengan RSUD Borong dan RSUD Komodo sebagai rumah sakit rujukan.",
-  "source_name": "Tribunnews.com",
-  "source_url": "https://www.tribunnews.com/kesehatan/7869543/daftar-rs-dan-puskesmas-terdampak-gempa-ntt-kemenkes-targetkan-pulih-dalam-1-sampai-2-pekan",
-  "source_date": "2026-08-17",
-  "severity": "berat",
-  "infra_type": "rumah_sakit",
-  "vital_status": [
-   "akses_kesehatan"
-  ],
-  "geocode_query": "RSUD Nagekeo, Mbay, Nagekeo, Nusa Tenggara Timur",
-  "fallback_lat": -8.85,
-  "fallback_lng": 121.22,
-  "photo_url": "https://asset.tribunnews.com/dcubCeuKIDD3ZghQ5IDlsLZeAqU=/1200x675/filters:upscale():quality(30):format(webp):focal(0.5x0.5:0.5x0.5)/tribunnews/foto/bank/originals/dampak-gempa-ntt-puskesmas-hancur.jpg"
- },
- {
-  "location_name": "Desa Sekotong Timur, Kecamatan Lembar, Kabupaten Lombok Barat, Nusa Tenggara Barat",
-  "description": "Dua jembatan penghubung desa di Desa Sekotong Timur, Kecamatan Lembar, Lombok Barat, NTB, ambruk diterjang banjir akibat hujan lebat pada Sabtu 27 Desember 2025; banjir melanda tiga kecamatan (Lembar, Sekotong, Labuapi) dan jalan di Desa Eat Mayang tergenang sehingga mengganggu akses transportasi warga.",
-  "source_name": "Antara News",
-  "source_url": "https://mataram.antaranews.com/berita/516082/tiga-kecamatan-di-lombok-baratntb-dilanda-banjir",
-  "source_date": "2025-12-27",
-  "severity": "ambruk",
-  "infra_type": "jembatan",
-  "vital_status": [
-   "akses_antar_kampung"
-  ],
-  "geocode_query": "Desa Sekotong Timur, Lembar, Lombok Barat, Nusa Tenggara Barat",
-  "fallback_lat": -8.77,
-  "fallback_lng": 116.03,
-  "photo_url": "https://img.antaranews.com/cache/1200x800/2025/12/27/1001018925.jpg"
  },
  {
   "location_name": "SPAM Lembor Selatan, Kabupaten Manggarai Barat, Nusa Tenggara Timur",
