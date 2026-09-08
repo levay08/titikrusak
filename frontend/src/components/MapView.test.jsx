@@ -475,3 +475,100 @@ describe('MapView: anti-tumpuk koordinat identik (semua titik tetap bisa diklik)
     expect(calls[1][1]).toBeCloseTo(135.5 + 0.0012, 5);
   });
 });
+
+describe('MapView: legenda ikut tampil saat popup titik terbuka (zoom dalam)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  const REPORT = {
+    id: 31,
+    lat: -7.2075,
+    lng: 107.8881,
+    severity: 'berat',
+    status: 'dilaporkan',
+    location_name: 'Jembatan Cibeureum, Garut',
+    infra_type: 'jembatan',
+  };
+
+  // Ambil handler event map yang didaftarkan MapView (zoom & popup).
+  const mapHandlers = () => {
+    const map = L.map.mock.results[0].value;
+    const get = (evt) => map.on.mock.calls.find(([e]) => e === evt)?.[1];
+    return { map, zoomend: get('zoomend'), popupopen: get('popupopen'), popupclose: get('popupclose') };
+  };
+
+  it('zoom masuk > batas legenda menyembunyikan legenda; popup terbuka memunculkannya kembali; popup tertutup menyembunyikan lagi', () => {
+    render(<MapView reports={[REPORT]} />);
+
+    // Zoom awal (negara) <= 7 -> legenda tampil.
+    expect(screen.getByRole('button', { name: /sembunyikan legenda/i })).toBeInTheDocument();
+
+    // Zoom masuk (mis. 14 = level titik): legenda disembunyikan...
+    const { map, zoomend, popupopen, popupclose } = mapHandlers();
+    expect(zoomend).toBeTypeOf('function');
+    expect(popupopen).toBeTypeOf('function');
+    expect(popupclose).toBeTypeOf('function');
+    map.getZoom.mockReturnValue(14);
+    act(() => zoomend());
+    expect(screen.queryByRole('button', { name: /sembunyikan legenda/i })).not.toBeInTheDocument();
+
+    // ...TAPI saat popup titik terbuka, legenda ikut tampil (baca keterangan
+    // titik sambil mencocokkan warna legenda).
+    act(() => popupopen());
+    expect(screen.getByRole('button', { name: /sembunyikan legenda/i })).toBeInTheDocument();
+    expect(screen.getByText('Selesai Diperbaiki')).toBeInTheDocument();
+
+    // Popup ditutup -> kembali ke aturan zoom (legenda hilang di zoom dalam).
+    act(() => popupclose());
+    expect(screen.queryByRole('button', { name: /sembunyikan legenda/i })).not.toBeInTheDocument();
+  });
+
+  it('saat popup terbuka, tombol ✕ tetap bisa menyembunyikan legenda (pilihan user menang)', async () => {
+    const user = (await import('@testing-library/user-event')).default;
+    render(<MapView reports={[REPORT]} />);
+
+    const { map, zoomend, popupopen } = mapHandlers();
+    map.getZoom.mockReturnValue(14);
+    act(() => zoomend());
+    act(() => popupopen());
+    expect(screen.getByRole('button', { name: /sembunyikan legenda/i })).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: /sembunyikan legenda/i }));
+    expect(screen.getByRole('button', { name: /legenda/i })).toBeInTheDocument(); // tombol kecil muncul
+  });
+});
+
+describe('MapView: popup titik HIJAU (klaim perbaikan media) menyebut sumbernya', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  const base = { lat: -7.2, lng: 107.8, severity: 'berat', status: 'dilaporkan', infra_type: 'jalan' };
+
+  it('titik hijau (media menyatakan sudah diperbaiki, menunggu otoritas) -> popup memuat penanda perbaikan media', () => {
+    render(
+      <MapView
+        reports={[
+          {
+            ...base,
+            id: 41,
+            location_name: 'Jalan Klaim Media',
+            media_repair_url: 'https://berita.example/diperbaiki',
+          },
+          { ...base, id: 42, location_name: 'Jalan Biasa' },
+        ]}
+      />
+    );
+
+    // Keduanya belum approved -> circleMarker, popup berisi html masing-masing.
+    const htmls = L.circleMarker.mock.results.map((r) => r.value.bindPopup.mock.calls[0][0]);
+    expect(htmls).toHaveLength(2);
+
+    const claimPopup = htmls.find((h) => h.includes('Jalan Klaim Media'));
+    const normalPopup = htmls.find((h) => h.includes('Jalan Biasa'));
+    expect(claimPopup).toContain('● Menurut media sudah diperbaiki');
+    expect(claimPopup).toContain('buka detail untuk sumbernya');
+    expect(normalPopup).not.toContain('Menurut media sudah diperbaiki');
+  });
+});

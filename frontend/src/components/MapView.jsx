@@ -643,6 +643,10 @@ export default function MapView({
   // titik); tampil lagi di tampilan negara/region (<= LEGEND_MAX_ZOOM).
   const [zoomLevel, setZoomLevel] = useState(6);
   const LEGEND_MAX_ZOOM = 7;
+  // Popup titik sedang terbuka (keterangan titik). Selama popup terbuka,
+  // legenda IKUT ditampilkan walau zoom sudah masuk - user bisa membaca
+  // keterangan titik sambil mencocokkan warna legenda (koreksi user).
+  const [popupOpen, setPopupOpen] = useState(false);
   // Legenda juga bisa di-hide manual oleh user (tombol ✕); tersimpan per
   // sesi komponen - tombol "ℹ️ Legenda" memunculkannya kembali.
   const [legendHidden, setLegendHidden] = useState(false);
@@ -726,6 +730,11 @@ export default function MapView({
     const syncZoom = () => setZoomLevel(map.getZoom());
     map.on('zoomend', syncZoom);
     map.on('zoom', syncZoom);
+
+    // Popup titik terbuka/tertutup: saat terbuka, legenda ikut tampil walau
+    // zoom sudah masuk (baca keterangan titik + cocokkan legenda sekaligus).
+    map.on('popupopen', () => setPopupOpen(true));
+    map.on('popupclose', () => setPopupOpen(false));
 
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
@@ -979,6 +988,7 @@ export default function MapView({
         Jenis: ${escapeHtml(INFRA_LABELS[report.infra_type] || report.infra_type)}<br/>
         Kerusakan: ${escapeHtml(SEVERITY_LABELS[report.severity] || report.severity)}<br/>
         Status: ${escapeHtml(STATUS_LABELS[report.status] || report.status)}
+        ${mediaRepairPending ? `<br/><span style="color:#15803d;font-weight:700">● Menurut media sudah diperbaiki (buka detail untuk sumbernya)</span>` : ''}
         ${report.description ? `<br/>${escapeHtml(report.description)}` : ''}
         <br/>
         <button type="button" class="tk-popup-detail-btn" data-id="${report.id}"
@@ -1040,16 +1050,18 @@ export default function MapView({
         </div>
       )}
       <NavButtons canGoBack={navHistory.length > 0} onBack={goBack} onHome={goHome} isMobile={isMobile} />
-      {/* Legend hanya di tampilan negara/region - saat zoom in ke titik
-          disembunyikan agar tidak mengganggu view; DI MOBILE TIDAK
+      {/* Legend tampil di tampilan negara/region; saat zoom masuk ke titik
+          legend disembunyikan agar tidak mengganggu view, KECUALI popup
+          titik sedang terbuka (legend ikut tampil agar user bisa membaca
+          keterangan titik sambil mencocokkan warnanya). DI MOBILE TIDAK
           DITAMPILKAN sama sekali (menghindari tumpukan dengan tombol
           Lapor & slider zoom; informasinya ada di menu Dokumentasi).
           Bisa di-hide user (✕) lalu dimunculkan lagi lewat tombol
           "ℹ️ Legenda". */}
-      {!isMobile && zoomLevel <= LEGEND_MAX_ZOOM && !legendHidden && (
+      {!isMobile && (zoomLevel <= LEGEND_MAX_ZOOM || popupOpen) && !legendHidden && (
         <SeverityLegend onHide={() => setLegendHidden(true)} />
       )}
-      {!isMobile && zoomLevel <= LEGEND_MAX_ZOOM && legendHidden && (
+      {!isMobile && (zoomLevel <= LEGEND_MAX_ZOOM || popupOpen) && legendHidden && (
         <LegendToggle onShow={() => setLegendHidden(false)} />
       )}
       {mapReady && <ZoomSlider map={mapRef.current} />}

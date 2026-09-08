@@ -127,6 +127,19 @@ function formatValue(key, value) {
   return String(value);
 }
 
+// Format tanggal media (ISO YYYY-MM-DD dari monitor berita) -> "2 Sep 2026"
+// lokal id-ID; nilai tak dikenal dikembalikan apa adanya.
+function fmtDateOnly(value) {
+  if (!value) return '';
+  const d = /^\d{4}-\d{2}-\d{2}/.test(value) ? new Date(`${value.slice(0, 10)}T00:00:00Z`) : new Date(value);
+  if (Number.isNaN(d.getTime())) return String(value);
+  try {
+    return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+  } catch (_e) {
+    return String(value);
+  }
+}
+
 // ---- Enrichment BMKG (File 1 Bagian 5.8 / File 2 Bagian 7.2) ----
 // related_earthquake / related_weather disimpan sebagai string JSON di DB
 // (backend mengembalikannya sebagai objek). Badge kontekstual di bawah
@@ -617,31 +630,58 @@ export default function DetailModal({ report, onClose, otoritas = null, onReport
           </button>
         </div>
 
-        {/* Klaim perbaikan dari media (monitor berita) - publik */}
-        {report.media_repair_url && (
-          <div
-            style={{
-              background: '#f0fdf4',
-              border: '1px solid #bbf7d0',
-              color: '#166534',
-              borderRadius: 8,
-              padding: '10px 12px',
-              fontSize: 12.5,
-              lineHeight: 1.5,
-              marginBottom: 12,
-            }}
-          >
-            <strong>● Menurut media sudah diperbaiki</strong> - menunggu
-            verifikasi otoritas.{' '}
-            <a
-              href={report.media_repair_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ color: '#15803d', fontWeight: 700 }}
-            >
-              Baca beritanya
-            </a>
-          </div>
+        {/* Info perbaikan dari media (monitor berita) - publik. Kartu ini
+            menjawab titik HIJAU: kalau berita/media menyatakan titik sudah
+            diperbaiki (klaim media), user langsung menemukan SUMBER berita
+            penguatnya di sini - nama media, tanggal, dan tautan artikel.
+            Teks menyesuaikan status: menunggu validasi (dilaporkan),
+            dikonfirmasi selesai (selesai_diperbaiki), atau posisi lain. */}
+        {!report.unverifiable && report.media_repair_url && (
+          (() => {
+            const done = report.status === 'selesai_diperbaiki';
+            const pending = report.status === 'dilaporkan';
+            const sourceName = report.source_media_name;
+            const sourceDate = fmtDateOnly(report.source_media_date);
+            return (
+              <div
+                style={{
+                  background: '#f0fdf4',
+                  border: done ? '1px solid #22c55e' : '1px solid #bbf7d0',
+                  color: '#166534',
+                  borderRadius: 8,
+                  padding: '10px 12px',
+                  fontSize: 12.5,
+                  lineHeight: 1.5,
+                  marginBottom: 12,
+                }}
+              >
+                <strong style={{ display: 'block', marginBottom: 3 }}>
+                  {done
+                    ? '✓ Sudah diperbaiki menurut media (dikonfirmasi otoritas)'
+                    : pending
+                      ? '● Menurut media sudah diperbaiki (menunggu validasi otoritas)'
+                      : '● Perbaikan menurut media'}
+                </strong>
+                {done
+                  ? 'Otoritas telah mengonfirmasi laporan media ini — titik ditutup sebagai Selesai Diperbaiki. '
+                  : 'Berita/media menyatakan titik ini sudah diperbaiki. '}
+                {sourceName && (
+                  <>
+                    Sumber: <strong>{sourceName}</strong>
+                    {sourceDate ? ` · ${sourceDate}` : ''}.{' '}
+                  </>
+                )}
+                <a
+                  href={report.media_repair_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ color: '#15803d', fontWeight: 700 }}
+                >
+                  Baca beritanya
+                </a>
+              </div>
+            );
+          })()
         )}
 
         <div>
