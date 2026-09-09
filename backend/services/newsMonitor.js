@@ -138,11 +138,20 @@ async function fetchOgImage(url) {
       signal: AbortSignal.timeout(9000),
     });
     if (!res.ok) return null;
+    // Google News (news.google.com/rss) menjawab dengan halaman perantara
+    // (interstitial) yang og:image-nya LOGO Google News, bukan foto artikel.
+    // Redirect "follow" berhenti di situ: jangan ambil fotonya (null = tanpa
+    // foto lebih baik daripada ikon/logo yang tidak berkaitan).
+    if (/^https?:\/\/[\w.-]*news\.google\.com\//i.test(res.url || '')) return null;
     const html = (await res.text()).slice(0, 400000);
     const m =
       html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i) ||
       html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i);
     const img = m ? m[1].trim() : null;
+    // Tolak logo/placeholder generik Google News (pernah tersimpan ke 15 titik
+    // via interstitial 2026-08/09): foto harus RELEVAN dgn kejadian, bukan
+    // sekadar gambar apa pun yang ada di halaman.
+    if (img && /lh3\.googleusercontent\.com\/J6_coFbogxhRI9iM864NL_liGXvsQp2AupsKei7z0cNNfDvGUmWUy20nuUhkREQyrpY4bEeIBuc/.test(img)) return null;
     return img && /^https?:\/\//i.test(img) ? img : null;
   } catch (_e) {
     return null;
@@ -634,4 +643,4 @@ function mergeMediaDuplicates(log) {
   return removed;
 }
 
-module.exports = { runMonitor, QUERIES };
+module.exports = { runMonitor, QUERIES, fetchOgImage };
