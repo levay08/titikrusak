@@ -1,9 +1,14 @@
 // frontend/src/components/SearchModal.jsx
 // Modal hasil pencarian header (poin: tagline diganti search bar).
 // Mencari kata kunci apa pun di seluruh laporan (semua data tanpa filter):
-// nama lokasi, deskripsi, jenis/severity/status (label Indonesia), nama
-// media, dll. Klik hasil -> buka DetailModal laporan tersebut (via
-// onOpenReport). Jika tidak ada yang cocok -> tampilan "tidak ada hasil".
+// ID laporan, nama lokasi, deskripsi, jenis/severity/status (label
+// Indonesia), nama media, dll. Klik hasil -> buka DetailModal laporan
+// tersebut (via onOpenReport). Jika tidak ada yang cocok -> tampilan
+// "tidak ada hasil".
+//
+// Pencarian angka: selain cocok dengan teks, angka yang PERSIS sama
+// dengan ID sebuah laporan selalu dimunculkan di urutan pertama dengan
+// penanda "ID #n" - jadi tidak perlu memeriksa hasil satu per satu.
 
 import { useMemo, useState } from 'react';
 import {
@@ -16,9 +21,12 @@ import {
 import useIsMobile from '../lib/useIsMobile.js';
 import useEscapeClose from '../lib/useEscapeClose.js';
 
-// Kumpulkan seluruh teks yang bisa dicari dari satu laporan.
+// Kumpulkan seluruh teks yang bisa dicari dari satu laporan. Nomor ID
+// ikut dicari: mengetik angka (mis. "458") menemukan titik lewat ID-nya,
+// bukan hanya lewat teks lokasi/deskripsi yang memuat angka itu.
 function searchableText(r) {
   return [
+    String(r.id),
     r.location_name,
     r.description,
     r.source_media_name,
@@ -43,13 +51,26 @@ export default function SearchModal({ reports = [], initialQuery = '', onClose, 
   // Tombol Escape menutup modal pencarian (setara klik ✕).
   useEscapeClose(onClose);
 
+  const digitQuery = /^\d+$/.test(keyword);
   const results = useMemo(() => {
     if (!keyword) return [];
-    return reports
+    const hits = reports
       .filter((r) => searchableText(r).includes(keyword))
-      .sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)))
-      .slice(0, 50);
-  }, [reports, keyword]);
+      .sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)));
+    // Angka yang PERSIS sama dengan ID sebuah laporan -> hasil itu
+    // dinaikkan ke urutan pertama (sebelum dipotong batas 50) agar selalu
+    // tampil dan mudah dikenali di antara banyak hasil teks lain.
+    const exact = digitQuery
+      ? hits.find((r) => Number(r.id) === Number(keyword))
+      : undefined;
+    if (exact) return [exact, ...hits.filter((r) => r !== exact)].slice(0, 50);
+    return hits.slice(0, 50);
+  }, [reports, keyword, digitQuery]);
+
+  // Laporan yang ID-nya persis angka yang diketik - untuk penanda khusus.
+  const exactIdMatch = digitQuery
+    ? results.find((r) => Number(r.id) === Number(keyword)) || null
+    : null;
 
   return (
     <div
@@ -126,8 +147,9 @@ export default function SearchModal({ reports = [], initialQuery = '', onClose, 
         <div style={{ marginTop: 14 }}>
           {!keyword && (
             <div style={{ fontSize: 13, color: '#64748b', padding: '10px 2px' }}>
-              Ketik kata kunci - misalnya nama kota, jenis kerusakan (jembatan),
-              atau nama media - lalu pilih titik dari daftar hasil.
+              Ketik kata kunci - misalnya nama kota, jenis kerusakan
+              (jembatan), nama media, atau nomor ID laporan (angka) - lalu
+              pilih titik dari daftar hasil.
             </div>
           )}
 
@@ -155,10 +177,23 @@ export default function SearchModal({ reports = [], initialQuery = '', onClose, 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               <div style={{ fontSize: 12, color: '#64748b', padding: '0 2px' }}>
                 {results.length} titik ditemukan untuk “{q.trim()}”
+                {exactIdMatch && (
+                  <>
+                    {' — '}
+                    <strong style={{ color: '#92400e' }}>
+                      ID #{exactIdMatch.id} cocok tepat
+                    </strong>
+                    {' (di urutan pertama)'}
+                  </>
+                )}
               </div>
               {results.map((r) => {
                 const sevColor = SEVERITY_COLORS[r.severity] || '#64748b';
                 const statusColor = STATUS_COLORS[r.status] || '#64748b';
+                // Penanda hasil yang ID-nya persis angka yang diketik
+                // (baris kuning + badge "ID #n") agar tidak perlu cek satu-satu.
+                const isExactId =
+                  exactIdMatch !== null && Number(r.id) === Number(exactIdMatch.id);
                 return (
                   <button
                     key={r.id}
@@ -170,8 +205,8 @@ export default function SearchModal({ reports = [], initialQuery = '', onClose, 
                       gap: 10,
                       width: '100%',
                       textAlign: 'left',
-                      background: '#fff',
-                      border: '1px solid #e2e8f0',
+                      background: isExactId ? '#fffbeb' : '#fff',
+                      border: isExactId ? '1px solid #f59e0b' : '1px solid #e2e8f0',
                       borderRadius: 10,
                       padding: '11px 12px',
                       cursor: 'pointer',
@@ -206,6 +241,23 @@ export default function SearchModal({ reports = [], initialQuery = '', onClose, 
                         {r.source_media_name ? ` · ${r.source_media_name}` : ''}
                       </span>
                     </span>
+                    {isExactId && (
+                      <span
+                        aria-label={`Hasil ID #${r.id} cocok tepat dengan angka yang dicari`}
+                        style={{
+                          padding: '2px 8px',
+                          borderRadius: 999,
+                          fontSize: 11,
+                          fontWeight: 800,
+                          background: '#fef3c7',
+                          border: '1px solid #f59e0b',
+                          color: '#92400e',
+                          flexShrink: 0,
+                        }}
+                      >
+                        ID #{r.id}
+                      </span>
+                    )}
                     <span
                       style={{
                         padding: '2px 8px',
