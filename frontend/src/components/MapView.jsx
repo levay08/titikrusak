@@ -164,7 +164,7 @@ function SeverityLegend({ onHide }) {
         padding: '10px 12px',
         fontSize: 13,
         color: '#1c1917',
-        maxWidth: 300,
+        maxWidth: 340,
       }}
       onMouseEnter={() => setOpen(true)}
       onMouseLeave={() => setOpen(false)}
@@ -309,7 +309,7 @@ function SeverityLegend({ onHide }) {
             display: 'inline-block',
           }}
         />
-        <span>Perbaikan menurut media (butuh validasi)</span>
+        <span>Diberitakan sudah diperbaiki (butuh validasi)</span>
       </div>
 
       {open && (

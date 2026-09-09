@@ -179,4 +179,18 @@ describe('FilterPanel: filter Verifikasi Titik (sudah diverifikasi otoritas)', (
       expect.objectContaining({ verified: 'belum' })
     );
   });
+
+  it('pilih "Sudah diperbaiki" memicu onChange dengan verified=selesai', async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    render(<FilterPanel filters={EMPTY} onChange={onChange} onReset={vi.fn()} />);
+
+    await user.selectOptions(
+      screen.getByRole('combobox', { name: /verifikasi titik/i }),
+      'selesai'
+    );
+    expect(onChange).toHaveBeenLastCalledWith(
+      expect.objectContaining({ verified: 'selesai' })
+    );
+  });
 });

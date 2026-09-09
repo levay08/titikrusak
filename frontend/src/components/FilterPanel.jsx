@@ -261,9 +261,11 @@ export default function FilterPanel({
           <option value="semua">Semua titik</option>
           <option value="verified">✓ Sudah diverifikasi otoritas</option>
           <option value="belum">Belum diverifikasi</option>
+          <option value="selesai">Sudah diperbaiki (hijau)</option>
         </select>
         <p style={{ margin: '3px 0 0', fontSize: 10.5, lineHeight: 1.4, color: '#64748b', textAlign: 'justify' }}>
-          ✓ = sudah diverifikasi/ditindak otoritas (hijau = selesai diperbaiki).
+          ✓ = diverifikasi otoritas via e.id di portal. Hijau = titik sudah
+          diperbaiki (selesai) — dari pemberitaan media maupun konfirmasi otoritas.
         </p>
       </div>
 

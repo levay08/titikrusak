@@ -37,6 +37,14 @@ describe('buildQuery: filter Verifikasi Titik', () => {
     expect(qs).not.toContain('status=terverifikasi');
   });
 
+  it('verified=selesai: hanya status selesai_diperbaiki (titik sudah diperbaiki)', () => {
+    const qs = buildQuery({ ...base, verified: 'selesai' });
+    expect(qs).toContain('status=selesai_diperbaiki');
+    expect(qs).not.toContain('status=terverifikasi');
+    expect(qs).not.toContain('status=dalam_perbaikan');
+    expect(qs).not.toContain('status=dilaporkan');
+  });
+
   it('filter lain tetap jalan bersamaan dengan verified', () => {
     const qs = buildQuery({
       ...base,

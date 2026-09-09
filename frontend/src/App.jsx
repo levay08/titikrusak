@@ -151,7 +151,8 @@ const EMPTY_FILTERS = {
   vital_status: [],
   // Filter status verifikasi titik oleh otoritas (File 1 6.2):
   // 'semua' | 'verified' (terverifikasi/dalam_perbaikan/selesai - titik
-  // bercentang ✓ di peta) | 'belum' (dilaporkan).
+  // bercentang ✓ di peta) | 'belum' (dilaporkan) | 'selesai' (hanya titik
+  // sudah diperbaiki / hijau).
   verified: 'semua',
   q: '',
   sort: 'terbaru',
@@ -181,11 +182,15 @@ export function buildQuery(filters) {
     (f[key] || []).forEach((v) => p.append(key, v));
   });
   // Filter verifikasi titik: 'verified' -> status bercentang ✓;
-  // 'belum' -> status dilaporkan (belum diverifikasi otoritas).
+  // 'belum' -> status dilaporkan (belum diverifikasi otoritas);
+  // 'selesai' -> hanya titik sudah diperbaiki (hijau, status
+  // selesai_diperbaiki).
   if (f.verified === 'verified') {
     VERIFIED_STATUSES.forEach((s) => p.append('status', s));
   } else if (f.verified === 'belum') {
     p.append('status', 'dilaporkan');
+  } else if (f.verified === 'selesai') {
+    p.append('status', 'selesai_diperbaiki');
   }
   if (f.q && f.q.trim()) p.set('q', f.q.trim());
   const [sort, order] = SORT_PARAMS[f.sort] || SORT_PARAMS.terbaru;

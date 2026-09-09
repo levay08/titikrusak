@@ -640,6 +640,11 @@ export default function DetailModal({ report, onClose, otoritas = null, onReport
           (() => {
             const done = report.status === 'selesai_diperbaiki';
             const pending = report.status === 'dilaporkan';
+            // "Verifikasi otoritas" di titikrusak.id = aksi OTORITAS via e.id
+            // di portal (validated_by_display_name pasti terisi). Titik yang
+            // ditutup dari PEMBERITAAN MEDIA (field itu null) tidak boleh
+            // disebut "dikonfirmasi otoritas" - faktanya beda.
+            const authorityConfirmed = !!report.validated_by_display_name;
             const sourceName = report.source_media_name;
             const sourceDate = fmtDateOnly(report.source_media_date);
             return (
@@ -657,13 +662,17 @@ export default function DetailModal({ report, onClose, otoritas = null, onReport
               >
                 <strong style={{ display: 'block', marginBottom: 3 }}>
                   {done
-                    ? '✓ Sudah diperbaiki menurut media (dikonfirmasi otoritas)'
+                    ? authorityConfirmed
+                      ? '✓ Diberitakan sudah diperbaiki (dikonfirmasi otoritas)'
+                      : '✓ Diberitakan sudah diperbaiki (dari pemberitaan media)'
                     : pending
-                      ? '● Menurut media sudah diperbaiki (menunggu validasi otoritas)'
-                      : '● Perbaikan menurut media'}
+                      ? '● Diberitakan sudah diperbaiki (menunggu validasi otoritas)'
+                      : '● Diberitakan sudah diperbaiki'}
                 </strong>
                 {done
-                  ? 'Otoritas telah mengonfirmasi laporan media ini — titik ditutup sebagai Selesai Diperbaiki. '
+                  ? authorityConfirmed
+                    ? 'Otoritas telah mengonfirmasi laporan media ini — titik ditutup sebagai Selesai Diperbaiki. '
+                    : 'Media memberitakan titik ini sudah diperbaiki; titik ditutup berdasarkan pemberitaan tersebut. '
                   : 'Berita/media menyatakan titik ini sudah diperbaiki. '}
                 {sourceName && (
                   <>

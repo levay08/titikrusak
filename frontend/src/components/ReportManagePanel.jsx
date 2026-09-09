@@ -351,7 +351,7 @@ export default function ReportManagePanel({ report, otoritas, onReportUpdated, o
                 background: '#f0fdf4',
               }}
             >
-              <span style={sectionTitle}>Perbaikan menurut media (menunggu)</span>
+              <span style={sectionTitle}>Diberitakan sudah diperbaiki (menunggu)</span>
               <div style={{ fontSize: 12.5, color: '#334155', marginBottom: 8, lineHeight: 1.5 }}>
                 Berita/media menyatakan titik ini sudah diperbaiki.{' '}
                 <a

@@ -59,7 +59,7 @@ describe('DetailModal: info perbaikan dari media pada titik hijau (klaim media)'
     );
 
     expect(
-      screen.getByText(/Menurut media sudah diperbaiki \(menunggu validasi otoritas\)/i)
+      screen.getByText(/Diberitakan sudah diperbaiki \(menunggu validasi otoritas\)/i)
     ).toBeInTheDocument();
     // Laporan penguat perbaikan: nama media + tanggal artikel tertulis jelas
     // (nama media juga tampil di baris field "Nama Media" -> getAllByText).
@@ -87,7 +87,7 @@ describe('DetailModal: info perbaikan dari media pada titik hijau (klaim media)'
     );
 
     expect(
-      screen.getByText(/Sudah diperbaiki menurut media \(dikonfirmasi otoritas\)/i)
+      screen.getByText(/Diberitakan sudah diperbaiki \(dikonfirmasi otoritas\)/i)
     ).toBeInTheDocument();
     // Bug lama: teks "menunggu verifikasi" tidak boleh muncul untuk status selesai.
     expect(screen.queryByText(/menunggu validasi/i)).not.toBeInTheDocument();
@@ -95,10 +95,35 @@ describe('DetailModal: info perbaikan dari media pada titik hijau (klaim media)'
     expect(screen.getAllByText(/Antara News/).length).toBeGreaterThanOrEqual(1);
   });
 
+  it('status selesai_diperbaiki dari PEMBERITAAN MEDIA (validated_by_display_name null): tidak menyebut konfirmasi/verifikasi otoritas', () => {
+    render(
+      <DetailModal
+        report={{
+          ...REPORT,
+          status: 'selesai_diperbaiki',
+          media_repair_url: CLAIM_URL,
+          source_media_name: 'Antara News',
+          source_media_date: '2026-09-02',
+          validated_by_display_name: null,
+        }}
+        onClose={vi.fn()}
+        onReportUpdated={vi.fn()}
+      />
+    );
+
+    // Judul jujur: selesai DARI PEMBERITAAN, bukan konfirmasi otoritas.
+    expect(
+      screen.getByText('✓ Diberitakan sudah diperbaiki (dari pemberitaan media)')
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/dikonfirmasi otoritas/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/otoritas telah mengonfirmasi/i)).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /baca beritanya/i })).toHaveAttribute('href', CLAIM_URL);
+  });
+
   it('tanpa klaim media: tidak ada kartu "Baca beritanya"', () => {
     render(<DetailModal report={REPORT} onClose={vi.fn()} onReportUpdated={vi.fn()} />);
     expect(screen.queryByRole('link', { name: /baca beritanya/i })).not.toBeInTheDocument();
-    expect(screen.queryByText(/menurut media sudah diperbaiki/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/diberitakan sudah diperbaiki/i)).not.toBeInTheDocument();
   });
 
   it('titik ditolak otoritas (unverifiable): klaim media lama tidak ditampilkan sebagai perbaikan', () => {
