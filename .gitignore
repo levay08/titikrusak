@@ -6,6 +6,7 @@ backend/.env
 *.db
 *.db-wal
 *.db-shm
+backend/*.db.bak-*
 node_modules/
 frontend/dist/
 backend/data/
