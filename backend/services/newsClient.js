@@ -20,9 +20,14 @@ const NEWS_QUERIES = [
   'jembatan ambruk Indonesia',
 ];
 
-const NEWS_TTL_MS = 30 * 60 * 1000; // 30 menit
+const NEWS_TTL_MS = 15 * 60 * 1000; // 15 menit - ticker selalu condong ke berita baru
 const MAX_ITEMS = 30; // pool cukup untuk rotasi beberapa batch x5
 const FETCH_TIMEOUT_MS = 8000;
+// Jendela umur berita: hanya berita 30 HARI terakhir (s.d. hari ini).
+// Lebih tua dari itu tidak relevan lagi untuk "Berita Terkini".
+const NEWS_MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000;
+// Toleransi selisih jam server vs jam media (RSS kadang lebih cepat/nyasar).
+const NEWS_FUTURE_TOLERANCE_MS = 6 * 60 * 60 * 1000;
 
 // Kata kunci negara/region luar - judul yang memuat ini dibuang agar feed
 // tetap berita Indonesia saja (bukan internasional/Asia). Case-insensitive.
@@ -60,9 +65,26 @@ function parseGoogleNewsRss(xml) {
     const title = cleanTitle(titleM[1]);
     const url = linkM[1].trim();
     if (!title || !/^https?:\/\//i.test(url)) continue;
-    out.push({ title, url });
+    // pubDate RFC 822 ("Fri, 04 Sep 2026 09:12:00 GMT") -> ISO; null bila
+    // tidak terbaca. Umur berita ditentukan di sini (filter 30 hari).
+    const dateM = block.match(/<pubDate>\s*([\s\S]*?)\s*<\/pubDate>/);
+    let pubDate = null;
+    if (dateM) {
+      const t = Date.parse(dateM[1].trim());
+      if (!Number.isNaN(t)) pubDate = new Date(t).toISOString();
+    }
+    out.push({ title, url, pubDate });
   }
   return out;
+}
+
+// Berita layak tampil bila usianya <= 30 hari dari nowMs (toleransi kecil
+// untuk selisih jam server/media). Tanpa tanggal terbaca -> TIDAK lolos
+// (tidak bisa dijamin fresh).
+function isRecent(item, nowMs = Date.now()) {
+  const t = item.pubDate ? Date.parse(item.pubDate) : NaN;
+  if (Number.isNaN(t)) return false;
+  return t >= nowMs - NEWS_MAX_AGE_MS && t <= nowMs + NEWS_FUTURE_TOLERANCE_MS;
 }
 
 async function fetchQuery(query) {
@@ -104,10 +126,15 @@ async function getNews({ force = false } = {}) {
     seen.add(key);
     deduped.push(n);
   }
-  if (deduped.length > 0) {
-    cache = { items: deduped.slice(0, MAX_ITEMS), fetchedAt: Date.now() };
+  // Hanya berita 30 hari terakhir, urut TERBARU dulu (pool batch ticker
+  // dimulai dari yang paling fresh; yang basi tidak pernah tampil).
+  const recent = deduped
+    .filter((n) => isRecent(n))
+    .sort((a, b) => Date.parse(b.pubDate) - Date.parse(a.pubDate));
+  if (recent.length > 0) {
+    cache = { items: recent.slice(0, MAX_ITEMS), fetchedAt: Date.now() };
   }
   return cache.items;
 }
 
-module.exports = { getNews, parseGoogleNewsRss };
+module.exports = { getNews, parseGoogleNewsRss, isRecent };
