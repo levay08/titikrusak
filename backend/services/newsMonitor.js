@@ -143,6 +143,30 @@ function buildReportName(infra, severity, title, place) {
 // Ambil foto RELEVAN dari halaman berita sumber (meta og:image artikel -
 // foto utama berita, fakta dari media yang dicatut). Bila media tidak
 // memuat foto / gagal, kembalikan null (foto TIDAK diisi - tidak mengarang).
+// Nilai og:image di sebagian situs RUSAK: dua URL tergabung
+// ("http://situshttps://cdn/foto.jpg", ditemukan pada titik #119) atau berisi
+// URL relatif. Ambil URL absolut yang benar-benar menunjuk berkas gambar.
+function cleanImageUrl(raw) {
+  if (!raw) return null;
+  const s = String(raw).trim();
+  if (!s) return null;
+  // Pecah pada SETIAP kemunculan http(s):// - nilai rusak menempelkan dua URL
+  // tanpa pemisah sehingga regex biasa menganggapnya satu URL panjang.
+  const starts = [];
+  const re = /https?:\/\//gi;
+  let m;
+  while ((m = re.exec(s))) starts.push(m.index);
+  if (!starts.length) return null;
+  const parts = starts
+    .map((start, i) => s.slice(start, i + 1 < starts.length ? starts[i + 1] : s.length))
+    .map((u) => u.replace(/["'<>\s].*$/, ''))
+    .filter(Boolean);
+  const looksImage = (u) => /\.(jpe?g|png|webp|gif|avif|bmp)(\?|#|$)/i.test(u);
+  if (looksImage(parts[0])) return parts[0]; // URL pertama memang berkas gambar
+  const imgs = parts.filter(looksImage);
+  return imgs.length ? imgs[imgs.length - 1] : parts[parts.length - 1];
+}
+
 async function fetchOgImage(url) {
   try {
     const res = await fetch(url, {
@@ -173,7 +197,8 @@ async function fetchOgImage(url) {
     // Dicek dari NAMA FILE saja - URL CDN (mis. Kompas "filters:watermark")
     // adalah foto sah, jangan ikut tertolak.
     if (img && looksLikeLogo(img)) return null;
-    return img && /^https?:\/\//i.test(img) ? img : null;
+    const cleaned = cleanImageUrl(img);
+    return cleaned && /^https?:\/\//i.test(cleaned) ? cleaned : null;
   } catch (_e) {
     return null;
   }
@@ -838,4 +863,4 @@ function mergeMediaDuplicates(log) {
   return removed;
 }
 
-module.exports = { runMonitor, QUERIES, fetchOgImage, resolveGnewsUrl, matchScore, regionConflict, regionOverlap, locContains, tokenOverlap, specificTokens, inSeedWindow, mergeMediaDuplicates, SEED_MIN_DATE, SEED_MAX_DATE };
+module.exports = { runMonitor, QUERIES, fetchOgImage, resolveGnewsUrl, matchScore, regionConflict, regionOverlap, locContains, tokenOverlap, specificTokens, inSeedWindow, mergeMediaDuplicates, cleanImageUrl, SEED_MIN_DATE, SEED_MAX_DATE };
