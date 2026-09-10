@@ -708,6 +708,21 @@ export default function DetailModal({ report, onClose, otoritas = null, onReport
                 {report.validated_at ? ` (${report.validated_at})` : ''}
               </span>
             )}
+            {/* Status selesai: keterangan hijau di SAMPING status (bukan di
+                panel bawah) - koreksi user 10 Sep 2026. */}
+            {report.status === 'selesai_diperbaiki' && (
+              <span
+                style={{
+                  display: 'block',
+                  marginTop: 4,
+                  fontSize: 11.5,
+                  color: '#15803d',
+                }}
+              >
+                ✓ Status laporan: <strong>{STATUS_LABELS.selesai_diperbaiki}</strong> - titik
+                ditandai hijau di peta.
+              </span>
+            )}
           </div>
           <button
             type="button"

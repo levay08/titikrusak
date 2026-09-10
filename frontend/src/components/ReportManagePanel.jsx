@@ -13,7 +13,7 @@
 
 import { useEffect, useState } from 'react';
 import { getEidSession, eidSessionHeaders } from '../lib/eidSession.js';
-import { STATUS_LABELS, SEVERITIES } from '../lib/labels.js';
+import { SEVERITIES } from '../lib/labels.js';
 
 const btnBase = {
   width: '100%',
@@ -272,14 +272,8 @@ export default function ReportManagePanel({ report, otoritas, onReportUpdated, o
 
   return (
     <div style={{ marginTop: 14, borderTop: '1px solid #e2e8f0', paddingTop: 14 }}>
-      {/* Status "selesai diperbaiki": banner hijau di PALING ATAS panel agar
-          langsung terlihat (koreksi user - bukan di bawah panel). */}
-      {report.status === 'selesai_diperbaiki' && (
-        <p style={{ margin: '0 0 12px', fontSize: 12.5, color: '#15803d' }}>
-          ✓ Status laporan: <strong>{STATUS_LABELS.selesai_diperbaiki}</strong> - titik ditandai
-          hijau di peta.
-        </p>
-      )}
+      {/* Status "selesai diperbaiki" kini tampil di SAMPING status pada header
+          laporan (koreksi user 10 Sep 2026) - tidak lagi di panel ini. */}
       {/* ---- Tanda ✗ (otoritas) & status khusus ---- */}
       {report.unverifiable ? (
         <div

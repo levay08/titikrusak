@@ -158,6 +158,56 @@ async function fetchOgImage(url) {
   }
 }
 
+// ---- Link Google News RSS -> artikel ASLI (10 Sep 2026) --------------------
+// Link RSS Google News hanya halaman perantara (interstitial) - og:image-nya
+// logo Google News, bukan foto berita. Decode lewat endpoint DotsSplashUi
+// (metode yang sama dipakai pustaka googlenewsdecoder): ambil data-n-a-sg +
+// data-n-a-ts dari halaman artikel, lalu POST batchexecute -> URL penerbit.
+const GN_UA = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124 Safari/537.36';
+
+async function resolveGnewsUrl(url) {
+  try {
+    const u = String(url || '');
+    if (!/^https?:\/\/(?:[\w.-]*\.)?news\.google\.com\/rss\/articles\//i.test(u)) return null;
+    const pageRes = await fetch(u, {
+      headers: { 'User-Agent': GN_UA, Accept: 'text/html' },
+      redirect: 'follow',
+      signal: AbortSignal.timeout(9000),
+    });
+    if (!pageRes.ok) return null;
+    const page = await pageRes.text();
+    const sg = (page.match(/data-n-a-sg="([^"]+)"/) || [])[1];
+    const ts = (page.match(/data-n-a-ts="([^"]+)"/) || [])[1];
+    const id = (u.match(/\/rss\/articles\/([^?/]+)/) || [])[1];
+    if (!sg || !ts || !id) return null;
+    const inner = JSON.stringify([
+      'garturlreq',
+      [['X', 'X', ['X', 'X'], null, null, 1, 1, 'US:en', null, 1, null, null, null, null, null, 0, 1],
+        'X', 'X', 1, [1, 1, 1], 1, 1, null, 0, 0, null, 0],
+      id,
+      Number(ts),
+      sg,
+    ]);
+    const res = await fetch('https://news.google.com/_/DotsSplashUi/data/batchexecute', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+        'User-Agent': GN_UA,
+      },
+      body: 'f.req=' + encodeURIComponent(JSON.stringify([[['Fbv4je', inner]]])),
+      signal: AbortSignal.timeout(9000),
+    });
+    if (!res.ok) return null;
+    const txt = await res.text();
+    const m = txt.match(/garturlres\\?",\\?"(https?:\\?\/\\?\/[^"\\]+)/);
+    const out = m ? m[1].replace(/\\\//g, '/') : null;
+    if (!out || /(?:^|\/\/)(?:[\w.-]*\.)?google\./i.test(out)) return null;
+    return out;
+  } catch (_e) {
+    return null;
+  }
+}
+
 function parseRss(xml) {
   const out = [];
   const blocks = String(xml || '').split('<item>').slice(1);
@@ -502,7 +552,7 @@ async function runMonitor({ dry = false, log = console.log } = {}) {
         if (dry) {
           log(`  [${kind === 'progres' ? 'update' : 'cover'} -> #${best.id}] ${title} - ${item.source}`);
         } else if (kind === 'progres') {
-          const applied = applyUpdate(best, item, { kind, log });
+          const applied = await applyUpdate(best, item, { kind, log });
           if (applied !== false) {
             results.updated += 1;
             existing = existing.map((r) => (r.id === best.id ? best : r));
@@ -563,6 +613,13 @@ async function runMonitor({ dry = false, log = console.log } = {}) {
       log(`  [kandidat] ${entry.severity}/${entry.infra} @ ${entry.locName} (${entry.lat.toFixed(3)}, ${entry.lng.toFixed(3)}): ${entry.title} - ${entry.source}`);
       continue;
     }
+    // Link Google News RSS diresolusi dulu ke artikel ASLI (10 Sep 2026):
+    // foto harus dari artikel penerbit, bukan halaman perantara Google.
+    const originalUrl = (await resolveGnewsUrl(entry.url)) || entry.url;
+    if (originalUrl !== entry.url) {
+      log(`  ~ link asli: ${originalUrl.slice(0, 110)}`);
+      entry.url = originalUrl;
+    }
     // Foto relevan dari halaman berita sumber (og:image). Best-effort:
     // bila media tidak memuat foto / gagal diambil, laporan tanpa foto.
     const og = await fetchOgImage(entry.url);
@@ -613,8 +670,14 @@ const MAX_UPDATES = 15;
 // monitor; bila artikel jelas menyatakan perbaikan selesai/dibuka kembali,
 // monitor mencatat klaim media (media_repair_url/at) -> titik hijau tanpa ✓
 // menunggu verifikasi otoritas.
-function applyUpdate(row, item, { kind, log } = {}) {
+async function applyUpdate(row, item, { kind, log } = {}) {
   const today = new Date().toISOString().slice(0, 10);
+  // Link Google News RSS -> artikel asli (agar sumber & klaim perbaikan
+  // menunjuk ke penerbitnya, bukan halaman perantara Google).
+  if (item.link) {
+    const asli = await resolveGnewsUrl(item.link);
+    if (asli) item.link = asli;
+  }
   const note = `[Update ${today}: ${item.title} - ${item.source}]`;
   const base = String(row.description || '').trim();
   // catatan identik sudah pernah ditulis -> jangan append berulang
@@ -712,4 +775,4 @@ function mergeMediaDuplicates(log) {
   return removed;
 }
 
-module.exports = { runMonitor, QUERIES, fetchOgImage, matchScore, regionConflict, regionOverlap, locContains };
+module.exports = { runMonitor, QUERIES, fetchOgImage, resolveGnewsUrl, matchScore, regionConflict, regionOverlap, locContains };

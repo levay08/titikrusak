@@ -33,6 +33,20 @@ function asWarga() {
 }
 
 describe('ReportManagePanel (kelola laporan)', () => {
+  it('laporan selesai diperbaiki: keterangan status TIDAK lagi di panel ini (dipindah ke header laporan)', () => {
+    asWarga();
+    render(
+      <ReportManagePanel
+        report={{ ...baseReport, status: 'selesai_diperbaiki' }}
+        otoritas={null}
+        onReportUpdated={() => {}}
+        onClose={() => {}}
+      />
+    );
+    expect(screen.queryByText(/ditandai hijau di peta/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Status laporan:/)).not.toBeInTheDocument();
+  });
+
   it('warga terverifikasi: lihat tombol Edit & Hapus pada laporan miliknya (status dilaporkan)', () => {
     asWarga();
     render(<ReportManagePanel report={baseReport} otoritas={null} onReportUpdated={() => {}} onClose={() => {}} />);
@@ -80,7 +94,7 @@ describe('ReportManagePanel (kelola laporan)', () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it('laporan selesai diperbaiki: tidak ada tombol klaim, ada catatan hijau', () => {
+  it('laporan selesai diperbaiki: tidak ada tombol klaim (catatan hijau pindah ke header laporan)', () => {
     asWarga();
     render(
       <ReportManagePanel
@@ -91,7 +105,7 @@ describe('ReportManagePanel (kelola laporan)', () => {
       />
     );
     expect(screen.queryByRole('button', { name: /klaim sudah diperbaiki/i })).not.toBeInTheDocument();
-    expect(screen.getByText(/status laporan/i)).toBeInTheDocument();
+    expect(screen.queryByText(/status laporan/i)).not.toBeInTheDocument();
   });
 
   it('otoritas: tombol tolak laporan muncul, dan TIDAK ada tombol Hapus; alasan wajib', async () => {

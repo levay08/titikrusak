@@ -143,6 +143,24 @@ describe('DetailModal: info perbaikan dari media pada titik hijau (klaim media)'
   });
 });
 
+describe('DetailModal: keterangan status "Selesai Diperbaiki" di samping status (header)', () => {
+  it('status selesai_diperbaiki: teks keterangan hijau tampil di bagian atas laporan', () => {
+    render(
+      <DetailModal
+        report={{ ...REPORT, status: 'selesai_diperbaiki' }}
+        onClose={vi.fn()}
+        onReportUpdated={vi.fn()}
+      />
+    );
+
+    // Teks lengkap: "✓ Status laporan: Selesai Diperbaiki - titik ditandai
+    // hijau di peta." (label status di dalam <strong>, jadi dicocokkan
+    // per-potongan teks).
+    expect(screen.getByText(/✓ Status laporan:/)).toBeInTheDocument();
+    expect(screen.getByText(/ditandai hijau di peta/)).toBeInTheDocument();
+  });
+});
+
 describe('DetailModal: klaim status lapangan warga (bintang = sudah diperbaiki, ∅ = titik hilang)', () => {
   // Stub fetch: GET /claims mengembalikan hitungan + klaim milik user;
   // POST/DELETE /claim mengubah hitungan (seperti backend).
