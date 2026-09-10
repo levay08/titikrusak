@@ -9,13 +9,13 @@
 
 const express = require('express');
 const db = require('../db/db.js');
+const { countUnread, latestAt } = require('../services/notifUnread.js');
 
 const router = express.Router();
 
-// GET /api/activity?limit=50
-router.get('/', (req, res) => {
-  const limit = Math.min(Math.max(Number(req.query.limit) || 50, 1), 200);
-  try {
+// Susun feed notifikasi (dipakai GET / dan GET /unread supaya hitungan
+// "belum dibaca" selalu sama dengan yang tampil di modal).
+function buildFeed(limit) {
     // 1) Laporan baru (warga): severity + infra_type disertakan agar UI
     //    bisa menampilkan chip kontekstual seperti sebelumnya.
     const created = db
@@ -136,10 +136,43 @@ router.get('/', (req, res) => {
       .sort((a, b) => String(b.at).localeCompare(String(a.at)))
       .slice(0, limit);
 
-    res.json({ activities, commentGroups, mediaEvents });
+  return { activities, commentGroups, mediaEvents };
+}
+
+// GET /api/activity?limit=50
+router.get('/', (req, res) => {
+  const limit = Math.min(Math.max(Number(req.query.limit) || 50, 1), 200);
+  try {
+    res.json(buildFeed(limit));
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Gagal memuat aktivitas' });
+  }
+});
+
+// GET /api/activity/unread?since=<YYYY-MM-DD HH:MM:SS>
+// Jumlah notifikasi BELUM DIBACA sejak warga terakhir membuka menu Notifikasi.
+// `since` kosong (kunjungan pertama) -> total 0 supaya badge tidak menyalakan
+// seluruh riwayat; `latestAt` tetap dikirim sebagai penanda awal.
+router.get('/unread', (req, res) => {
+  const since = String(req.query.since || '').trim();
+  try {
+    const feed = buildFeed(200);
+    const comments = since
+      ? db
+          .prepare('SELECT COUNT(*) AS c FROM comments WHERE datetime(created_at) > datetime(?)')
+          .get(since).c
+      : 0;
+    const counts = countUnread(feed, comments, since);
+    const newest = latestAt({
+      reports: db.prepare('SELECT created_at, updated_at, media_repair_at FROM reports').all(),
+      statuses: db.prepare('SELECT changed_at FROM status_history').all(),
+      comments: db.prepare('SELECT created_at FROM comments').all(),
+    });
+    res.json({ ...counts, latestAt: newest, since });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Gagal memuat jumlah notifikasi' });
   }
 });
 

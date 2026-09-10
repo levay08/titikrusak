@@ -212,7 +212,7 @@ describe('App: alur lapor kerusakan end-to-end', () => {
     expect(screen.getByRole('button', { name: /^statistik$/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /^pantau$/i })).toBeInTheDocument();
     expect(
-      screen.getByRole('button', { name: /notifikasi aktivitas laporan/i })
+      screen.getByRole('button', { name: /notifikasi/i })
     ).toBeInTheDocument();
 
     // Tentang -> modal (desain & konten sama dengan modal welcome -
@@ -231,6 +231,47 @@ describe('App: alur lapor kerusakan end-to-end', () => {
     ).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: /tutup statistik pelaporan/i }));
     expect(screen.queryByText('Statistik Pelaporan')).not.toBeInTheDocument();
+  });
+
+  it('desktop: lonceng Notifikasi berbadge jumlah belum dibaca, padam setelah dibuka, dan menyala lagi saat ada yang baru', async () => {
+    localStorage.setItem('tk_notif_seen_at', '2026-09-10 12:00:00');
+    let unread = {
+      total: 3,
+      media: 2,
+      activities: 1,
+      comments: 0,
+      latestAt: '2026-09-10 13:00:00',
+    };
+    const fetchMock = vi.fn((url) => {
+      const u = String(url);
+      if (u.startsWith('/api/activity/unread')) {
+        return Promise.resolve({ ok: true, status: 200, json: async () => unread });
+      }
+      return Promise.resolve({ ok: true, status: 200, json: async () => [] });
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    const user = userEvent.setup();
+    render(<App />);
+
+    // Lonceng tetap ada + nama menu + badge jumlah belum dibaca.
+    const bell = await screen.findByRole('button', { name: /notifikasi/i });
+    expect(within(bell).getByText('Notifikasi')).toBeInTheDocument();
+    expect(within(bell).getByText('🔔')).toBeInTheDocument();
+    expect(await screen.findByTestId('notif-badge')).toHaveTextContent('3');
+
+    // Buka menu -> badge lonceng padam, penanda "sudah dilihat" disimpan,
+    // dan badge per-tab tetap menunjukkan angka saat menu dibuka.
+    await user.click(bell);
+    await waitFor(() => expect(screen.queryByTestId('notif-badge')).not.toBeInTheDocument());
+    expect(localStorage.getItem('tk_notif_seen_at')).toBe('2026-09-10 13:00:00');
+    expect(screen.getByTestId('notif-tab-badge-media')).toHaveTextContent('2');
+
+    // Tutup menu, lalu ada notifikasi baru -> badge menyala lagi.
+    await user.click(screen.getByRole('button', { name: /tutup notifikasi/i }));
+    unread = { total: 1, media: 1, activities: 0, comments: 0, latestAt: '2026-09-10 14:00:00' };
+    window.dispatchEvent(new Event('focus'));
+    expect(await screen.findByTestId('notif-badge')).toHaveTextContent('1');
   });
 
   it('desktop: menu "Login Otoritas" (gembok) membuka halaman Admin (gate)', async () => {

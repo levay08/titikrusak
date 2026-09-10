@@ -565,7 +565,7 @@ export function PantauModal({ reports = [], onClose }) {
 //                            berdasarkan sumber laporan).
 //   3. "Komentar"          : ringkasan komentar per titik.
 // Semua baris bisa diklik untuk membuka detail laporan titik tersebut.
-export function NotifikasiModal({ onClose, reports = [], onOpenReport }) {
+export function NotifikasiModal({ onClose, reports = [], onOpenReport, unread = {} }) {
   const [activities, setActivities] = useState(null); // null = memuat
   const [loadError, setLoadError] = useState(false);
   const [tab, setTab] = useState('media'); // 'media' | 'laporan' | 'komentar'
@@ -654,10 +654,10 @@ export function NotifikasiModal({ onClose, reports = [], onOpenReport }) {
         }}
       >
         {[
-          ['media', 'Kabar Media'],
-          ['laporan', 'Aktivitas Laporan'],
-          ['komentar', 'Komentar'],
-        ].map(([k, label]) => (
+          ['media', 'Kabar Media', unread.media],
+          ['laporan', 'Aktivitas Laporan', unread.activities],
+          ['komentar', 'Komentar', unread.comments],
+        ].map(([k, label, baru]) => (
           <button
             key={k}
             type="button"
@@ -674,6 +674,23 @@ export function NotifikasiModal({ onClose, reports = [], onOpenReport }) {
             }}
           >
             {label}
+            {Number(baru) > 0 && (
+              <span
+                data-testid={`notif-tab-badge-${k}`}
+                title={`${baru} belum dibaca`}
+                style={{
+                  marginLeft: 6,
+                  background: '#dc2626',
+                  color: '#fff',
+                  borderRadius: 999,
+                  padding: '1px 6px',
+                  fontSize: 11,
+                  fontWeight: 700,
+                }}
+              >
+                {Number(baru) > 9 ? '9+' : Number(baru)}
+              </span>
+            )}
             {k === 'komentar' && groups.length > 0 ? ` (${groups.length})` : ''}
           </button>
         ))}

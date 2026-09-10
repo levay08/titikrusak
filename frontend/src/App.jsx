@@ -29,6 +29,8 @@ import useIsMobile from './lib/useIsMobile.js';
 import useIsTouchDevice from './lib/useIsTouchDevice.js';
 import useKeyboardNav from './lib/useKeyboardNav.js';
 import { setEidSession, clearEidSession, getEidSession } from './lib/eidSession.js';
+import NotifBell from './components/NotifBell.jsx';
+import { NO_UNREAD, badgeText, fetchUnread, readSeen, writeSeen } from './lib/notifUnread.js';
 import SearchModal from './components/SearchModal.jsx';
 import AdminView from './components/AdminView.jsx';
 import DetailModal from './components/DetailModal.jsx';
@@ -352,6 +354,64 @@ export default function App() {
   const [pantauOpen, setPantauOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const [bookmarkOpen, setBookmarkOpen] = useState(false);
+
+  // Notifikasi BELUM DIBACA (lonceng header): jumlah kejadian yang lebih baru
+  // dari penanda terakhir dilihat. notifBaru = snapshot angka saat menu
+  // dibuka (dipakai badge per-tab), notifUnread = angka berjalan utk lonceng.
+  const [notifUnread, setNotifUnread] = useState(NO_UNREAD);
+  const [notifBaru, setNotifBaru] = useState(NO_UNREAD);
+  const notifOpenRef = useRef(notifOpen);
+
+  // Buka menu Notifikasi = tandai sudah dilihat (badge lonceng padam), tetapi
+  // angka per-tab tetap ditampilkan pada sesi modal itu.
+  const openNotif = () => {
+    setNotifBaru({
+      total: notifUnread.total,
+      media: notifUnread.media,
+      activities: notifUnread.activities,
+      comments: notifUnread.comments,
+      latestAt: notifUnread.latestAt,
+    });
+    if (notifUnread.latestAt) writeSeen(notifUnread.latestAt);
+    setNotifUnread(NO_UNREAD);
+    setNotifOpen(true);
+  };
+
+  // Polling jumlah notifikasi belum dibaca: saat halaman dibuka, tiap 60 detik,
+  // dan saat tab kembali fokus. Selagi menu Notifikasi terbuka, penanda
+  // "sudah dilihat" ikut dimajukan supaya yang sedang dibaca tidak dihitung
+  // sebagai baru - tetapi angka per-tab tetap disegarkan.
+  useEffect(() => {
+    notifOpenRef.current = notifOpen;
+  }, [notifOpen]);
+
+  useEffect(() => {
+    let alive = true;
+    const tick = async () => {
+      const data = await fetchUnread(readSeen());
+      if (!alive || !data) return;
+      if (notifOpenRef.current) {
+        if (data.total > 0 && data.latestAt) writeSeen(data.latestAt);
+        setNotifBaru((prev) => ({
+          ...prev,
+          media: data.media,
+          activities: data.activities,
+          comments: data.comments,
+          latestAt: data.latestAt || prev.latestAt,
+        }));
+        return;
+      }
+      setNotifUnread(data);
+    };
+    tick();
+    const timer = setInterval(tick, 60000);
+    window.addEventListener('focus', tick);
+    return () => {
+      alive = false;
+      clearInterval(timer);
+      window.removeEventListener('focus', tick);
+    };
+  }, []);
 
   // Status verifikasi e.id pengguna (poin Alur Inti 5) + modal verifikasi
   // warga dari sidebar FilterPanel.
@@ -858,25 +918,7 @@ export default function App() {
             <HeaderNavItem label="Statistik" onClick={openHeaderModal(setStatsOpen)} />
             <HeaderNavItem label="Pantau" onClick={openHeaderModal(setPantauOpen)} />
             <HeaderNavItem label="Bookmark" icon="📍" onClick={openHeaderModal(setBookmarkOpen)} />
-            <button
-              type="button"
-              aria-label="Notifikasi aktivitas laporan"
-              title="Notifikasi aktivitas laporan"
-              onClick={openHeaderModal(setNotifOpen)}
-              style={{
-                background: 'none',
-                border: 'none',
-                color: 'rgba(255, 255, 255, 0.88)',
-                fontSize: 16,
-                lineHeight: 1,
-                cursor: 'pointer',
-                padding: '7px 9px',
-                borderRadius: 6,
-                marginRight: 12,
-              }}
-            >
-              🔔
-            </button>
+            <NotifBell count={notifUnread.total} onClick={openNotif} />
             {/* Login Otoritas: TIDAK tampil saat warga/otoritas sudah
                 verified - keluar lewat kartu peran (badge otoritas /
                 panel warga / drawer), tidak ada menu ganda. */}
@@ -1329,7 +1371,13 @@ export default function App() {
                   { icon: '📊', label: 'Statistik', open: openHeaderModal(setStatsOpen) },
                   { icon: '🚧', label: 'Pantau', open: openHeaderModal(setPantauOpen) },
                   { icon: '📍', label: 'Bookmark', open: openHeaderModal(setBookmarkOpen) },
-                  { icon: '🔔', label: 'Notifikasi', open: openHeaderModal(setNotifOpen) },
+                  {
+                    icon: '🔔',
+                    label: notifUnread.total
+                      ? `Notifikasi (${badgeText(notifUnread.total)} baru)`
+                      : 'Notifikasi',
+                    open: openNotif,
+                  },
                   ...(eidVerified || otoritas
                     ? []
                     : [{ icon: '🔒', label: 'Login Otoritas', open: openAdmin }]),
@@ -1719,6 +1767,7 @@ export default function App() {
             <NotifikasiModal
               onClose={() => setNotifOpen(false)}
               reports={allReports}
+              unread={notifBaru}
               onOpenReport={(r) => {
                 setNotifOpen(false);
                 if (r && r.location_name) setDetailReport(r);

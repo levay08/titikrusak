@@ -393,6 +393,41 @@ textarea:focus-visible {
   transform-origin: left center;
   animation: tkGrowX 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
+/* ---- Lonceng Notifikasi: badge belum dibaca + dering saat ada yang baru ---- */
+.tk-notif-bell {
+  transition: color 0.15s ease, background 0.15s ease;
+}
+.tk-notif-bell:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+.tk-notif-bell--unread .tk-notif-bell__icon {
+  filter: drop-shadow(0 0 6px rgba(250, 204, 21, 0.85));
+}
+.tk-notif-bell--ring .tk-notif-bell__icon {
+  animation: tkNotifRing 1.5s ease-in-out;
+  transform-origin: 50% 10%;
+}
+.tk-notif-badge {
+  animation: tkNotifBadgeIn 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes tkNotifRing {
+  0%, 55%, 100% { transform: rotate(0deg); }
+  8% { transform: rotate(14deg); }
+  18% { transform: rotate(-12deg); }
+  28% { transform: rotate(9deg); }
+  38% { transform: rotate(-6deg); }
+  48% { transform: rotate(3deg); }
+}
+@keyframes tkNotifBadgeIn {
+  from { opacity: 0; transform: scale(0.5); }
+  to { opacity: 1; transform: scale(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tk-notif-bell--ring .tk-notif-bell__icon,
+  .tk-notif-badge {
+    animation: none;
+  }
+}
 @keyframes tkGrowX {
   from { transform: scaleX(0); }
   to { transform: scaleX(1); }

@@ -338,4 +338,16 @@ describe('NotifikasiModal: 3 tab (Kabar Media / Aktivitas Laporan / Komentar)', 
     render(<NotifikasiModal onClose={vi.fn()} />);
     expect(await screen.findByText(/gagal memuat kabar media/i)).toBeInTheDocument();
   });
+
+  it('badge "belum dibaca" tampil di tab yang punya notifikasi baru', async () => {
+    vi.stubGlobal('fetch', vi.fn(() => Promise.resolve({ ok: true, json: async () => ACTIVITY })));
+    render(
+      <NotifikasiModal onClose={vi.fn()} unread={{ media: 3, activities: 1, comments: 0 }} />
+    );
+
+    expect(await screen.findByTestId('notif-tab-badge-media')).toHaveTextContent('3');
+    expect(screen.getByTestId('notif-tab-badge-laporan')).toHaveTextContent('1');
+    // Tidak ada komentar baru -> tab Komentar tanpa badge angka.
+    expect(screen.queryByTestId('notif-tab-badge-komentar')).not.toBeInTheDocument();
+  });
 });
