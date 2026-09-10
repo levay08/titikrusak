@@ -87,40 +87,44 @@ router.get('/', (req, res) => {
       .all();
     // Catatan [Update] TERAKHIR di deskripsi (judul berita + sumbernya).
     const LAST_NOTE_RE = /\[Update (\d{4}-\d{2}-\d{2}): ([^\]]+)\](?![\s\S]*\[Update )/;
-    const mediaEvents = mediaRows
-      .map((r) => {
-        const m = String(r.description || '').match(LAST_NOTE_RE);
-        const updated = String(r.updated_at) !== String(r.created_at);
-        // kind: perbaikan > update > baru (hanya bila tersentuh cycle terakhir)
-        // > tercatat (titik lama yang belum pernah diperbarui - label netral,
-        // jangan mengaku "baru").
-        let kind = 'tercatat';
-        let at = r.created_at;
-        if (r.media_repair_at) {
-          kind = 'perbaikan';
-          at = r.media_repair_at;
-        } else if (updated) {
-          kind = 'update';
-          at = r.updated_at;
-        } else if (Number(r.is_new_seed) === 1) {
-          kind = 'baru';
-        }
-        return {
-          kind,
-          at,
-          report_id: r.report_id,
-          location_name: r.location_name,
-          severity: r.severity,
-          infra_type: r.infra_type,
-          status: r.status,
-          source_media_name: r.source_media_name,
-          source_media_date: r.source_media_date,
-          is_new_seed: r.is_new_seed,
-          note: m ? m[2].trim() : null,
-        };
-      })
-      .sort((a, b) => String(b.at).localeCompare(String(a.at)))
-      .slice(0, 60);
+    const allMedia = mediaRows.map((r) => {
+      const m = String(r.description || '').match(LAST_NOTE_RE);
+      const updated = String(r.updated_at) !== String(r.created_at);
+      // kind: perbaikan > update > baru (hanya bila tersentuh cycle terakhir)
+      // > tercatat (titik lama yang belum pernah diperbarui - label netral,
+      // jangan mengaku "baru").
+      let kind = 'tercatat';
+      let at = r.created_at;
+      if (r.media_repair_url || r.media_repair_at) {
+        kind = 'perbaikan';
+        at = r.media_repair_at || r.updated_at || r.created_at;
+      } else if (updated) {
+        kind = 'update';
+        at = r.updated_at;
+      } else if (Number(r.is_new_seed) === 1) {
+        kind = 'baru';
+      }
+      return {
+        kind,
+        at,
+        report_id: r.report_id,
+        location_name: r.location_name,
+        severity: r.severity,
+        infra_type: r.infra_type,
+        status: r.status,
+        source_media_name: r.source_media_name,
+        source_media_date: r.source_media_date,
+        is_new_seed: r.is_new_seed,
+        note: m ? m[2].trim() : null,
+      };
+    });
+    // Semua kabar "diberitakan sudah diperbaiki" SELALU tampil (jangan
+    // terpotong batas 60 karena tanggalnya tua), sisanya urut terbaru.
+    const byAtDesc = (a, b) => String(b.at).localeCompare(String(a.at));
+    const mediaEvents = [
+      ...allMedia.filter((e) => e.kind === 'perbaikan').sort(byAtDesc),
+      ...allMedia.filter((e) => e.kind !== 'perbaikan').sort(byAtDesc).slice(0, 60),
+    ];
 
     // Tab "Aktivitas Laporan": HANYA laporan manual warga (source_type bukan
     // 'media') + perubahan status oleh otoritas e.id. Vote dukungan tidak
