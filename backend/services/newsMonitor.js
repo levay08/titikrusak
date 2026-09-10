@@ -353,10 +353,50 @@ function placeName(s) {
     .replace(/\s+/g, ' ').trim();
 }
 
+// Kata tempat yang TERLALU UMUM untuk dijadikan bukti kecocokan: nama
+// provinsi/pulau, arah mata angin, dan kata administratif. Tanpa ini,
+// "Aceh Utara" dianggap cocok dengan "Aceh Tengah" hanya karena sama-sama
+// memuat kata "aceh" (bug 9 Sep 2026: 9 berita sekolah Aceh nyasar ke
+// titik SDN 12 Bintang / Aceh Tengah).
+const GEO_GENERIC = new Set(('aceh sumatera sumatra utara selatan barat timur tengah jawa kalimantan ' +
+  'sulawesi papua maluku bali nusa tenggara indonesia jakarta surabaya bandung medan ' +
+  'kepulauan riau bangka belitung kota kabupaten kecamatan kec desa kelurahan gampong ' +
+  'kampung nagari provinsi wilayah daerah').split(' '));
+
+// Nama wilayah berarah ("aceh utara", "jawa timur", ...) dibandingkan sebagai
+// PASANGAN utuh - dua kabupaten berbeda di provinsi yang sama tidak akan
+// pernah dianggap sama.
+const REGION_RE = /\b(aceh|sumatera|sumatra|jawa|kalimantan|sulawesi|papua|maluku|bali|nusa tenggara|bangka belitung|kepulauan riau)\s+(utara|selatan|barat|timur|tengah)\b/g;
+
+function regionKeys(text) {
+  return new Set([...String(text || '').toLowerCase().matchAll(REGION_RE)].map((m) => `${m[1]} ${m[2]}`));
+}
+
+// true bila kedua teks menyebut wilayah berarah yang sama sekali BERBEDA.
+function regionConflict(a, b) {
+  const ka = regionKeys(a);
+  const kb = regionKeys(b);
+  if (!ka.size || !kb.size) return false;
+  for (const k of kb) if (ka.has(k)) return false;
+  return true;
+}
+
+// true bila kedua teks menyebut wilayah berarah yang SAMA (mis. dua-duanya
+// "aceh utara") - sah dianggap satu wilayah walau katanya kata umum.
+function regionOverlap(a, b) {
+  const ka = regionKeys(a);
+  const kb = regionKeys(b);
+  for (const k of kb) if (ka.has(k)) return true;
+  return false;
+}
+
 function locContains(a, b) {
   // apakah nama tempat a memuat kata tempat b (atau sebaliknya)?
-  const ta = placeName(a).split(' ').filter((w) => w.length >= 4);
-  const tb = placeName(b).split(' ').filter((w) => w.length >= 4);
+  // Kata generik (provinsi/arah) dan kata jenis infrastruktur diabaikan:
+  // harus ada kata NAMA TEMPAT yang khas di kedua sisi.
+  const tok = (s) => placeName(s).split(' ').filter((w) => w.length >= 4 && !GEO_GENERIC.has(w) && !STOP_SPECIFIC.has(w));
+  const ta = tok(a);
+  const tb = tok(b);
   if (ta.length === 0 || tb.length === 0) return false;
   const sa = new Set(ta);
   return tb.some((w) => sa.has(w));
@@ -364,6 +404,11 @@ function locContains(a, b) {
 
 // Kecocokan artikel dgn satu titik media: kembalikan skor atau null.
 function matchScore(row, title, locs) {
+  // Veto wilayah: artikel tentang kabupaten lain TIDAK boleh menempel ke
+  // titik ini walau kata beritanya banyak yang sama (mis. berita "Aceh
+  // Utara" jangan masuk ke titik "Aceh Tengah").
+  const rowText = `${row.location_name || ''} ${row.description || ''}`;
+  if (regionConflict(rowText, title)) return null;
   const hay = cleanTitle(`${row.description || ''} ${row.location_name || ''}`);
   const over = tokenOverlap(hay, title);
   if (over < 0.3) return null;
@@ -371,15 +416,21 @@ function matchScore(row, title, locs) {
   const infraOk = row.infra_type === iInfra || row.infra_type === 'prasarana_publik' || iInfra === 'prasarana_publik';
   if (!infraOk) return null;
   const nameMatch = locs ? locs.some((l) => l.kind !== 'provinsi' && locContains(row.location_name, l.name)) : false;
+  // Bukti wilayah KHAS: wilayah berarah yang sama (dua-duanya "aceh utara")
+  // atau satu kata nama tempat yang benar-benar sama - bukan nama provinsi.
+  const strictPlace = regionOverlap(rowText, title) || locContains(row.location_name, title);
+  const placeMatch = nameMatch || strictPlace;
   const shared = (() => {
     const st = specificTokens(title);
     const sr = specificTokens(hay);
     for (const w of st) if (sr.has(w)) return true;
     return false;
   })();
-  if ((over >= 0.5 && nameMatch) || (over >= 0.42 && nameMatch && shared)) {
-    return { over, reason: nameMatch ? 'lokasi' : 'judul' };
-  }
+  if (over >= 0.5 && placeMatch) return { over, reason: 'lokasi' };
+  if (over >= 0.42 && placeMatch && shared) return { over, reason: 'lokasi' };
+  // Titik dan artikel jelas satu wilayah (nama kabupaten sama) -> cukup
+  // kemiripan judul sedang; ini kasus "lanjutan berita objek yang sama".
+  if (over >= 0.3 && strictPlace) return { over, reason: 'lokasi' };
   return null;
 }
 
@@ -574,33 +625,45 @@ function applyUpdate(row, item, { kind, log } = {}) {
   const low = String(item.title || '').toLowerCase();
   const complete = COMPLETE_RE.test(low);
   const setMediaClaim = complete && row.status === 'dilaporkan';
+  // Sumber titik HANYA diganti bila artikel baru benar-benar menyebut
+  // wilayah/objek titik ini - artikel nyasar jangan menimpa sumber asli
+  // (mis. sumber detikSumut diganti berita Aceh Tamiang yang tak terkait).
+  const rowText = `${row.location_name || ''} ${base}`;
+  const samePlace = !regionConflict(rowText, item.title)
+    && (regionOverlap(rowText, item.title) || locContains(row.location_name, item.title));
   const nowIso = new Date().toISOString();
-  if (setMediaClaim) {
+  if (samePlace) {
     db.prepare(
       `UPDATE reports SET description = ?, severity = CASE WHEN ? > 0 THEN ? ELSE severity END,
        source_media_name = ?, source_media_url = ?, source_media_date = ?,
-       media_repair_url = ?, media_repair_at = ?,
+       media_repair_url = CASE WHEN ? = 1 THEN ? ELSE media_repair_url END,
+       media_repair_at = CASE WHEN ? = 1 THEN ? ELSE media_repair_at END,
        updated_at = CURRENT_TIMESTAMP WHERE id = ?`
     ).run(desc, sevUp ? 1 : 0, sev, item.source || row.source_media_name, item.link,
-      item.pubDate || row.source_media_date, item.link, nowIso, row.id);
-    row.media_repair_url = item.link;
-    row.media_repair_at = nowIso;
+      item.pubDate || row.source_media_date,
+      setMediaClaim ? 1 : 0, item.link, setMediaClaim ? 1 : 0, nowIso, row.id);
+    row.source_media_url = item.link;
+    row.source_media_name = item.source || row.source_media_name;
+    row.source_media_date = item.pubDate || row.source_media_date;
   } else {
     db.prepare(
       `UPDATE reports SET description = ?, severity = CASE WHEN ? > 0 THEN ? ELSE severity END,
-       source_media_name = ?, source_media_url = ?, source_media_date = ?,
+       media_repair_url = CASE WHEN ? = 1 THEN ? ELSE media_repair_url END,
+       media_repair_at = CASE WHEN ? = 1 THEN ? ELSE media_repair_at END,
        updated_at = CURRENT_TIMESTAMP WHERE id = ?`
-    ).run(desc, sevUp ? 1 : 0, sev, item.source || row.source_media_name, item.link,
-      item.pubDate || row.source_media_date, row.id);
+    ).run(desc, sevUp ? 1 : 0, sev, setMediaClaim ? 1 : 0, item.link,
+      setMediaClaim ? 1 : 0, nowIso, row.id);
+  }
+  if (setMediaClaim) {
+    row.media_repair_url = item.link;
+    row.media_repair_at = nowIso;
   }
   row.description = desc;
   row.severity = sevUp ? sev : row.severity;
-  row.source_media_url = item.link;
-  row.source_media_name = item.source || row.source_media_name;
-  row.source_media_date = item.pubDate || row.source_media_date;
   const extra = sevUp ? ' + severity naik' : '';
   const claim = setMediaClaim ? ' => klaim media: sudah diperbaiki (menunggu otoritas, hijau tanpa ✓)' : '';
-  log(`  ~ update #${row.id}: ${kind === 'progres' ? 'progres perbaikan' : 'peristiwa sama (sumber baru)'}${extra}${claim}: ${item.title} (${item.source})`);
+  const srcNote = samePlace ? '' : ' [sumber asli dipertahankan: artikel tidak menyebut lokasi titik]';
+  log(`  ~ update #${row.id}: ${kind === 'progres' ? 'progres perbaikan' : 'peristiwa sama (sumber baru)'}${extra}${claim}${srcNote}: ${item.title} (${item.source})`);
 }
 
 // Gabung duplikat ISI yang terlanjur ada (aturan user: objek/peristiwa SAMA
@@ -643,4 +706,4 @@ function mergeMediaDuplicates(log) {
   return removed;
 }
 
-module.exports = { runMonitor, QUERIES, fetchOgImage };
+module.exports = { runMonitor, QUERIES, fetchOgImage, matchScore, regionConflict, regionOverlap, locContains };
