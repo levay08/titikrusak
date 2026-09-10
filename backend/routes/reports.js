@@ -62,6 +62,11 @@ const PUBLIC_COLUMNS = [
   'related_earthquake',
   'related_weather',
   'vote_count',
+  // Klaim status lapangan oleh warga (9 Sep 2026) + tanda titik baru dari
+  // seed media (is_new_seed: hanya berlaku sampai cycle monitor berikutnya).
+  'claim_fixed_count',
+  'claim_gone_count',
+  'is_new_seed',
   'enriched_osm',
   'unverifiable',
   'unverifiable_reason',

@@ -1,5 +1,5 @@
 // frontend/src/components/Discussion.jsx
-// Diskusi per laporan (3 Sep 2026). Menulis butuh sesi e.id verified;
+// Komentar per laporan (3 Sep 2026). Menulis butuh sesi e.id verified;
 // identitas = pilihan nama/anonim saat verifikasi. Anti-spam + sensor kata
 // kasar (asterisk) di server. Upvote = arrow up ala Reddit (sekali per user).
 
@@ -143,7 +143,7 @@ export default function Discussion({ report, onNeedVerify }) {
   return (
     <div style={{ marginTop: 14, borderTop: '1px solid #e2e8f0', paddingTop: 12 }}>
       <div style={{ fontSize: 12, fontWeight: 600, color: '#334155', marginBottom: 8 }}>
-        Diskusi ({list.length})
+        Komentar ({list.length})
       </div>
 
       {verifyOpen && (
@@ -183,7 +183,7 @@ export default function Discussion({ report, onNeedVerify }) {
             marginBottom: 10,
           }}
         >
-          Verifikasi e.id untuk ikut berdiskusi
+          Verifikasi e.id untuk ikut berkomentar
         </button>
       )}
 
@@ -233,7 +233,7 @@ export default function Discussion({ report, onNeedVerify }) {
 
       {list.length === 0 && (
         <p style={{ fontSize: 12, color: '#64748b', margin: '4px 0 8px' }}>
-          Belum ada diskusi untuk titik ini.
+          Belum ada komentar untuk titik ini. Tulis komentar atau konfirmasi kondisi terkini di lapangan.
         </p>
       )}
 

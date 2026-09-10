@@ -6,6 +6,7 @@
 
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom/vitest';
 import { AboutModal, StatistikModal, PantauModal, NotifikasiModal } from './HeaderModals.jsx';
 
@@ -176,91 +177,154 @@ describe('PantauModal (poin 9: laporan perbaikan & selesai)', () => {
   });
 });
 
-describe('NotifikasiModal (feed aktivitas gabungan - transparansi)', () => {
+describe('NotifikasiModal: 3 tab (Kabar Media / Aktivitas Laporan / Komentar)', () => {
   afterEach(() => {
     vi.unstubAllGlobals();
   });
 
-  it('menampilkan laporan, perubahan status, dan dukungan dari /api/activity', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn(() =>
-        Promise.resolve({
-          ok: true,
-          json: async () => ({
-            activities: [
-              {
-                type: 'report_created',
-                report_id: 3,
-                location_name: 'Jembatan Cibeureum',
-                actor: 'Warga Garut',
-                source_type: 'warga',
-                severity: 'ambruk',
-                infra_type: 'jembatan',
-                at: '2026-09-01 10:00:00',
-              },
-              {
-                type: 'report_created',
-                report_id: 40,
-                location_name: 'Jalan Trans Sulawesi Parimo',
-                actor: null,
-                source_type: 'media',
-                source_media_name: 'Kompas.com',
-                source_media_date: 'Thu, 21 May 2026 07:00:00 GMT',
-                severity: 'berat',
-                infra_type: 'jalan',
-                at: '2026-09-01 10:30:00',
-              },
-              {
-                type: 'status_changed',
-                report_id: 3,
-                location_name: 'Jembatan Cibeureum',
-                actor: 'Dinas PU',
-                new_status: 'terverifikasi',
-                at: '2026-09-01 11:00:00',
-              },
-              {
-                type: 'voted',
-                report_id: 3,
-                location_name: 'Jembatan Cibeureum',
-                actor: null,
-                at: '2026-09-01 12:00:00',
-              },
-            ],
-          }),
-        })
-      )
+  const ACTIVITY = {
+    activities: [
+      {
+        type: 'report_created',
+        report_id: 3,
+        location_name: 'Jembatan Cibeureum',
+        actor: 'Warga Garut',
+        source_type: 'warga',
+        reporter_is_verified: 1,
+        severity: 'ambruk',
+        infra_type: 'jembatan',
+        at: '2026-09-01 10:00:00',
+      },
+      {
+        type: 'status_changed',
+        report_id: 3,
+        location_name: 'Jembatan Cibeureum',
+        actor: 'Dinas PU',
+        new_status: 'terverifikasi',
+        at: '2026-09-01 11:00:00',
+      },
+    ],
+    commentGroups: [
+      {
+        report_id: 3,
+        location_name: 'Jembatan Cibeureum',
+        infra_type: 'jembatan',
+        severity: 'ambruk',
+        count: 2,
+        last_name: 'Warga',
+        last_at: '2026-09-01 12:00:00',
+      },
+    ],
+    // Seed media: satu titik BARU (is_new_seed=1) + satu lama (0).
+    seedMedia: [
+      {
+        report_id: 40,
+        location_name: 'Jalan Trans Sulawesi Parimo',
+        severity: 'berat',
+        infra_type: 'jalan',
+        status: 'dilaporkan',
+        source_media_name: 'Kompas.com',
+        source_media_date: '2026-05-21',
+        is_new_seed: 1,
+        at: '2026-09-01 10:30:00',
+      },
+      {
+        report_id: 12,
+        location_name: 'Jembatan Saka Harang',
+        severity: 'ambruk',
+        infra_type: 'jembatan',
+        status: 'dilaporkan',
+        source_media_name: 'ANTARA',
+        source_media_date: '2026-08-30',
+        is_new_seed: 0,
+        at: '2026-08-30 08:00:00',
+      },
+    ],
+    citizenReports: [
+      {
+        report_id: 3,
+        location_name: 'Jembatan Cibeureum',
+        severity: 'ambruk',
+        infra_type: 'jembatan',
+        status: 'dilaporkan',
+        reporter_display_name: 'Warga Garut',
+        reporter_is_verified: 1,
+        at: '2026-09-01 10:00:00',
+      },
+    ],
+    verifications: [
+      {
+        report_id: 3,
+        location_name: 'Jembatan Cibeureum',
+        new_status: 'terverifikasi',
+        actor: 'Dinas PU',
+        at: '2026-09-01 11:00:00',
+      },
+    ],
+  };
+
+  it('tab Kabar Media: titik BARU ditandai, yang lama tidak; baris bisa diklik buka detail', async () => {
+    vi.stubGlobal('fetch', vi.fn(() => Promise.resolve({ ok: true, json: async () => ACTIVITY })));
+    const user = userEvent.setup();
+    const onOpenReport = vi.fn();
+    render(
+      <NotifikasiModal
+        onClose={vi.fn()}
+        reports={[
+          {
+            id: 40,
+            location_name: 'Jalan Trans Sulawesi Parimo',
+            severity: 'berat',
+            infra_type: 'jalan',
+            status: 'dilaporkan',
+          },
+        ]}
+        onOpenReport={onOpenReport}
+      />
     );
 
+    expect(await screen.findByText('Jalan Trans Sulawesi Parimo')).toBeInTheDocument();
+    // Tanda BARU hanya untuk titik yang masuk pada cycle terakhir.
+    expect(screen.getByText('BARU')).toBeInTheDocument();
+    expect(screen.getByText(/Titik baru dari seed media/)).toBeInTheDocument();
+    expect(screen.getByText(/Diperbarui dari seed media/)).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: /Jalan Trans Sulawesi Parimo/ }));
+    expect(onOpenReport).toHaveBeenCalledWith(expect.objectContaining({ id: 40 }));
+  });
+
+  it('tab Aktivitas Laporan: laporan warga + verifikasi otoritas, TANPA titik seed media', async () => {
+    vi.stubGlobal('fetch', vi.fn(() => Promise.resolve({ ok: true, json: async () => ACTIVITY })));
+    const user = userEvent.setup();
     render(<NotifikasiModal onClose={vi.fn()} />);
 
-    // Ketiga jenis aktivitas tampil (laporan warga + laporan media).
-    expect((await screen.findAllByText(/melaporkan/i)).length).toBeGreaterThanOrEqual(2);
-    expect(screen.getByText(/mengubah status menjadi/i)).toBeInTheDocument();
-    expect(screen.getByText(/mendukung laporan/i)).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Aktivitas Laporan' }));
 
-    // Aktor + lokasi. Titik media: pelapor = "Media", bukan warga.
-    expect(screen.getByText('Warga Garut')).toBeInTheDocument();
-    expect(screen.getByText('Media')).toBeInTheDocument();
+    expect(await screen.findByText('Warga Garut')).toBeInTheDocument();
+    expect(screen.getAllByText(/melaporkan/).length).toBeGreaterThanOrEqual(1);
+    // Pemisah sumber laporan: e.id terverifikasi vs tanpa e.id.
+    expect(screen.getByText('Warga · e.id terverifikasi')).toBeInTheDocument();
     expect(screen.getByText('Dinas PU')).toBeInTheDocument();
-    expect(screen.getByText('Warga')).toBeInTheDocument();
+    expect(screen.getByText(/mengubah status menjadi/)).toBeInTheDocument();
     expect(screen.getAllByText('Jembatan Cibeureum').length).toBeGreaterThanOrEqual(1);
-    expect(screen.getByText('Jalan Trans Sulawesi Parimo')).toBeInTheDocument();
+    // Titik hasil seed media tidak boleh ikut di tab ini.
+    expect(screen.queryByText('Jalan Trans Sulawesi Parimo')).not.toBeInTheDocument();
+  });
 
-    // Titik media: nama media + TANGGAL pertama diberitakan (RFC date dari
-    // DB di-parse ke format Indonesia, mis. "21 Mei 2026").
-    expect(
-      screen.getByText(/Pertama diberitakan media oleh Kompas\.com pada 21 Mei 2026/i)
-    ).toBeInTheDocument();
+  it('tab Komentar: ringkasan komentar per titik (istilah "komentar", bukan "diskusi")', async () => {
+    vi.stubGlobal('fetch', vi.fn(() => Promise.resolve({ ok: true, json: async () => ACTIVITY })));
+    const user = userEvent.setup();
+    render(<NotifikasiModal onClose={vi.fn()} />);
 
-    // Chip status perubahan + chip severity laporan.
-    expect(screen.getByText('Terverifikasi')).toBeInTheDocument();
-    expect(screen.getByText('Ambruk')).toBeInTheDocument();
+    await user.click(await screen.findByRole('button', { name: /Komentar/ }));
+    expect(screen.getByRole('button', { name: /Komentar \(1\)/ })).toBeInTheDocument();
+    expect(screen.getAllByText('Jembatan Cibeureum').length).toBeGreaterThanOrEqual(1);
+    expect(screen.queryByText(/diskusi/i)).not.toBeInTheDocument();
   });
 
   it('gagal memuat -> pesan error, tidak throw', async () => {
     vi.stubGlobal('fetch', vi.fn(() => Promise.resolve({ ok: false, status: 500 })));
     render(<NotifikasiModal onClose={vi.fn()} />);
-    expect(await screen.findByText(/gagal memuat aktivitas/i)).toBeInTheDocument();
+    expect(await screen.findByText(/gagal memuat kabar media/i)).toBeInTheDocument();
   });
 });

@@ -23,7 +23,7 @@ router.get('/', (req, res) => {
         `SELECT 'report_created' AS type, id AS report_id, location_name,
                 reporter_display_name AS actor, source_type,
                 source_media_name, source_media_date, severity, infra_type,
-                created_at AS at
+                reporter_is_verified, created_at AS at
          FROM reports`
       )
       .all();
@@ -80,11 +80,24 @@ router.get('/', (req, res) => {
     }
     const commentGroups = [...groupMap.values()].slice(0, 40);
 
+    // 5) Notifikasi SEED MEDIA (9 Sep 2026): titik yang dibuat/diperbarui oleh
+    //    monitor berita. `is_new_seed=1` = masuk pada CYCLE TERAKHIR (tanda
+    //    "BARU"; direset otomatis saat cycle berikutnya berjalan).
+    const seedMedia = db
+      .prepare(
+        `SELECT id AS report_id, location_name, severity, infra_type, status,
+                source_media_name, source_media_date, is_new_seed,
+                created_at, updated_at AS at
+         FROM reports WHERE source_type = 'media'
+         ORDER BY updated_at DESC LIMIT 60`
+      )
+      .all();
+
     const activities = [...created, ...statuses, ...votes]
       .sort((a, b) => String(b.at).localeCompare(String(a.at)))
       .slice(0, limit);
 
-    res.json({ activities, commentGroups });
+    res.json({ activities, commentGroups, seedMedia });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Gagal memuat aktivitas' });

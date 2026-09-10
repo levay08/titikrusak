@@ -443,6 +443,10 @@ async function runMonitor({ dry = false, log = console.log } = {}) {
     const merged = mergeMediaDuplicates(log);
     results.merged = merged;
     if (merged > 0) log(`  ~ duplikat isi lama digabung: ${merged} baris dihapus`);
+    // Tanda "BARU" (is_new_seed) hanya berlaku untuk CYCLE TERAKHIR: bersihkan
+    // dulu, lalu titik yang masuk/diperbarui di cycle ini ditandai lagi.
+    const cleared = db.prepare('UPDATE reports SET is_new_seed = 0 WHERE is_new_seed <> 0').run().changes;
+    if (cleared > 0) log(`  ~ tanda BARU cycle lalu dibersihkan: ${cleared} titik`);
   }
 
   // kumpulkan titik media existing (termasuk yang di-update/insert run ini)
@@ -572,8 +576,8 @@ async function runMonitor({ dry = false, log = console.log } = {}) {
     const stmt = db.prepare(
       `INSERT INTO reports (infra_type, severity, bridge_authority, vital_status, description,
         location_name, lat, lng, source_type, source_media_name, source_media_url, source_media_date,
-        photo_urls, status)
-       VALUES (?, ?, 'tidak_diketahui', '["akses_ekonomi"]', ?, ?, ?, ?, 'media', ?, ?, ?, ?, 'dilaporkan')`
+        photo_urls, status, is_new_seed)
+       VALUES (?, ?, 'tidak_diketahui', '["akses_ekonomi"]', ?, ?, ?, ?, 'media', ?, ?, ?, ?, 'dilaporkan', 1)`
     );
     stmt.run(
       entry.infra, entry.severity,
@@ -638,6 +642,7 @@ function applyUpdate(row, item, { kind, log } = {}) {
        source_media_name = ?, source_media_url = ?, source_media_date = ?,
        media_repair_url = CASE WHEN ? = 1 THEN ? ELSE media_repair_url END,
        media_repair_at = CASE WHEN ? = 1 THEN ? ELSE media_repair_at END,
+       is_new_seed = 1,
        updated_at = CURRENT_TIMESTAMP WHERE id = ?`
     ).run(desc, sevUp ? 1 : 0, sev, item.source || row.source_media_name, item.link,
       item.pubDate || row.source_media_date,
@@ -650,6 +655,7 @@ function applyUpdate(row, item, { kind, log } = {}) {
       `UPDATE reports SET description = ?, severity = CASE WHEN ? > 0 THEN ? ELSE severity END,
        media_repair_url = CASE WHEN ? = 1 THEN ? ELSE media_repair_url END,
        media_repair_at = CASE WHEN ? = 1 THEN ? ELSE media_repair_at END,
+       is_new_seed = 1,
        updated_at = CURRENT_TIMESTAMP WHERE id = ?`
     ).run(desc, sevUp ? 1 : 0, sev, setMediaClaim ? 1 : 0, item.link,
       setMediaClaim ? 1 : 0, nowIso, row.id);

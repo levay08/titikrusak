@@ -180,6 +180,83 @@ router.delete('/:id/vote', (req, res) => {
   res.json(getRow(id));
 });
 
+// ---- Klaim status lapangan oleh warga (9 Sep 2026) --------------------------
+// Dua klaim cepat di samping tombol dukungan:
+//   'diperbaiki' = warga melaporkan titik SUDAH DIPERBAIKI (simbol bintang)
+//   'hilang'     = warga melaporkan titik SUDAH TIDAK ADA (mis. sudah dibongkar)
+// Identitas seperti vote (sesi e.id bila ada, selain itu IP) - satu klaim per
+// identitas per jenis per laporan; klik ulang = batalkan (uncheck). Hitungan
+// disimpan di kolom TERPISAH dari vote_count sehingga update seed media tidak
+// pernah mereset/mengubahnya.
+const CLAIM_KINDS = ['diperbaiki', 'hilang'];
+const claimIdentity = (req) =>
+  (req.eidSession && req.eidSession.holder_did) || 'ip:' + (req.ip || 'anonim');
+
+function claimCounts(id) {
+  const r = db.prepare('SELECT claim_fixed_count, claim_gone_count FROM reports WHERE id = ?').get(id) || {};
+  return { diperbaiki: r.claim_fixed_count || 0, hilang: r.claim_gone_count || 0 };
+}
+
+// GET /:id/claims -> { counts, mine } (mine = daftar jenis yang sudah diklaim
+// oleh perangkat/sesi ini, untuk tombol checked + opsi uncheck).
+router.get('/:id/claims', (req, res) => {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id) || id <= 0) return res.status(404).json({ error: 'Laporan tidak ditemukan' });
+  if (!db.prepare('SELECT id FROM reports WHERE id = ?').get(id)) {
+    return res.status(404).json({ error: 'Laporan tidak ditemukan' });
+  }
+  const mine = db
+    .prepare('SELECT kind FROM status_claims WHERE report_id = ? AND claimer_did = ?')
+    .all(id, claimIdentity(req));
+  res.json({ counts: claimCounts(id), mine: mine.map((m) => m.kind) });
+});
+
+// POST /:id/claim { kind: 'diperbaiki' | 'hilang' }
+router.post('/:id/claim', (req, res) => {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id) || id <= 0) return res.status(404).json({ error: 'Laporan tidak ditemukan' });
+  if (!db.prepare('SELECT id FROM reports WHERE id = ?').get(id)) {
+    return res.status(404).json({ error: 'Laporan tidak ditemukan' });
+  }
+  const kind = (req.body || {}).kind;
+  if (!CLAIM_KINDS.includes(kind)) {
+    return res.status(400).json({ error: `kind harus salah satu dari: ${CLAIM_KINDS.join(', ')}` });
+  }
+  const did = claimIdentity(req);
+  const dup = db
+    .prepare('SELECT id FROM status_claims WHERE report_id = ? AND kind = ? AND claimer_did = ?')
+    .get(id, kind, did);
+  if (dup) return res.status(409).json({ error: 'Anda sudah melaporkan status ini untuk titik tersebut' });
+
+  const col = kind === 'diperbaiki' ? 'claim_fixed_count' : 'claim_gone_count';
+  db.transaction(() => {
+    db.prepare('INSERT INTO status_claims (report_id, kind, claimer_did) VALUES (?, ?, ?)').run(id, kind, did);
+    db.prepare(`UPDATE reports SET ${col} = ${col} + 1, updated_at = CURRENT_TIMESTAMP WHERE id = ?`).run(id);
+  })();
+  res.status(201).json({ counts: claimCounts(id), mine: [...new Set([kind])] });
+});
+
+// DELETE /:id/claim?kind=... -> batalkan klaim (uncheck)
+router.delete('/:id/claim', (req, res) => {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id) || id <= 0) return res.status(404).json({ error: 'Laporan tidak ditemukan' });
+  const kind = (req.query || {}).kind;
+  if (!CLAIM_KINDS.includes(kind)) {
+    return res.status(400).json({ error: `kind harus salah satu dari: ${CLAIM_KINDS.join(', ')}` });
+  }
+  const did = claimIdentity(req);
+  const row = db
+    .prepare('SELECT id FROM status_claims WHERE report_id = ? AND kind = ? AND claimer_did = ?')
+    .get(id, kind, did);
+  if (!row) return res.status(404).json({ error: 'Klaim tidak ditemukan' });
+  const col = kind === 'diperbaiki' ? 'claim_fixed_count' : 'claim_gone_count';
+  db.transaction(() => {
+    db.prepare('DELETE FROM status_claims WHERE id = ?').run(row.id);
+    db.prepare(`UPDATE reports SET ${col} = MAX(0, ${col} - 1), updated_at = CURRENT_TIMESTAMP WHERE id = ?`).run(id);
+  })();
+  res.json({ counts: claimCounts(id), mine: [] });
+});
+
 // ---- PATCH /:id : edit laporan milik sendiri (pelapor verified) ----
 const EDITABLE = ['description', 'location_name', 'severity'];
 router.patch('/:id', requireSession('warga'), (req, res) => {

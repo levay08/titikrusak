@@ -46,6 +46,7 @@ echo "==> [3/5] build frontend"
 # ---- 4. Migrasi skema + seed media (idempotent) ----
 echo "==> [4/5] migrasi skema DB + seed laporan media"
 (cd backend && node scripts/migrate-infra-types.js)
+(cd backend && node scripts/migrate-report-columns.js)
 (cd backend && node scripts/seed-media-reports.js)
 
 # ---- 5. Restart backend ----

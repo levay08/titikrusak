@@ -87,6 +87,47 @@ const LIKE_STARS = [
   [-70, -10, 40], [64, -48, 90], [-14, -58, 20], [10, -64, 210],
 ];
 
+function StarIcon({ active = false, size = 22 }) {
+  // Bintang = warga melaporkan titik SUDAH DIPERBAIKI.
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+      style={{ display: 'block' }}
+      fill={active ? '#f59e0b' : 'none'}
+      stroke={active ? '#f59e0b' : '#94a3b8'}
+      strokeWidth={1.9}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M12 2.6l2.9 5.9 6.5.95-4.7 4.6 1.1 6.45L12 17.4l-5.8 3.1 1.1-6.45-4.7-4.6 6.5-.95Z" />
+    </svg>
+  );
+}
+
+function GoneIcon({ active = false, size = 22 }) {
+  // Lingkaran bergaris miring = warga melaporkan titik SUDAH TIDAK ADA.
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+      style={{ display: 'block' }}
+      fill="none"
+      stroke={active ? '#475569' : '#94a3b8'}
+      strokeWidth={1.9}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <circle cx="12" cy="12" r="9" />
+      <path d="M5.6 5.6l12.8 12.8" />
+    </svg>
+  );
+}
+
 function ThumbIcon({ active = false, size = 26 }) {
   // Model outline modern (Lucide thumbs-up): kanvas 24 dengan jarak aman
   // bawaan - tidak terpotong di ukuran kecil (4 Sep 2026).
@@ -285,6 +326,16 @@ export default function DetailModal({ report, onClose, otoritas = null, onReport
   // hasVoted menandai user sudah mendukung (ikon biru; klik lagi = batalkan).
   const [likeBurst, setLikeBurst] = useState(0);
   const [hasVoted, setHasVoted] = useState(false);
+  // Klaim status lapangan oleh warga (9 Sep 2026): bintang = "sudah
+  // diperbaiki", simbol ∅ = "titik sudah tidak ada". Terpisah dari dukungan
+  // dan dari update seed media (hitungan tidak pernah direset monitor).
+  const [claimCounts, setClaimCounts] = useState({
+    diperbaiki: Number(report.claim_fixed_count) || 0,
+    hilang: Number(report.claim_gone_count) || 0,
+  });
+  const [myClaims, setMyClaims] = useState({ diperbaiki: false, hilang: false });
+  const [claimBusy, setClaimBusy] = useState(''); // '' | 'diperbaiki' | 'hilang'
+  const [claimMsg, setClaimMsg] = useState('');
   // Bookmark (tandai laporan): pin lokal per perangkat.
   const BM_KEY = 'titikrusak_bookmarks';
   const getBm = () => {
@@ -444,6 +495,77 @@ export default function DetailModal({ report, onClose, otoritas = null, onReport
         setVoteState('idle');
         setVoteError(err.message);
       }
+    }
+  };
+
+  // Ambil hitungan klaim + status klaim SAYA (untuk tombol checked/uncheck).
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        const res = await fetch(`/api/reports/${report.id}/claims`, { headers: eidSessionHeaders() });
+        if (!res.ok) return;
+        const body = await res.json();
+        if (!alive) return;
+        if (body.counts) setClaimCounts(body.counts);
+        if (Array.isArray(body.mine)) {
+          setMyClaims({ diperbaiki: body.mine.includes('diperbaiki'), hilang: body.mine.includes('hilang') });
+        }
+      } catch (_e) {
+        /* diamkan - tombol tetap bisa dicoba */
+      }
+    })();
+    return () => {
+      alive = false;
+    };
+  }, [report.id]);
+
+  // Klik klaim: belum diklaim -> POST (tandai), sudah -> DELETE (uncheck).
+  const toggleClaim = async (kind) => {
+    if (otoritas || claimBusy) return;
+    const on = Boolean(myClaims[kind]);
+    setClaimBusy(kind);
+    setClaimMsg('');
+    try {
+      const res = await fetch(
+        on ? `/api/reports/${report.id}/claim?kind=${kind}` : `/api/reports/${report.id}/claim`,
+        on
+          ? { method: 'DELETE', headers: { ...eidSessionHeaders() } }
+          : {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', ...eidSessionHeaders() },
+              body: JSON.stringify({ kind }),
+            }
+      );
+      if (!res.ok) {
+        let msg = `HTTP ${res.status}`;
+        try {
+          const d = await res.json();
+          if (d.error) msg = d.error;
+        } catch (_e) {
+          /* body bukan JSON */
+        }
+        if (/sudah melaporkan status/i.test(msg)) {
+          setMyClaims((m) => ({ ...m, [kind]: true }));
+          setClaimMsg('Anda sudah melaporkan status ini.');
+          return;
+        }
+        throw new Error(msg);
+      }
+      const body = await res.json();
+      if (body.counts) setClaimCounts(body.counts);
+      setMyClaims((m) => ({ ...m, [kind]: !on }));
+      setClaimMsg(
+        on
+          ? 'Laporan status Anda dibatalkan.'
+          : kind === 'diperbaiki'
+            ? 'Terima kasih! Laporan Anda tercatat: titik sudah diperbaiki.'
+            : 'Terima kasih! Laporan Anda tercatat: titik sudah tidak ada.'
+      );
+    } catch (err) {
+      setClaimMsg(err.message);
+    } finally {
+      setClaimBusy('');
     }
   };
 
@@ -932,6 +1054,72 @@ export default function DetailModal({ report, onClose, otoritas = null, onReport
                 </span>
               )}
             </div>
+          )}
+        </div>
+
+        {/* ---- Status lapangan menurut warga (9 Sep 2026): bintang =
+            laporan "titik sudah diperbaiki", ∅ = laporan "titik sudah tidak
+            ada". Memberi gambaran status aktual sebelum ada update dari seed
+            media; hitungan TIDAK berubah oleh pembaruan media. Otoritas
+            melihat hitungannya saja. ---- */}
+        <div style={{ marginTop: 14, borderTop: '1px solid #e2e8f0', paddingTop: 14 }}>
+          <div style={{ fontSize: 13, fontWeight: 600, color: '#334155', marginBottom: 8 }}>
+            Status lapangan menurut warga
+          </div>
+          {!otoritas && (
+            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+              {[
+                { kind: 'diperbaiki', Icon: StarIcon, label: 'sudah diperbaiki', onColor: '#f59e0b', onBg: '#fef3c7', count: claimCounts.diperbaiki },
+                { kind: 'hilang', Icon: GoneIcon, label: 'sudah tidak ada', onColor: '#475569', onBg: '#f1f5f9', count: claimCounts.hilang },
+              ].map(({ kind, Icon, label, onColor, onBg, count }) => {
+                const on = Boolean(myClaims[kind]);
+                const busy = claimBusy === kind;
+                return (
+                  <button
+                    key={kind}
+                    type="button"
+                    aria-label={on ? `Batalkan laporan titik ${label}` : `Laporkan titik ${label}`}
+                    title={on ? 'Klik untuk membatalkan laporan Anda' : `Laporkan ke peta: titik ${label}`}
+                    onClick={() => toggleClaim(kind)}
+                    disabled={busy}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 8,
+                      padding: '8px 13px',
+                      borderRadius: 999,
+                      border: `2px solid ${on ? onColor : '#cbd5e1'}`,
+                      background: on ? onBg : '#fff',
+                      cursor: busy ? 'wait' : 'pointer',
+                      boxShadow: '0 1px 3px rgba(0,0,0,.12)',
+                    }}
+                  >
+                    <Icon active={on} size={20} />
+                    <span style={{ fontSize: 13, fontWeight: 600, color: '#334155' }}>{count} warga</span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+          <div style={{ fontSize: 11.5, color: '#64748b', lineHeight: 1.55, marginTop: 8, textAlign: 'justify' }}>
+            {otoritas ? (
+              <>
+                {claimCounts.diperbaiki} warga melaporkan titik ini sudah diperbaiki ·{' '}
+                {claimCounts.hilang} warga melaporkan titik ini sudah tidak ada.
+              </>
+            ) : (
+              <>
+                {claimCounts.diperbaiki} warga melaporkan titik sudah diperbaiki ·{' '}
+                {claimCounts.hilang} warga melaporkan titik sudah tidak ada.
+                {myClaims.diperbaiki || myClaims.hilang
+                  ? ' Klik tombol yang menyala untuk membatalkan laporan Anda.'
+                  : ' Satu warga satu laporan per jenis.'}
+              </>
+            )}{' '}
+            Hitungan ini dari laporan warga dan tidak berubah oleh pembaruan dari media.
+          </div>
+          {claimMsg && (
+            <div style={{ fontSize: 12, color: '#15803d', fontWeight: 600, marginTop: 6 }}>{claimMsg}</div>
           )}
         </div>
 

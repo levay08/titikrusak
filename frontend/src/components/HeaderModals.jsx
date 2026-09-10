@@ -554,14 +554,23 @@ export function PantauModal({ reports = [], onClose }) {
   );
 }
 
-// ---- Notifikasi (poin 9 + transparansi): feed aktivitas gabungan - laporan
-// baru (warga), perubahan status (otoritas), dan dukungan (warga) - dari
-// GET /api/activity, terurut terbaru. ----
+// ---- Notifikasi (poin 9 + transparansi): TIGA tab (9 Sep 2026) ----
+//   1. "Kabar Media"       : titik dari seed media (monitor berita). Titik yang
+//                            masuk/diperbarui pada CYCLE TERAKHIR diberi tanda
+//                            BARU (is_new_seed) - tanda hilang sendiri saat
+//                            cycle berikutnya berjalan.
+//   2. "Aktivitas Laporan" : laporan MANUAL warga (dengan atau tanpa e.id) +
+//                            verifikasi/perubahan status oleh otoritas. Titik
+//                            hasil seed media TIDAK ikut di sini (dipisah
+//                            berdasarkan sumber laporan).
+//   3. "Komentar"          : ringkasan komentar per titik.
+// Semua baris bisa diklik untuk membuka detail laporan titik tersebut.
 export function NotifikasiModal({ onClose, reports = [], onOpenReport }) {
   const [activities, setActivities] = useState(null); // null = memuat
   const [loadError, setLoadError] = useState(false);
-  const [tab, setTab] = useState('aktivitas'); // 'aktivitas' | 'diskusi'
-  const [groups, setGroups] = useState([]); // ringkasan diskusi per titik
+  const [tab, setTab] = useState('media'); // 'media' | 'laporan' | 'komentar'
+  const [groups, setGroups] = useState([]); // ringkasan komentar per titik
+  const [seedMedia, setSeedMedia] = useState([]); // titik dari seed media
 
   const loadData = async (alive) => {
     try {
@@ -571,6 +580,7 @@ export function NotifikasiModal({ onClose, reports = [], onOpenReport }) {
       if (!alive.v) return;
       setActivities(Array.isArray(body.activities) ? body.activities : []);
       setGroups(Array.isArray(body.commentGroups) ? body.commentGroups : []);
+      setSeedMedia(Array.isArray(body.seedMedia) ? body.seedMedia : []);
     } catch (_e) {
       if (!alive.v) return;
       setLoadError(true);
@@ -593,7 +603,9 @@ export function NotifikasiModal({ onClose, reports = [], onOpenReport }) {
     voted: { bg: '#f0fdf4', fg: '#16a34a' },
   };
 
-  const feed = activities || [];
+  const feed = (activities || []).filter(
+    (a) => !(a.type === 'report_created' && a.source_type === 'media')
+  );
 
   const actorName = (a) => {
     if (a.type === 'report_created') {
@@ -631,7 +643,7 @@ export function NotifikasiModal({ onClose, reports = [], onOpenReport }) {
 
   return (
     <ModalShell title="Notifikasi" onClose={onClose} maxWidth={640}>
-      {/* Dua tab: Aktivitas (peristiwa peta) & Diskusi (per titik) */}
+      {/* Tiga tab: Kabar Media (seed berita) / Aktivitas Laporan (warga+otoritas) / Komentar */}
       <div
         style={{
           display: 'flex',
@@ -642,8 +654,9 @@ export function NotifikasiModal({ onClose, reports = [], onOpenReport }) {
         }}
       >
         {[
-          ['aktivitas', 'Aktivitas'],
-          ['diskusi', 'Diskusi'],
+          ['media', 'Kabar Media'],
+          ['laporan', 'Aktivitas Laporan'],
+          ['komentar', 'Komentar'],
         ].map(([k, label]) => (
           <button
             key={k}
@@ -661,11 +674,20 @@ export function NotifikasiModal({ onClose, reports = [], onOpenReport }) {
             }}
           >
             {label}
-            {k === 'diskusi' && groups.length > 0 ? ` (${groups.length})` : ''}
+            {k === 'komentar' && groups.length > 0 ? ` (${groups.length})` : ''}
           </button>
         ))}
       </div>
-      <div style={{ display: tab === 'aktivitas' ? undefined : 'none' }}>
+      {tab === 'media' && (
+        <MediaSeedNotif
+          items={seedMedia}
+          loading={activities === null && !loadError}
+          error={loadError}
+          reports={reports}
+          onOpenReport={onOpenReport}
+        />
+      )}
+      <div style={{ display: tab === 'laporan' ? undefined : 'none' }}>
       {activities === null && !loadError ? (
         <p style={{ margin: 0, fontSize: 13, color: '#64748b' }}>Memuat aktivitas…</p>
       ) : loadError ? (
@@ -734,6 +756,22 @@ export function NotifikasiModal({ onClose, reports = [], onOpenReport }) {
                 <div style={{ display: 'flex', gap: 5, marginTop: 4, flexWrap: 'wrap' }}>
                   {a.type === 'report_created' && (
                     <>
+                      {/* Pemisah sumber: titik seed media punya tabnya sendiri;
+                          laporan manual ditandai e.id terverifikasi atau tidak. */}
+                      {a.source_type !== 'media' && (
+                        <span
+                          style={{
+                            padding: '2px 8px',
+                            borderRadius: 999,
+                            fontSize: 11,
+                            fontWeight: 600,
+                            background: a.reporter_is_verified ? '#eff6ff' : '#f8fafc',
+                            color: a.reporter_is_verified ? '#2563eb' : '#64748b',
+                          }}
+                        >
+                          {a.reporter_is_verified ? 'Warga · e.id terverifikasi' : 'Warga · tanpa e.id'}
+                        </span>
+                      )}
                       <span
                         style={{
                           padding: '2px 8px',
@@ -781,7 +819,7 @@ export function NotifikasiModal({ onClose, reports = [], onOpenReport }) {
         })
       )}
       </div>
-      {tab === 'diskusi' && (
+      {tab === 'komentar' && (
         <DiscussionNotif
           groups={groups}
           loading={activities === null && !loadError}
@@ -794,8 +832,141 @@ export function NotifikasiModal({ onClose, reports = [], onOpenReport }) {
   );
 }
 
-// ---- Notifikasi Diskusi: ringkasan per TITIK (bukan per komentar). ----
-// Satu titik ramai diskusi cukup tampil sekali dengan jumlah komentar yang
+// ---- Kabar Media: titik yang dibuat/diperbarui oleh seed media (monitor
+// berita). Titik yang masuk/diperbarui pada cycle terakhir diberi tanda
+// "BARU" (kolom is_new_seed; otomatis hilang saat cycle berikutnya jalan).
+// Klik baris -> buka detail laporan titik tersebut. ----
+function MediaSeedNotif({ items = [], loading, error, reports = [], onOpenReport }) {
+  const resolve = (id, extra) =>
+    (reports || []).find((r) => Number(r.id) === Number(id)) || { id: Number(id), ...extra };
+  if (loading) return <p style={{ margin: 0, fontSize: 13, color: '#64748b' }}>Memuat kabar media…</p>;
+  if (error) return <p style={{ margin: 0, fontSize: 13, color: '#b91c1c' }}>Gagal memuat kabar media.</p>;
+  if (!items.length) {
+    return <p style={{ margin: 0, fontSize: 13, color: '#64748b' }}>Belum ada titik dari seed media.</p>;
+  }
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column' }}>
+      <div style={{ fontSize: 12, color: '#64748b', padding: '0 2px 6px', textAlign: 'justify' }}>
+        Titik di bawah dibuat/diperbarui otomatis dari pemberitaan media. Tanda
+        BARU = masuk pada pembaruan terakhir dan akan hilang saat pembaruan berikutnya.
+      </div>
+      {items.map((m) => {
+        const sev = SEVERITY_COLORS[m.severity] || '#64748b';
+        const isNew = Number(m.is_new_seed) === 1;
+        return (
+          <button
+            key={`seed-${m.report_id}`}
+            type="button"
+            onClick={() =>
+              onOpenReport &&
+              onOpenReport(
+                resolve(m.report_id, {
+                  location_name: m.location_name,
+                  severity: m.severity,
+                  infra_type: m.infra_type,
+                  status: m.status,
+                })
+              )
+            }
+            style={{
+              display: 'flex',
+              gap: 10,
+              alignItems: 'flex-start',
+              textAlign: 'left',
+              width: '100%',
+              background: isNew ? '#fffbeb' : '#fff',
+              border: 'none',
+              borderBottom: '1px solid #f1f5f9',
+              padding: '10px 2px',
+              cursor: onOpenReport ? 'pointer' : 'default',
+            }}
+          >
+            <span
+              style={{
+                width: 34,
+                height: 34,
+                borderRadius: '50%',
+                background: `${sev}1a`,
+                color: sev,
+                fontSize: 15,
+                fontWeight: 800,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+              }}
+            >
+              🗞
+            </span>
+            <span style={{ flex: 1, minWidth: 0 }}>
+              <span
+                style={{
+                  display: 'block',
+                  fontSize: 13,
+                  fontWeight: 600,
+                  color: '#1c1917',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {m.location_name}
+              </span>
+              <span style={{ display: 'block', fontSize: 11.5, color: '#64748b', marginTop: 2 }}>
+                {isNew ? 'Titik baru dari seed media' : 'Diperbarui dari seed media'}
+                {m.source_media_name ? ` · ${m.source_media_name}` : ''}
+                {formatDateTime(m.at) ? ` · ${formatDateTime(m.at)}` : ''}
+              </span>
+              <span style={{ display: 'flex', gap: 5, marginTop: 4, flexWrap: 'wrap' }}>
+                {isNew && (
+                  <span
+                    style={{
+                      padding: '2px 8px',
+                      borderRadius: 999,
+                      fontSize: 11,
+                      fontWeight: 800,
+                      background: '#f59e0b',
+                      color: '#fff',
+                    }}
+                  >
+                    BARU
+                  </span>
+                )}
+                <span
+                  style={{
+                    padding: '2px 8px',
+                    borderRadius: 999,
+                    fontSize: 11,
+                    fontWeight: 600,
+                    background: `${sev}1a`,
+                    color: sev,
+                  }}
+                >
+                  {SEVERITY_LABELS[m.severity] || m.severity}
+                </span>
+                <span
+                  style={{
+                    padding: '2px 8px',
+                    borderRadius: 999,
+                    fontSize: 11,
+                    fontWeight: 600,
+                    background: '#f1f5f9',
+                    color: '#334155',
+                  }}
+                >
+                  {INFRA_LABELS[m.infra_type] || m.infra_type}
+                </span>
+              </span>
+            </span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+// ---- Notifikasi Komentar: ringkasan per TITIK (bukan per komentar). ----
+// Satu titik ramai komentar cukup tampil sekali dengan jumlah komentar yang
 // bertambah; animasi sederhana menandakan ada komentar baru (dari siapa &
 // kapan) sejak muat terakhir. Klik baris = buka detail laporan itu.
 function DiscussionNotif({ groups, loading, error, reports = [], onOpenReport }) {
@@ -818,13 +989,13 @@ function DiscussionNotif({ groups, loading, error, reports = [], onOpenReport })
   }, [groups]);
 
   if (loading) {
-    return <p style={{ margin: 0, fontSize: 13, color: '#64748b' }}>Memuat diskusi…</p>;
+    return <p style={{ margin: 0, fontSize: 13, color: '#64748b' }}>Memuat komentar…</p>;
   }
   if (error) {
-    return <p style={{ margin: 0, fontSize: 13, color: '#b91c1c' }}>Gagal memuat diskusi.</p>;
+    return <p style={{ margin: 0, fontSize: 13, color: '#b91c1c' }}>Gagal memuat komentar.</p>;
   }
   if (!groups.length) {
-    return <p style={{ margin: 0, fontSize: 13, color: '#64748b' }}>Belum ada diskusi. Buka detail laporan lalu tulis komentar untuk memulai.</p>;
+    return <p style={{ margin: 0, fontSize: 13, color: '#64748b' }}>Belum ada komentar. Buka detail laporan lalu tulis komentar untuk memulai.</p>;
   }
   return (
     <div>
