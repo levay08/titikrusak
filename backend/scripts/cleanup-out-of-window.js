@@ -9,13 +9,13 @@
 const fs = require('fs');
 const path = require('path');
 const Database = require('better-sqlite3');
-const { mergeMediaDuplicates, fetchOgImage, inSeedWindow, SEED_MIN_DATE } = require('./services/newsMonitor.js');
+const { mergeMediaDuplicates, fetchOgImage, inSeedWindow, SEED_MIN_DATE } = require('../services/newsMonitor.js');
 
 const APPLY = process.argv.includes('--apply');
-const DATA_DIR = path.join(__dirname, 'data');
+const DATA_DIR = path.join(__dirname, '..', 'data');
 const ARCHIVE = path.join(DATA_DIR, 'archive-media-out-of-window.json');
 
-const db = new Database('./reports.db');
+const db = new Database(path.join(__dirname, '..', 'reports.db'));
 const q = (s, ...a) => db.prepare(s).all(...a);
 
 async function main() {
@@ -48,7 +48,7 @@ async function main() {
   // ---- Backup ----
   fs.mkdirSync(DATA_DIR, { recursive: true });
   const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '');
-  const bak = `./reports.db.bak-${stamp}-prewindow`;
+  const bak = path.join(__dirname, '..', `reports.db.bak-${stamp}-prewindow`);
   await db.backup(bak);
   console.log(`\nbackup: ${bak}`);
 

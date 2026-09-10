@@ -1,7 +1,7 @@
 // qa-inventory.js — inventarisasi + pemeriksaan integritas data (READ-ONLY).
 // Jalankan di backend: node qa-inventory.js
 const Database = require('better-sqlite3');
-const db = new Database('./reports.db', { readonly: true });
+const db = new Database(require('path').join(__dirname, '..', 'reports.db'), { readonly: true });
 const q = (s, ...a) => db.prepare(s).all(...a);
 const one = (s, ...a) => db.prepare(s).get(...a);
 const line = (t) => console.log(`\n== ${t}`);
