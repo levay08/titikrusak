@@ -570,7 +570,7 @@ export function NotifikasiModal({ onClose, reports = [], onOpenReport }) {
   const [loadError, setLoadError] = useState(false);
   const [tab, setTab] = useState('media'); // 'media' | 'laporan' | 'komentar'
   const [groups, setGroups] = useState([]); // ringkasan komentar per titik
-  const [seedMedia, setSeedMedia] = useState([]); // titik dari seed media
+  const [mediaEvents, setMediaEvents] = useState([]); // kejadian dari seed media
 
   const loadData = async (alive) => {
     try {
@@ -580,7 +580,7 @@ export function NotifikasiModal({ onClose, reports = [], onOpenReport }) {
       if (!alive.v) return;
       setActivities(Array.isArray(body.activities) ? body.activities : []);
       setGroups(Array.isArray(body.commentGroups) ? body.commentGroups : []);
-      setSeedMedia(Array.isArray(body.seedMedia) ? body.seedMedia : []);
+      setMediaEvents(Array.isArray(body.mediaEvents) ? body.mediaEvents : []);
     } catch (_e) {
       if (!alive.v) return;
       setLoadError(true);
@@ -603,9 +603,9 @@ export function NotifikasiModal({ onClose, reports = [], onOpenReport }) {
     voted: { bg: '#f0fdf4', fg: '#16a34a' },
   };
 
-  const feed = (activities || []).filter(
-    (a) => !(a.type === 'report_created' && a.source_type === 'media')
-  );
+  // Backend hanya mengirim laporan manual warga + perubahan status otoritas
+  // e.id untuk tab ini; titik seed media punya tabnya sendiri (mediaEvents).
+  const feed = activities || [];
 
   const actorName = (a) => {
     if (a.type === 'report_created') {
@@ -679,8 +679,8 @@ export function NotifikasiModal({ onClose, reports = [], onOpenReport }) {
         ))}
       </div>
       {tab === 'media' && (
-        <MediaSeedNotif
-          items={seedMedia}
+        <MediaKabarNotif
+          items={mediaEvents}
           loading={activities === null && !loadError}
           error={loadError}
           reports={reports}
@@ -693,7 +693,10 @@ export function NotifikasiModal({ onClose, reports = [], onOpenReport }) {
       ) : loadError ? (
         <p style={{ margin: 0, fontSize: 13, color: '#b91c1c' }}>Gagal memuat aktivitas.</p>
       ) : feed.length === 0 ? (
-        <p style={{ margin: 0, fontSize: 13, color: '#64748b' }}>Belum ada aktivitas.</p>
+        <p style={{ margin: 0, fontSize: 13, color: '#64748b', textAlign: 'justify' }}>
+          Belum ada laporan manual dari warga. Laporan yang dibuat warga (dengan
+          atau tanpa e.id) dan aktivitas otoritas via e.id akan tampil di sini.
+        </p>
       ) : (
         feed.map((a, i) => {
           const meta = TYPE_META[a.type] || TYPE_META.report_created;
@@ -832,27 +835,37 @@ export function NotifikasiModal({ onClose, reports = [], onOpenReport }) {
   );
 }
 
-// ---- Kabar Media: titik yang dibuat/diperbarui oleh seed media (monitor
-// berita). Titik yang masuk/diperbarui pada cycle terakhir diberi tanda
-// "BARU" (kolom is_new_seed; otomatis hilang saat cycle berikutnya jalan).
+// ---- Kabar MEDIA: feed kejadian dari seed berita - apa yang DITAMBAH
+// (kind 'baru'), DIPERBARUI ('update'), atau DIBERITAKAN SUDAH DIPERBAIKI
+// ('perbaikan'). Titik yang tersentuh cycle monitor terakhir diberi tanda
+// "BARU" (kolom is_new_seed; hilang saat cycle berikutnya jalan).
 // Klik baris -> buka detail laporan titik tersebut. ----
-function MediaSeedNotif({ items = [], loading, error, reports = [], onOpenReport }) {
+const MEDIA_KIND = {
+  baru: { label: 'Titik baru dari berita', icon: '🗞', tint: '#fffbeb' },
+  update: { label: 'Diperbarui dari berita', icon: '🔄', tint: '#fff' },
+  perbaikan: { label: 'Diberitakan sudah diperbaiki', icon: '✓', tint: '#f0fdf4' },
+  tercatat: { label: 'Tercatat dari berita', icon: '🗞', tint: '#fff' },
+};
+
+function MediaKabarNotif({ items = [], loading, error, reports = [], onOpenReport }) {
   const resolve = (id, extra) =>
     (reports || []).find((r) => Number(r.id) === Number(id)) || { id: Number(id), ...extra };
   if (loading) return <p style={{ margin: 0, fontSize: 13, color: '#64748b' }}>Memuat kabar media…</p>;
   if (error) return <p style={{ margin: 0, fontSize: 13, color: '#b91c1c' }}>Gagal memuat kabar media.</p>;
   if (!items.length) {
-    return <p style={{ margin: 0, fontSize: 13, color: '#64748b' }}>Belum ada titik dari seed media.</p>;
+    return <p style={{ margin: 0, fontSize: 13, color: '#64748b' }}>Belum ada kabar dari seed media.</p>;
   }
   return (
     <div style={{ display: 'flex', flexDirection: 'column' }}>
       <div style={{ fontSize: 12, color: '#64748b', padding: '0 2px 6px', textAlign: 'justify' }}>
-        Titik di bawah dibuat/diperbarui otomatis dari pemberitaan media. Tanda
-        BARU = masuk pada pembaruan terakhir dan akan hilang saat pembaruan berikutnya.
+        Titik yang ditambahkan, diperbarui, atau diberitakan sudah diperbaiki
+        oleh pemantauan berita media. Tanda BARU = masuk pada pembaruan terakhir
+        dan akan hilang saat pembaruan berikutnya berjalan.
       </div>
       {items.map((m) => {
         const sev = SEVERITY_COLORS[m.severity] || '#64748b';
         const isNew = Number(m.is_new_seed) === 1;
+        const meta = MEDIA_KIND[m.kind] || MEDIA_KIND.baru;
         return (
           <button
             key={`seed-${m.report_id}`}
@@ -874,7 +887,7 @@ function MediaSeedNotif({ items = [], loading, error, reports = [], onOpenReport
               alignItems: 'flex-start',
               textAlign: 'left',
               width: '100%',
-              background: isNew ? '#fffbeb' : '#fff',
+              background: meta.tint,
               border: 'none',
               borderBottom: '1px solid #f1f5f9',
               padding: '10px 2px',
@@ -896,7 +909,7 @@ function MediaSeedNotif({ items = [], loading, error, reports = [], onOpenReport
                 flexShrink: 0,
               }}
             >
-              🗞
+              {meta.icon}
             </span>
             <span style={{ flex: 1, minWidth: 0 }}>
               <span
@@ -913,10 +926,24 @@ function MediaSeedNotif({ items = [], loading, error, reports = [], onOpenReport
                 {m.location_name}
               </span>
               <span style={{ display: 'block', fontSize: 11.5, color: '#64748b', marginTop: 2 }}>
-                {isNew ? 'Titik baru dari seed media' : 'Diperbarui dari seed media'}
+                {meta.label}
                 {m.source_media_name ? ` · ${m.source_media_name}` : ''}
                 {formatDateTime(m.at) ? ` · ${formatDateTime(m.at)}` : ''}
               </span>
+              {m.note && (
+                <span
+                  style={{
+                    display: 'block',
+                    fontSize: 11.5,
+                    color: '#475569',
+                    marginTop: 2,
+                    fontStyle: 'italic',
+                    textAlign: 'justify',
+                  }}
+                >
+                  {m.note}
+                </span>
+              )}
               <span style={{ display: 'flex', gap: 5, marginTop: 4, flexWrap: 'wrap' }}>
                 {isNew && (
                   <span

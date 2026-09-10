@@ -145,14 +145,15 @@ describe('NotifikasiModal (berbasis ModalShell) ikut menutup dengan Escape', () 
       vi.fn(() =>
         Promise.resolve({
           ok: true,
-          json: async () => ({ activities: [], commentGroups: [] }),
+          json: async () => ({ activities: [], commentGroups: [], mediaEvents: [] }),
         })
       )
     );
     const onClose = vi.fn();
     render(<NotifikasiModal onClose={onClose} />);
 
-    await screen.findByText(/belum ada aktivitas/i);
+    // Tab default "Kabar Media" kosong (belum ada kabar) - modal ter-render.
+    await screen.findByText(/belum ada kabar dari seed media/i);
     pressEscape();
     expect(onClose).toHaveBeenCalledTimes(1);
   });

@@ -215,50 +215,43 @@ describe('NotifikasiModal: 3 tab (Kabar Media / Aktivitas Laporan / Komentar)', 
         last_at: '2026-09-01 12:00:00',
       },
     ],
-    // Seed media: satu titik BARU (is_new_seed=1) + satu lama (0).
-    seedMedia: [
+    // Kabar media: kejadian ditambah / diperbarui / diberitakan diperbaiki.
+    mediaEvents: [
       {
+        kind: 'baru',
+        at: '2026-09-01 10:30:00',
         report_id: 40,
         location_name: 'Jalan Trans Sulawesi Parimo',
         severity: 'berat',
         infra_type: 'jalan',
         status: 'dilaporkan',
         source_media_name: 'Kompas.com',
-        source_media_date: '2026-05-21',
         is_new_seed: 1,
-        at: '2026-09-01 10:30:00',
+        note: 'Jembatan putus di Parimo - Kompas.com',
       },
       {
+        kind: 'update',
+        at: '2026-08-30 08:00:00',
         report_id: 12,
         location_name: 'Jembatan Saka Harang',
         severity: 'ambruk',
         infra_type: 'jembatan',
         status: 'dilaporkan',
         source_media_name: 'ANTARA',
-        source_media_date: '2026-08-30',
         is_new_seed: 0,
-        at: '2026-08-30 08:00:00',
+        note: 'Perbaikan darurat jembatan dimulai - ANTARA',
       },
-    ],
-    citizenReports: [
       {
-        report_id: 3,
-        location_name: 'Jembatan Cibeureum',
-        severity: 'ambruk',
-        infra_type: 'jembatan',
-        status: 'dilaporkan',
-        reporter_display_name: 'Warga Garut',
-        reporter_is_verified: 1,
-        at: '2026-09-01 10:00:00',
-      },
-    ],
-    verifications: [
-      {
-        report_id: 3,
-        location_name: 'Jembatan Cibeureum',
-        new_status: 'terverifikasi',
-        actor: 'Dinas PU',
-        at: '2026-09-01 11:00:00',
+        kind: 'perbaikan',
+        at: '2026-09-08 14:03:13',
+        report_id: 13,
+        location_name: 'SDN 12 Bintang',
+        severity: 'berat',
+        infra_type: 'sekolah',
+        status: 'selesai_diperbaiki',
+        source_media_name: 'detikSumut',
+        is_new_seed: 0,
+        note: 'Sekolah direvitalisasi - detikSumut',
       },
     ],
   };
@@ -284,10 +277,14 @@ describe('NotifikasiModal: 3 tab (Kabar Media / Aktivitas Laporan / Komentar)', 
     );
 
     expect(await screen.findByText('Jalan Trans Sulawesi Parimo')).toBeInTheDocument();
-    // Tanda BARU hanya untuk titik yang masuk pada cycle terakhir.
-    expect(screen.getByText('BARU')).toBeInTheDocument();
-    expect(screen.getByText(/Titik baru dari seed media/)).toBeInTheDocument();
-    expect(screen.getByText(/Diperbarui dari seed media/)).toBeInTheDocument();
+    // Tiga jenis kabar media: ditambah, diperbarui, diberitakan diperbaiki.
+    expect(screen.getByText(/Titik baru dari berita/)).toBeInTheDocument();
+    expect(screen.getByText(/Diperbarui dari berita/)).toBeInTheDocument();
+    expect(screen.getByText(/Diberitakan sudah diperbaiki/)).toBeInTheDocument();
+    // Judul berita terakhir (note) ikut tampil sebagai konteks.
+    expect(screen.getByText(/Jembatan putus di Parimo/)).toBeInTheDocument();
+    // Tanda BARU hanya untuk titik yang tersentuh cycle monitor terakhir.
+    expect(screen.getAllByText('BARU')).toHaveLength(1);
 
     await user.click(screen.getByRole('button', { name: /Jalan Trans Sulawesi Parimo/ }));
     expect(onOpenReport).toHaveBeenCalledWith(expect.objectContaining({ id: 40 }));
@@ -309,6 +306,20 @@ describe('NotifikasiModal: 3 tab (Kabar Media / Aktivitas Laporan / Komentar)', 
     expect(screen.getAllByText('Jembatan Cibeureum').length).toBeGreaterThanOrEqual(1);
     // Titik hasil seed media tidak boleh ikut di tab ini.
     expect(screen.queryByText('Jalan Trans Sulawesi Parimo')).not.toBeInTheDocument();
+  });
+
+  it('tab Aktivitas Laporan KOSONG saat belum ada laporan manual warga / aktivitas otoritas', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() =>
+        Promise.resolve({ ok: true, json: async () => ({ activities: [], commentGroups: [], mediaEvents: [] }) })
+      )
+    );
+    const user = userEvent.setup();
+    render(<NotifikasiModal onClose={vi.fn()} />);
+
+    await user.click(screen.getByRole('button', { name: 'Aktivitas Laporan' }));
+    expect(await screen.findByText(/Belum ada laporan manual dari warga/i)).toBeInTheDocument();
   });
 
   it('tab Komentar: ringkasan komentar per titik (istilah "komentar", bukan "diskusi")', async () => {

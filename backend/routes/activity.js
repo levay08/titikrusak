@@ -28,25 +28,15 @@ router.get('/', (req, res) => {
       )
       .all();
 
-    // 2) Perubahan status (otoritas): new_status + siapa yang mengubah.
+    // 2) Perubahan status oleh OTORITAS via e.id (changed_by_did terisi).
+    //    Baris "Kurasi Media (sistem)" TIDAK masuk tab aktivitas laporan -
+    //    itu bagian kabar media (lihat mediaEvents: kind 'perbaikan').
     const statuses = db
       .prepare(
         `SELECT 'status_changed' AS type, h.report_id, r.location_name,
                 h.changed_by_display_name AS actor, h.new_status, h.changed_at AS at
-         FROM status_history h JOIN reports r ON r.id = h.report_id`
-      )
-      .all();
-
-    // 3) Dukungan/vote: identitas penuh (DID) & IP TIDAK pernah tampil di
-    //    feed publik - voter ditampilkan anonim.
-    const votes = db
-      .prepare(
-        `SELECT 'voted' AS type, v.report_id, r.location_name,
-                CASE WHEN v.voter_did LIKE 'ip:%' OR v.voter_did = 'anonim'
-                      OR v.voter_did LIKE 'did:%' THEN NULL
-                     ELSE v.voter_did END AS actor,
-                v.created_at AS at
-         FROM votes v JOIN reports r ON r.id = v.report_id`
+         FROM status_history h JOIN reports r ON r.id = h.report_id
+         WHERE h.changed_by_did IS NOT NULL`
       )
       .all();
 
@@ -80,24 +70,69 @@ router.get('/', (req, res) => {
     }
     const commentGroups = [...groupMap.values()].slice(0, 40);
 
-    // 5) Notifikasi SEED MEDIA (9 Sep 2026): titik yang dibuat/diperbarui oleh
-    //    monitor berita. `is_new_seed=1` = masuk pada CYCLE TERAKHIR (tanda
-    //    "BARU"; direset otomatis saat cycle berikutnya berjalan).
-    const seedMedia = db
+    // 5) Kabar MEDIA: kejadian terakhir tiap titik seed - apa yang DITAMBAH,
+    //    DIPERBARUI, atau DIBERITAKAN SUDAH DIPERBAIKI. Diturunkan dari kolom
+    //    yang ada (tidak perlu tabel log baru):
+    //      - media_repair_at  -> kind 'perbaikan'
+    //      - updated != created -> kind 'update' (+ judul berita [Update] terakhir)
+    //      - sisanya          -> kind 'baru'
+    //    `is_new_seed` = titik tersentuh cycle monitor TERAKHIR (badge BARU).
+    const mediaRows = db
       .prepare(
         `SELECT id AS report_id, location_name, severity, infra_type, status,
                 source_media_name, source_media_date, is_new_seed,
-                created_at, updated_at AS at
-         FROM reports WHERE source_type = 'media'
-         ORDER BY updated_at DESC LIMIT 60`
+                created_at, updated_at, media_repair_at, description
+         FROM reports WHERE source_type = 'media'`
       )
       .all();
+    // Catatan [Update] TERAKHIR di deskripsi (judul berita + sumbernya).
+    const LAST_NOTE_RE = /\[Update (\d{4}-\d{2}-\d{2}): ([^\]]+)\](?![\s\S]*\[Update )/;
+    const mediaEvents = mediaRows
+      .map((r) => {
+        const m = String(r.description || '').match(LAST_NOTE_RE);
+        const updated = String(r.updated_at) !== String(r.created_at);
+        // kind: perbaikan > update > baru (hanya bila tersentuh cycle terakhir)
+        // > tercatat (titik lama yang belum pernah diperbarui - label netral,
+        // jangan mengaku "baru").
+        let kind = 'tercatat';
+        let at = r.created_at;
+        if (r.media_repair_at) {
+          kind = 'perbaikan';
+          at = r.media_repair_at;
+        } else if (updated) {
+          kind = 'update';
+          at = r.updated_at;
+        } else if (Number(r.is_new_seed) === 1) {
+          kind = 'baru';
+        }
+        return {
+          kind,
+          at,
+          report_id: r.report_id,
+          location_name: r.location_name,
+          severity: r.severity,
+          infra_type: r.infra_type,
+          status: r.status,
+          source_media_name: r.source_media_name,
+          source_media_date: r.source_media_date,
+          is_new_seed: r.is_new_seed,
+          note: m ? m[2].trim() : null,
+        };
+      })
+      .sort((a, b) => String(b.at).localeCompare(String(a.at)))
+      .slice(0, 60);
 
-    const activities = [...created, ...statuses, ...votes]
+    // Tab "Aktivitas Laporan": HANYA laporan manual warga (source_type bukan
+    // 'media') + perubahan status oleh otoritas e.id. Vote dukungan tidak
+    // dimasukkan (bukan aktivitas laporan).
+    const activities = [
+      ...created.filter((c) => c.source_type !== 'media'),
+      ...statuses,
+    ]
       .sort((a, b) => String(b.at).localeCompare(String(a.at)))
       .slice(0, limit);
 
-    res.json({ activities, commentGroups, seedMedia });
+    res.json({ activities, commentGroups, mediaEvents });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Gagal memuat aktivitas' });
