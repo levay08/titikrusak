@@ -1069,17 +1069,17 @@ export default function DetailModal({ report, onClose, otoritas = null, onReport
           {!otoritas && (
             <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
               {[
-                { kind: 'diperbaiki', Icon: StarIcon, label: 'sudah diperbaiki', onColor: '#f59e0b', onBg: '#fef3c7', count: claimCounts.diperbaiki },
-                { kind: 'hilang', Icon: GoneIcon, label: 'sudah tidak ada', onColor: '#475569', onBg: '#f1f5f9', count: claimCounts.hilang },
-              ].map(({ kind, Icon, label, onColor, onBg, count }) => {
+                { kind: 'diperbaiki', Icon: StarIcon, label: 'Sudah diperbaiki', aria: 'titik sudah diperbaiki', onColor: '#f59e0b', onBg: '#fef3c7', count: claimCounts.diperbaiki },
+                { kind: 'hilang', Icon: GoneIcon, label: 'Sudah tidak ada', aria: 'titik sudah tidak ada', onColor: '#475569', onBg: '#f1f5f9', count: claimCounts.hilang },
+              ].map(({ kind, Icon, label, aria, onColor, onBg, count }) => {
                 const on = Boolean(myClaims[kind]);
                 const busy = claimBusy === kind;
                 return (
                   <button
                     key={kind}
                     type="button"
-                    aria-label={on ? `Batalkan laporan titik ${label}` : `Laporkan titik ${label}`}
-                    title={on ? 'Klik untuk membatalkan laporan Anda' : `Laporkan ke peta: titik ${label}`}
+                    aria-label={on ? `Batalkan laporan ${aria}` : `Laporkan ${aria}`}
+                    title={on ? 'Klik untuk membatalkan laporan Anda' : `Laporkan ke peta: ${aria}`}
                     onClick={() => toggleClaim(kind)}
                     disabled={busy}
                     style={{
@@ -1095,29 +1095,30 @@ export default function DetailModal({ report, onClose, otoritas = null, onReport
                     }}
                   >
                     <Icon active={on} size={20} />
-                    <span style={{ fontSize: 13, fontWeight: 600, color: '#334155' }}>{count} warga</span>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: '#334155' }}>{label}</span>
+                    <span
+                      style={{
+                        fontSize: 11.5,
+                        fontWeight: 700,
+                        color: on ? onColor : '#64748b',
+                        background: on ? '#fff' : '#f1f5f9',
+                        borderRadius: 999,
+                        padding: '1px 8px',
+                      }}
+                    >
+                      {count} warga
+                    </span>
                   </button>
                 );
               })}
             </div>
           )}
-          <div style={{ fontSize: 11.5, color: '#64748b', lineHeight: 1.55, marginTop: 8, textAlign: 'justify' }}>
-            {otoritas ? (
-              <>
-                {claimCounts.diperbaiki} warga melaporkan titik ini sudah diperbaiki ·{' '}
-                {claimCounts.hilang} warga melaporkan titik ini sudah tidak ada.
-              </>
-            ) : (
-              <>
-                {claimCounts.diperbaiki} warga melaporkan titik sudah diperbaiki ·{' '}
-                {claimCounts.hilang} warga melaporkan titik sudah tidak ada.
-                {myClaims.diperbaiki || myClaims.hilang
-                  ? ' Klik tombol yang menyala untuk membatalkan laporan Anda.'
-                  : ' Satu warga satu laporan per jenis.'}
-              </>
-            )}{' '}
-            Hitungan ini dari laporan warga dan tidak berubah oleh pembaruan dari media.
-          </div>
+          {otoritas && (
+            <div style={{ fontSize: 12, color: '#475569' }}>
+              {claimCounts.diperbaiki} warga melaporkan sudah diperbaiki · {claimCounts.hilang} warga
+              melaporkan sudah tidak ada.
+            </div>
+          )}
           {claimMsg && (
             <div style={{ fontSize: 12, color: '#15803d', fontWeight: 600, marginTop: 6 }}>{claimMsg}</div>
           )}

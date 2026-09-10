@@ -3,7 +3,7 @@
 // tab baru, tidak menutup layar penuh) dan bisa ditutup via tombol ✕.
 
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom/vitest';
 import DetailModal from './DetailModal.jsx';
@@ -171,16 +171,22 @@ describe('DetailModal: klaim status lapangan warga (bintang = sudah diperbaiki, 
     vi.unstubAllGlobals();
   });
 
-  it('menampilkan hitungan warga + tombol bintang/∅ (mode batalkan bila sudah dilaporkan)', async () => {
+  it('tombol berteks ("Sudah diperbaiki" / "Sudah tidak ada") + hitungan warga, tanpa paragraf keterangan', async () => {
     mockClaims({ counts: { diperbaiki: 2, hilang: 1 }, mine: ['diperbaiki'] });
     render(<DetailModal report={REPORT} onClose={vi.fn()} onReportUpdated={vi.fn()} />);
 
-    expect(await screen.findByText(/2 warga melaporkan titik sudah diperbaiki/)).toBeInTheDocument();
-    expect(screen.getByText(/1 warga melaporkan titik sudah tidak ada/)).toBeInTheDocument();
-    expect(
-      screen.getByRole('button', { name: 'Batalkan laporan titik sudah diperbaiki' })
-    ).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Laporkan titik sudah tidak ada' })).toBeInTheDocument();
+    // Sudah dilaporkan -> tombol jadi mode batalkan (teks tetap tampil).
+    const star = await screen.findByRole('button', { name: 'Batalkan laporan titik sudah diperbaiki' });
+    expect(within(star).getByText('Sudah diperbaiki')).toBeInTheDocument();
+    expect(within(star).getByText('2 warga')).toBeInTheDocument();
+
+    const gone = screen.getByRole('button', { name: 'Laporkan titik sudah tidak ada' });
+    expect(within(gone).getByText('Sudah tidak ada')).toBeInTheDocument();
+    expect(within(gone).getByText('1 warga')).toBeInTheDocument();
+
+    // Paragraf keterangan lama sudah dihapus.
+    expect(screen.queryByText(/Satu warga satu laporan per jenis/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/tidak berubah oleh pembaruan dari media/)).not.toBeInTheDocument();
   });
 
   it('klik bintang -> POST klaim; klik lagi -> DELETE (uncheck), hitungan naik/turun', async () => {
@@ -194,17 +200,25 @@ describe('DetailModal: klaim status lapangan warga (bintang = sudah diperbaiki, 
     );
     expect(post).toBeTruthy();
     expect(JSON.parse(post[1].body)).toEqual({ kind: 'diperbaiki' });
-    expect(await screen.findByText(/1 warga melaporkan titik sudah diperbaiki/)).toBeInTheDocument();
+    await waitFor(() =>
+      expect(
+        within(screen.getByRole('button', { name: 'Batalkan laporan titik sudah diperbaiki' })).getByText('1 warga')
+      ).toBeInTheDocument()
+    );
 
     await user.click(screen.getByRole('button', { name: 'Batalkan laporan titik sudah diperbaiki' }));
     const del = fetchMock.mock.calls.find(
       ([u, i]) => String(u).includes('/claim') && i && i.method === 'DELETE'
     );
     expect(del).toBeTruthy();
-    expect(await screen.findByText(/0 warga melaporkan titik sudah diperbaiki/)).toBeInTheDocument();
+    await waitFor(() =>
+      expect(
+        within(screen.getByRole('button', { name: 'Laporkan titik sudah diperbaiki' })).getByText('0 warga')
+      ).toBeInTheDocument()
+    );
   });
 
-  it('sesi otoritas: melihat hitungan saja, tanpa tombol klaim', async () => {
+  it('sesi otoritas: melihat hitungan (teks, tanpa tombol klaim)', async () => {
     mockClaims({ counts: { diperbaiki: 3, hilang: 2 }, mine: [] });
     render(
       <DetailModal
@@ -216,9 +230,9 @@ describe('DetailModal: klaim status lapangan warga (bintang = sudah diperbaiki, 
     );
 
     expect(
-      await screen.findByText(/3 warga melaporkan titik ini sudah diperbaiki/)
+      await screen.findByText(/3 warga melaporkan sudah diperbaiki/)
     ).toBeInTheDocument();
-    expect(screen.getByText(/2 warga melaporkan titik ini sudah tidak ada/)).toBeInTheDocument();
+    expect(screen.getByText(/2 warga melaporkan sudah tidak ada/)).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Laporkan titik/ })).not.toBeInTheDocument();
   });
 });
