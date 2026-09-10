@@ -247,10 +247,35 @@ describe('DetailModal: klaim status lapangan warga (bintang = sudah diperbaiki, 
       />
     );
 
+    // Otoritas: tiga kartu tampil sebagai label statis (bukan tombol),
+    // masing-masing dengan hitungannya sendiri.
     expect(
-      await screen.findByText(/3 warga melaporkan sudah diperbaiki/)
+      await screen.findByText('Dukungan & status lapangan menurut warga')
     ).toBeInTheDocument();
-    expect(screen.getByText(/2 warga melaporkan sudah tidak ada/)).toBeInTheDocument();
+    const pillPerbaikan = screen.getByTitle('Warga melaporkan titik sudah diperbaiki');
+    const pillHilang = screen.getByTitle('Warga melaporkan titik sudah tidak ada');
+    expect(within(pillPerbaikan).getByText('3 warga')).toBeInTheDocument();
+    expect(within(pillHilang).getByText('2 warga')).toBeInTheDocument();
+    expect(screen.getByText('Dukungan warga')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Laporkan titik/ })).not.toBeInTheDocument();
+  });
+
+  it('tiga kartu dukungan/status SEJAJAR: satu baris & tinggi seragam', async () => {
+    mockClaims({ counts: { diperbaiki: 1, hilang: 0 }, mine: [] });
+    render(<DetailModal report={REPORT} onClose={vi.fn()} onReportUpdated={vi.fn()} />);
+
+    const dukung = await screen.findByRole('button', { name: 'Dukung laporan warga (jempol)' });
+    const perbaikan = screen.getByRole('button', { name: 'Laporkan titik sudah diperbaiki' });
+    const hilang = screen.getByRole('button', { name: 'Laporkan titik sudah tidak ada' });
+
+    // Sejajar: ketiganya anak dari baris yang sama (satu flex row).
+    expect(perbaikan.parentElement).toBe(dukung.parentElement);
+    expect(hilang.parentElement).toBe(dukung.parentElement);
+    expect(dukung.parentElement.style.display).toBe('flex');
+    // Ukuran seragam: tinggi & border-radius identik.
+    const tinggi = new Set([dukung, perbaikan, hilang].map((el) => el.style.height));
+    const radius = new Set([dukung, perbaikan, hilang].map((el) => el.style.borderRadius));
+    expect(tinggi.size).toBe(1);
+    expect(radius.size).toBe(1);
   });
 });

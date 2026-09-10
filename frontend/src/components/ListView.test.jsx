@@ -454,7 +454,7 @@ describe('ListView: fitur Dukungan warga - TANPA perlu verifikasi e.id', () => {
     await waitFor(() =>
       expect(screen.getByRole('button', { name: /dukung laporan warga/i })).toBeInTheDocument()
     );
-    expect(screen.getByText(/Dukungan warga:/)).toBeInTheDocument();
+    expect(screen.getByText(/Dukungan warga/)).toBeInTheDocument();
   });
 
   it('dukungan duplikat (409) menampilkan pesan sudah mendukung', async () => {

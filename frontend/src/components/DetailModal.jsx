@@ -989,155 +989,128 @@ export default function DetailModal({ report, onClose, otoritas = null, onReport
           </div>
         )}
 
-        {/* ---- Dukungan warga (File 1 Bagian 6.3): butuh e.id ----
-            Otoritas TIDAK bisa mendukung laporan - hanya warga yang
-            memberikan dukungan; saat sesi otoritas aktif tampil jumlahnya
-            saja tanpa tombol. */}
+        {/* ---- Dukungan warga + status lapangan menurut warga (rapi sejajar) ----
+            Tiga tombol dalam SATU baris dengan tinggi & jarak sama:
+            [👍 Dukungan warga] [★ Sudah diperbaiki] [⊘ Sudah tidak ada].
+            Otoritas tidak bisa menekan apa pun (hanya melihat hitungan). */}
         <div style={{ marginTop: 14, borderTop: '1px solid #e2e8f0', paddingTop: 14 }}>
-          {otoritas ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, color: '#334155' }}>
-              <ThumbIcon size={22} />
-              <span>
-                Dukungan warga: <strong>{voteCount}</strong>
-              </span>
-            </div>
-          ) : voteState === 'idle' || hasVoted ? (
-            <>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <button
-                type="button"
-                aria-label={
-                  hasVoted ? 'Batalkan dukungan laporan warga' : 'Dukung laporan warga (jempol)'
-                }
-                onClick={handleVoteClick}
-                disabled={voteState === 'busy'}
-                title={
-                  hasVoted
-                    ? 'Batalkan dukungan'
-                    : 'Dukung laporan ini'
-                }
-                style={{
-                  position: 'relative',
-                  width: 48,
-                  height: 48,
-                  borderRadius: '50%',
-                  flexShrink: 0,
-                  border: `2px solid ${hasVoted ? '#2563eb' : '#cbd5e1'}`,
-                  background: hasVoted ? '#dbeafe' : '#fff',
-                  cursor: hasVoted ? 'default' : 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  boxShadow: '0 1px 3px rgba(0,0,0,.12)',
-                }}
-              >
-                <span
-                  key={likeBurst}
-                  className={`tk-like-pop${likeBurst > 0 ? ' tk-like-pop--active' : ''}`}
-                >
-                  <ThumbIcon active={hasVoted} size={26} />
-                </span>
-                {likeBurst > 0 &&
-                  LIKE_STARS.map(([dx, dy, del], i) => (
-                    <span
-                      key={i}
-                      className="tk-star"
-                      style={{ '--dx': `${dx}px`, '--dy': `${dy}px`, animationDelay: `${del}ms` }}
-                    >
-                      ✦
-                    </span>
-                  ))}
-              </button>
-              <span style={{ flex: 1, fontSize: 13, color: '#334155' }}>
-                Dukungan warga: <strong>{voteCount}</strong>
-              </span>
-            </div>
-            {hasVoted && (
-              <div style={{ fontSize: 11.5, color: '#64748b', marginTop: 6 }}>
-                Klik jempol biru untuk membatalkan dukungan Anda.
-              </div>
-            )}
-            </>
-          ) : null}
-
-          {(voteState === 'busy' || voteState === 'done') && (
-            <div style={{ fontSize: 13, color: '#334155' }}>
-              {voteState === 'busy' && <span>Memproses dukungan Anda…</span>}
-              {voteState === 'done' && (
-                <span style={{ color: '#15803d', fontWeight: 600 }}>
-                  ✓ {voteError || `Terima kasih! Dukungan Anda tercatat (${voteCount}).`}
-                </span>
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* ---- Status lapangan menurut warga (9 Sep 2026): bintang =
-            laporan "titik sudah diperbaiki", ∅ = laporan "titik sudah tidak
-            ada". Memberi gambaran status aktual sebelum ada update dari seed
-            media; hitungan TIDAK berubah oleh pembaruan media. Otoritas
-            melihat hitungannya saja. ---- */}
-        <div style={{ marginTop: 14, borderTop: '1px solid #e2e8f0', paddingTop: 14 }}>
-          <div style={{ fontSize: 13, fontWeight: 600, color: '#334155', marginBottom: 8 }}>
-            Status lapangan menurut warga
+          <div style={{ fontSize: 13, fontWeight: 600, color: '#334155', marginBottom: 10 }}>
+            Dukungan & status lapangan menurut warga
           </div>
-          {!otoritas && (
-            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-              {[
-                { kind: 'diperbaiki', Icon: StarIcon, label: 'Sudah diperbaiki', aria: 'titik sudah diperbaiki', onColor: '#f59e0b', onBg: '#fef3c7', count: claimCounts.diperbaiki },
-                { kind: 'hilang', Icon: GoneIcon, label: 'Sudah tidak ada', aria: 'titik sudah tidak ada', onColor: '#475569', onBg: '#f1f5f9', count: claimCounts.hilang },
-              ].map(({ kind, Icon, label, aria, onColor, onBg, count }) => {
-                const on = Boolean(myClaims[kind]);
-                const busy = claimBusy === kind;
-                return (
-                  <button
-                    key={kind}
-                    type="button"
-                    aria-label={on ? `Batalkan laporan ${aria}` : `Laporkan ${aria}`}
-                    title={on ? 'Klik untuk membatalkan laporan Anda' : `Laporkan ke peta: ${aria}`}
-                    onClick={() => toggleClaim(kind)}
-                    disabled={busy}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 8,
-                      padding: '8px 13px',
-                      borderRadius: 999,
-                      border: `2px solid ${on ? onColor : '#cbd5e1'}`,
-                      background: on ? onBg : '#fff',
-                      cursor: busy ? 'wait' : 'pointer',
-                      boxShadow: '0 1px 3px rgba(0,0,0,.12)',
-                    }}
-                  >
-                    <Icon active={on} size={20} />
-                    <span style={{ fontSize: 13, fontWeight: 600, color: '#334155' }}>{label}</span>
-                    <span
-                      style={{
-                        fontSize: 11.5,
-                        fontWeight: 700,
-                        color: on ? onColor : '#64748b',
-                        background: on ? '#fff' : '#f1f5f9',
-                        borderRadius: 999,
-                        padding: '1px 8px',
-                      }}
-                    >
-                      {count} warga
-                    </span>
-                  </button>
-                );
-              })}
+          <div style={{ display: 'flex', alignItems: 'stretch', gap: 8, flexWrap: 'wrap' }}>
+            {(() => {
+              const pillStyle = (on, onColor, onBg, busy) => ({
+                position: 'relative',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 8,
+                height: 42,
+                padding: '0 14px',
+                boxSizing: 'border-box',
+                borderRadius: 999,
+                border: `2px solid ${on ? onColor : '#cbd5e1'}`,
+                background: on ? onBg : '#fff',
+                cursor: otoritas ? 'default' : busy ? 'wait' : 'pointer',
+                boxShadow: '0 1px 3px rgba(0,0,0,.12)',
+              });
+              const chipStyle = (on, onColor) => ({
+                fontSize: 11.5,
+                fontWeight: 700,
+                color: on ? onColor : '#64748b',
+                background: on ? '#fff' : '#f1f5f9',
+                borderRadius: 999,
+                padding: '1px 8px',
+                whiteSpace: 'nowrap',
+              });
+              const pills = [
+                {
+                  key: 'dukung',
+                  Icon: ThumbIcon,
+                  label: 'Dukungan warga',
+                  count: voteCount,
+                  on: hasVoted,
+                  onColor: '#2563eb',
+                  onBg: '#dbeafe',
+                  aria: hasVoted ? 'Batalkan dukungan laporan warga' : 'Dukung laporan warga (jempol)',
+                  title: hasVoted ? 'Batalkan dukungan' : 'Dukung laporan ini',
+                  onClick: handleVoteClick,
+                  busy: voteState === 'busy',
+                },
+                {
+                  key: 'diperbaiki',
+                  Icon: StarIcon,
+                  label: 'Sudah diperbaiki',
+                  count: claimCounts.diperbaiki,
+                  on: Boolean(myClaims.diperbaiki),
+                  onColor: '#f59e0b',
+                  onBg: '#fef3c7',
+                  aria: myClaims.diperbaiki
+                    ? 'Batalkan laporan titik sudah diperbaiki'
+                    : 'Laporkan titik sudah diperbaiki',
+                  title: 'Warga melaporkan titik sudah diperbaiki',
+                  onClick: () => toggleClaim('diperbaiki'),
+                  busy: claimBusy === 'diperbaiki',
+                },
+                {
+                  key: 'hilang',
+                  Icon: GoneIcon,
+                  label: 'Sudah tidak ada',
+                  count: claimCounts.hilang,
+                  on: Boolean(myClaims.hilang),
+                  onColor: '#475569',
+                  onBg: '#f1f5f9',
+                  aria: myClaims.hilang
+                    ? 'Batalkan laporan titik sudah tidak ada'
+                    : 'Laporkan titik sudah tidak ada',
+                  title: 'Warga melaporkan titik sudah tidak ada',
+                  onClick: () => toggleClaim('hilang'),
+                  busy: claimBusy === 'hilang',
+                },
+              ];
+              // Otoritas: tampil sebagai label statis (bukan tombol).
+              const Tag = otoritas ? 'span' : 'button';
+              return pills.map((p) => (
+                <Tag
+                  key={p.key}
+                  {...(otoritas
+                    ? { title: p.title }
+                    : { type: 'button', 'aria-label': p.aria, title: p.title, onClick: p.onClick, disabled: p.busy })}
+                  style={pillStyle(p.on, p.onColor, p.onBg, p.busy)}
+                >
+                  <p.Icon active={p.on} size={20} />
+                  <span style={{ fontSize: 13, fontWeight: 600, color: '#334155', whiteSpace: 'nowrap' }}>
+                    {p.label}
+                  </span>
+                  <span style={chipStyle(p.on, p.onColor)}>{p.count} warga</span>
+                  {p.key === 'dukung' &&
+                    likeBurst > 0 &&
+                    LIKE_STARS.map(([dx, dy, del], i) => (
+                      <span
+                        key={i}
+                        className="tk-star"
+                        style={{ '--dx': `${dx}px`, '--dy': `${dy}px`, animationDelay: `${del}ms` }}
+                      >
+                        ✦
+                      </span>
+                    ))}
+                </Tag>
+              ));
+            })()}
+          </div>
+          {!otoritas && (hasVoted || myClaims.diperbaiki || myClaims.hilang) && (
+            <div style={{ fontSize: 11.5, color: '#64748b', marginTop: 8 }}>
+              Klik tombol yang menyala untuk membatalkan pilihan Anda.
             </div>
           )}
-          {otoritas && (
-            <div style={{ fontSize: 12, color: '#475569' }}>
-              {claimCounts.diperbaiki} warga melaporkan sudah diperbaiki · {claimCounts.hilang} warga
-              melaporkan sudah tidak ada.
+          {(voteState === 'busy' || voteState === 'done' || claimMsg) && (
+            <div style={{ fontSize: 12.5, color: '#15803d', fontWeight: 600, marginTop: 6 }}>
+              {voteState === 'busy'
+                ? 'Memproses dukungan Anda…'
+                : claimMsg || `✓ ${voteError || `Terima kasih! Dukungan Anda tercatat (${voteCount}).`}`}
             </div>
-          )}
-          {claimMsg && (
-            <div style={{ fontSize: 12, color: '#15803d', fontWeight: 600, marginTop: 6 }}>{claimMsg}</div>
           )}
         </div>
+
 
         {/* ---- Panel kelola laporan (fitur 2 Sep 2026): tanda ✗ otoritas,
             edit/hapus milik sendiri (warga), klaim "sudah diperbaiki"
