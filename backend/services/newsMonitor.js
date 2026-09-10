@@ -152,6 +152,11 @@ async function fetchOgImage(url) {
     // via interstitial 2026-08/09): foto harus RELEVAN dgn kejadian, bukan
     // sekadar gambar apa pun yang ada di halaman.
     if (img && /lh3\.googleusercontent\.com\/J6_coFbogxhRI9iM864NL_liGXvsQp2AupsKei7z0cNNfDvGUmWUy20nuUhkREQyrpY4bEeIBuc/.test(img)) return null;
+    // Tolak LOGO/ikon/placeholder situs (10 Sep 2026: sempat tersimpan
+    // "logo-sw.png" dari og:image halaman depan sebuah situs berita).
+    // Dicek dari NAMA FILE saja - URL CDN (mis. Kompas "filters:watermark")
+    // adalah foto sah, jangan ikut tertolak.
+    if (img && looksLikeLogo(img)) return null;
     return img && /^https?:\/\//i.test(img) ? img : null;
   } catch (_e) {
     return null;
@@ -205,6 +210,17 @@ async function resolveGnewsUrl(url) {
     return out;
   } catch (_e) {
     return null;
+  }
+}
+
+// Foto yang sebenarnya LOGO/placeholder situs? Dicek dari NAMA FILE saja
+// (URL CDN seperti "filters:watermark(...)" = foto sah, jangan tertolak).
+function looksLikeLogo(img) {
+  try {
+    const last = decodeURIComponent(String(new URL(img).pathname.split('/').pop() || '')).toLowerCase();
+    return /(^|[._-])(logo|site-logo|favicon|placeholder|no-?image|dummy|sprite|avatar|blank)([._-]|$)/.test(last);
+  } catch (_e) {
+    return false;
   }
 }
 
