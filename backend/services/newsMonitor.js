@@ -359,14 +359,14 @@ function placeName(s) {
 // memuat kata "aceh" (bug 9 Sep 2026: 9 berita sekolah Aceh nyasar ke
 // titik SDN 12 Bintang / Aceh Tengah).
 const GEO_GENERIC = new Set(('aceh sumatera sumatra utara selatan barat timur tengah jawa kalimantan ' +
-  'sulawesi papua maluku bali nusa tenggara indonesia jakarta surabaya bandung medan ' +
-  'kepulauan riau bangka belitung kota kabupaten kecamatan kec desa kelurahan gampong ' +
+  'sulawesi papua maluku bali nusa tenggara indonesia ' +
+  'kepulauan riau kota kabupaten kecamatan kec desa kelurahan gampong ' +
   'kampung nagari provinsi wilayah daerah').split(' '));
 
 // Nama wilayah berarah ("aceh utara", "jawa timur", ...) dibandingkan sebagai
 // PASANGAN utuh - dua kabupaten berbeda di provinsi yang sama tidak akan
 // pernah dianggap sama.
-const REGION_RE = /\b(aceh|sumatera|sumatra|jawa|kalimantan|sulawesi|papua|maluku|bali|nusa tenggara|bangka belitung|kepulauan riau)\s+(utara|selatan|barat|timur|tengah)\b/g;
+const REGION_RE = /\b(aceh|sumatera|sumatra|jawa|kalimantan|sulawesi|papua|maluku|bali|nusa tenggara|bangka belitung|kepulauan riau|jakarta|yogyakarta)\s+(utara|selatan|barat|timur|tengah|pusat)\b/g;
 
 function regionKeys(text) {
   return new Set([...String(text || '').toLowerCase().matchAll(REGION_RE)].map((m) => `${m[1]} ${m[2]}`));

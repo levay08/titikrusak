@@ -112,4 +112,8 @@ test('aturan wilayah: pasangan arah dibandingkan utuh, bukan kata per kata', () 
   assert.equal(locContains('Jembatan Gemboyah, Aceh Tengah, Aceh', 'Aceh Tengah'), false); // dua-duanya kata generik
   assert.equal(regionOverlap('Jembatan Gemboyah, Aceh Tengah, Aceh', 'Aceh Tengah'), true);
   assert.equal(locContains('Jembatan Gantung Pongpet, Desa Margacinta, Cijulang, Pangandaran (Jawa Barat)', 'Jembatan di Pangandaran Ambruk Saat Diresmikan'), true);
+  // Jakarta juga dibandingkan berpasangan (Timur vs Selatan = beda wilayah).
+  assert.equal(regionConflict('Jalan Basuki Rahmat, Jatinegara, Jakarta Timur', 'Perbaikan Jalan Ambles di Lenteng Agung, Jakarta Selatan Rampung'), true);
+  // Nama pulau/kabupaten ("Bangka") BUKAN kata umum - berita sekabupaten tetap sah.
+  assert.equal(locContains('Jembatan Desa Nibung, Kecamatan Koba (perbatasan Bangka Tengah-Bangka Selatan)', 'Catatan BPBD Bangka Tengah: 280 KK Terdampak Banjir, Kecamatan Lubuk Besar Terparah'), true);
 });
