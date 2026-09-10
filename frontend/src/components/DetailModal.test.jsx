@@ -190,7 +190,7 @@ describe('DetailModal: klaim status lapangan warga (bintang = sudah diperbaiki, 
   });
 
   it('tombol berteks ("Sudah diperbaiki" / "Sudah tidak ada") + hitungan warga, tanpa paragraf keterangan', async () => {
-    mockClaims({ counts: { diperbaiki: 2, hilang: 1 }, mine: ['diperbaiki'] });
+    mockClaims({ counts: { diperbaiki: 2, hilang: 0 }, mine: ['diperbaiki'] });
     render(<DetailModal report={REPORT} onClose={vi.fn()} onReportUpdated={vi.fn()} />);
 
     // Sudah dilaporkan -> tombol jadi mode batalkan (teks tetap tampil).
@@ -200,11 +200,54 @@ describe('DetailModal: klaim status lapangan warga (bintang = sudah diperbaiki, 
 
     const gone = screen.getByRole('button', { name: 'Laporkan titik sudah tidak ada' });
     expect(within(gone).getByText('Sudah tidak ada')).toBeInTheDocument();
-    expect(within(gone).getByText('1 warga')).toBeInTheDocument();
+    expect(within(gone).getByText('0 warga')).toBeInTheDocument();
 
     // Paragraf keterangan lama sudah dihapus.
     expect(screen.queryByText(/Satu warga satu laporan per jenis/)).not.toBeInTheDocument();
     expect(screen.queryByText(/tidak berubah oleh pembaruan dari media/)).not.toBeInTheDocument();
+  });
+
+  it('saling mengunci: bila "Sudah diperbaiki" sudah bernilai, "Sudah tidak ada" tidak bisa diklik', async () => {
+    const fetchMock = mockClaims({ counts: { diperbaiki: 2, hilang: 0 }, mine: [] });
+    const user = userEvent.setup();
+    render(<DetailModal report={REPORT} onClose={vi.fn()} onReportUpdated={vi.fn()} />);
+
+    const perbaikan = await screen.findByRole('button', { name: 'Laporkan titik sudah diperbaiki' });
+    const gone = screen.getByRole('button', { name: 'Laporkan titik sudah tidak ada' });
+
+    // Yang sudah bernilai tetap bisa dipakai; yang berlawanan dikunci.
+    expect(perbaikan).not.toBeDisabled();
+    expect(gone).toBeDisabled();
+    expect(gone).toHaveAttribute(
+      'title',
+      'Tidak bisa dipilih: 2 warga sudah melaporkan titik sudah diperbaiki.'
+    );
+
+    // Diklik pun tidak mengirim permintaan apa pun (tidak ada data silang).
+    await user.click(gone);
+    expect(
+      fetchMock.mock.calls.some(([u, i]) => String(u).includes('/claim') && i && i.method === 'POST')
+    ).toBe(false);
+    expect(screen.getByText(/Titik hanya bisa berstatus salah satu/)).toBeInTheDocument();
+  });
+
+  it('kunci terbuka lagi setelah klaim lawannya dibatalkan (nilai kembali 0)', async () => {
+    mockClaims({ counts: { diperbaiki: 1, hilang: 0 }, mine: ['diperbaiki'] });
+    const user = userEvent.setup();
+    render(<DetailModal report={REPORT} onClose={vi.fn()} onReportUpdated={vi.fn()} />);
+
+    const gone = await screen.findByRole('button', { name: 'Laporkan titik sudah tidak ada' });
+    expect(gone).toBeDisabled();
+
+    await user.click(screen.getByRole('button', { name: 'Batalkan laporan titik sudah diperbaiki' }));
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'Laporkan titik sudah tidak ada' })).not.toBeDisabled()
+    );
+    // Sesudah bebas, status "sudah tidak ada" bisa dilaporkan.
+    await user.click(screen.getByRole('button', { name: 'Laporkan titik sudah tidak ada' }));
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'Batalkan laporan titik sudah tidak ada' })).toBeInTheDocument()
+    );
   });
 
   it('klik bintang -> POST klaim; klik lagi -> DELETE (uncheck), hitungan naik/turun', async () => {

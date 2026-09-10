@@ -223,6 +223,19 @@ router.post('/:id/claim', (req, res) => {
     return res.status(400).json({ error: `kind harus salah satu dari: ${CLAIM_KINDS.join(', ')}` });
   }
   const did = claimIdentity(req);
+  // Saling mengunci: titik TIDAK mungkin sekaligus "sudah diperbaiki" dan
+  // "sudah tidak ada". Bila status lawannya sudah punya nilai (ada warga yang
+  // melaporkannya), klaim ini ditolak - batalkan dulu klaim lawannya.
+  const other = kind === 'diperbaiki' ? 'hilang' : 'diperbaiki';
+  const otherCount = claimCounts(id)[other];
+  if (otherCount > 0) {
+    const label = other === 'diperbaiki' ? 'sudah diperbaiki' : 'sudah tidak ada';
+    return res.status(409).json({
+      error: `Titik ini sudah ditandai "${label}" oleh ${otherCount} warga. Batalkan dulu supaya bisa memilih status yang lain.`,
+      conflict: other,
+      counts: claimCounts(id),
+    });
+  }
   const dup = db
     .prepare('SELECT id FROM status_claims WHERE report_id = ? AND kind = ? AND claimer_did = ?')
     .get(id, kind, did);

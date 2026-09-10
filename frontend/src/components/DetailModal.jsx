@@ -999,7 +999,7 @@ export default function DetailModal({ report, onClose, otoritas = null, onReport
           </div>
           <div style={{ display: 'flex', alignItems: 'stretch', gap: 8, flexWrap: 'wrap' }}>
             {(() => {
-              const pillStyle = (on, onColor, onBg, busy) => ({
+              const pillStyle = (on, onColor, onBg, busy, blocked) => ({
                 position: 'relative',
                 display: 'inline-flex',
                 alignItems: 'center',
@@ -1011,9 +1011,10 @@ export default function DetailModal({ report, onClose, otoritas = null, onReport
                 padding: '0 14px',
                 boxSizing: 'border-box',
                 borderRadius: 999,
-                border: `2px solid ${on ? onColor : '#cbd5e1'}`,
-                background: on ? onBg : '#fff',
-                cursor: otoritas ? 'default' : busy ? 'wait' : 'pointer',
+                border: `2px solid ${blocked ? '#e2e8f0' : on ? onColor : '#cbd5e1'}`,
+                background: blocked ? '#f8fafc' : on ? onBg : '#fff',
+                opacity: blocked ? 0.6 : 1,
+                cursor: otoritas ? 'default' : blocked ? 'not-allowed' : busy ? 'wait' : 'pointer',
                 boxShadow: '0 1px 3px rgba(0,0,0,.12)',
               });
               const chipStyle = (on, onColor) => ({
@@ -1053,6 +1054,10 @@ export default function DetailModal({ report, onClose, otoritas = null, onReport
                   title: 'Warga melaporkan titik sudah diperbaiki',
                   onClick: () => toggleClaim('diperbaiki'),
                   busy: claimBusy === 'diperbaiki',
+                  // Saling mengunci dengan status "sudah tidak ada": titik tidak
+                  // mungkin sekaligus sudah diperbaiki DAN sudah tidak ada.
+                  blocked: claimCounts.hilang > 0,
+                  blockedTitle: `Tidak bisa dipilih: ${claimCounts.hilang} warga sudah melaporkan titik sudah tidak ada.`,
                 },
                 {
                   key: 'hilang',
@@ -1068,6 +1073,8 @@ export default function DetailModal({ report, onClose, otoritas = null, onReport
                   title: 'Warga melaporkan titik sudah tidak ada',
                   onClick: () => toggleClaim('hilang'),
                   busy: claimBusy === 'hilang',
+                  blocked: claimCounts.diperbaiki > 0,
+                  blockedTitle: `Tidak bisa dipilih: ${claimCounts.diperbaiki} warga sudah melaporkan titik sudah diperbaiki.`,
                 },
               ];
               // Otoritas: tampil sebagai label statis (bukan tombol).
@@ -1077,8 +1084,14 @@ export default function DetailModal({ report, onClose, otoritas = null, onReport
                   key={p.key}
                   {...(otoritas
                     ? { title: p.title }
-                    : { type: 'button', 'aria-label': p.aria, title: p.title, onClick: p.onClick, disabled: p.busy })}
-                  style={pillStyle(p.on, p.onColor, p.onBg, p.busy)}
+                    : {
+                        type: 'button',
+                        'aria-label': p.aria,
+                        title: p.blocked ? p.blockedTitle : p.title,
+                        onClick: p.onClick,
+                        disabled: p.busy || p.blocked,
+                      })}
+                  style={pillStyle(p.on, p.onColor, p.onBg, p.busy, otoritas ? false : p.blocked)}
                 >
                   <p.Icon active={p.on} size={20} />
                   <span style={{ fontSize: 13, fontWeight: 600, color: '#334155', whiteSpace: 'nowrap' }}>
@@ -1100,8 +1113,13 @@ export default function DetailModal({ report, onClose, otoritas = null, onReport
               ));
             })()}
           </div>
-          {!otoritas && (hasVoted || myClaims.diperbaiki || myClaims.hilang) && (
+          {!otoritas && (claimCounts.diperbaiki > 0 || claimCounts.hilang > 0) && (
             <div style={{ fontSize: 11.5, color: '#64748b', marginTop: 8 }}>
+              Titik hanya bisa berstatus salah satu: sudah diperbaiki atau sudah tidak ada.
+            </div>
+          )}
+          {!otoritas && (hasVoted || myClaims.diperbaiki || myClaims.hilang) && (
+            <div style={{ fontSize: 11.5, color: '#64748b', marginTop: 4 }}>
               Klik tombol yang menyala untuk membatalkan pilihan Anda.
             </div>
           )}
