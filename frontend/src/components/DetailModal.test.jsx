@@ -231,6 +231,39 @@ describe('DetailModal: klaim status lapangan warga (bintang = sudah diperbaiki, 
     expect(screen.getByText(/Titik hanya bisa berstatus salah satu/)).toBeInTheDocument();
   });
 
+  it('animasi hanya saat CHECK: bintang+kilau untuk "diperbaiki", asap untuk "tidak ada", confetti untuk dukungan', async () => {
+    mockClaims({ counts: { diperbaiki: 0, hilang: 0 }, mine: [] });
+    const user = userEvent.setup();
+    render(<DetailModal report={REPORT} onClose={vi.fn()} onReportUpdated={vi.fn()} />);
+
+    // Belum ada animasi apa pun sebelum diklik.
+    expect(screen.queryByTestId('burst-diperbaiki')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('burst-hilang')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('burst-dukung')).not.toBeInTheDocument();
+
+    // Check "Sudah diperbaiki" -> ada partikel bintang (tk-spark) + cincin.
+    await user.click(await screen.findByRole('button', { name: 'Laporkan titik sudah diperbaiki' }));
+    const fixBurst = await screen.findByTestId('burst-diperbaiki');
+    expect(fixBurst.querySelectorAll('.tk-spark').length).toBeGreaterThan(0);
+    expect(fixBurst.querySelector('.tk-ring')).toBeTruthy();
+
+    // Uncheck -> animasinya hilang (uncheck tanpa animasi).
+    await user.click(screen.getByRole('button', { name: 'Batalkan laporan titik sudah diperbaiki' }));
+    await waitFor(() => expect(screen.queryByTestId('burst-diperbaiki')).not.toBeInTheDocument());
+
+    // Check "Sudah tidak ada" -> partikel asap (tk-puff), bukan bintang.
+    await user.click(screen.getByRole('button', { name: 'Laporkan titik sudah tidak ada' }));
+    const goneBurst = await screen.findByTestId('burst-hilang');
+    expect(goneBurst.querySelectorAll('.tk-puff').length).toBeGreaterThan(0);
+    expect(goneBurst.querySelectorAll('.tk-spark').length).toBe(0);
+
+    // Dukungan warga -> confetti + bintang jempol.
+    await user.click(screen.getByRole('button', { name: 'Dukung laporan warga (jempol)' }));
+    const voteBurst = await screen.findByTestId('burst-dukung');
+    expect(voteBurst.querySelectorAll('.tk-confetti').length).toBeGreaterThan(0);
+    expect(voteBurst.querySelectorAll('.tk-star').length).toBeGreaterThan(0);
+  });
+
   it('kunci terbuka lagi setelah klaim lawannya dibatalkan (nilai kembali 0)', async () => {
     mockClaims({ counts: { diperbaiki: 1, hilang: 0 }, mine: ['diperbaiki'] });
     const user = userEvent.setup();

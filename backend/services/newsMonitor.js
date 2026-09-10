@@ -20,6 +20,22 @@
 
 const db = require('../db/db.js');
 
+// ---- JENDELA SEED MEDIA (10 Sep 2026) ----
+// Aturan produk: titik rusak dari pemberitaan media hanya untuk rentang
+// Januari 2026 - September 2026 (bulan berjalan). Berita di luar rentang
+// dilewati; titik lama di luar rentang dibersihkan lewat skrip arsip.
+const SEED_MIN_DATE = '2026-01-01';
+const SEED_MAX_DATE = '2026-09-30';
+const todayIso = () => {
+  const now = new Date().toISOString().slice(0, 10);
+  return now < SEED_MAX_DATE ? now : SEED_MAX_DATE;
+};
+// Apakah tanggal (YYYY-MM-DD / ISO) berada di dalam jendela seed?
+const inSeedWindow = (dateish) => {
+  const d = dateish ? String(dateish).slice(0, 10) : '';
+  return Boolean(d) && d >= SEED_MIN_DATE && d <= todayIso();
+};
+
 // ---- Kata kunci jenis infrastruktur (harus cocok minimal 1) ----
 const INFRA_KEYWORDS = [
   'jembatan', 'jalan', 'sekolah', 'madrasah', 'pesantren', 'rumah sakit',
@@ -542,6 +558,14 @@ async function runMonitor({ dry = false, log = console.log } = {}) {
       if (hasAny(title, SKIP_IF) && !hasAny(title, ['putus', 'ambruk', 'ambles', 'jebol', 'runtuh', 'roboh', 'longsor'])) continue;
       if (!hasAny(low, INFRA_KEYWORDS)) continue;
       if (seen.has(item.link)) continue;
+      // JENDELA SEED MEDIA (10 Sep 2026): hanya berita Jan-Sep 2026 yang masuk
+      // peta. Berita di luar rentang itu dilewati walau cocok.
+      const pubIso = item.pubDate ? String(item.pubDate).slice(0, 10) : '';
+      if (!pubIso || pubIso < SEED_MIN_DATE || pubIso > todayIso()) {
+        results.skipped += 1;
+        log(`  - lewati (di luar jendela ${SEED_MIN_DATE}..sekarang): ${pubIso || 'tanpa tanggal'} - ${title}`);
+        continue;
+      }
       seen.add(item.link);
 
       // ---- 1) COCOK DGN TITIK YANG SUDAH ADA (update, bukan insert) ----
@@ -641,6 +665,19 @@ async function runMonitor({ dry = false, log = console.log } = {}) {
     const og = await fetchOgImage(entry.url);
     const photos = og ? JSON.stringify([og]) : null;
     if (og) log(`  ~ foto dari sumber: ${og.slice(0, 90)}`);
+    // GUARD ANTI-DUPLIKAT (10 Sep 2026): titik dengan OBJEK SAMA kadang tidak
+    // tertangkap matchScore (judul/istilah beda), lalu masuk sebagai titik
+    // baru dengan koordinat digeser -> lahir duplikat. Sebelum insert: bila
+    // sudah ada titik dengan nama lokasi yang SAMA (locContains, dua arah),
+    // perlakukan sebagai satu objek: cukup dilewati (jangan bikin titik baru).
+    const twin =
+      existing.find((r) => r.infra_type === entry.infra && locContains(r.location_name, entry.locName)) ||
+      existing.find((r) => locContains(r.location_name, entry.locName) && locContains(entry.locName, r.location_name));
+    if (twin) {
+      results.skipped += 1;
+      log(`  ~ sudah ada titik serupa #${twin.id} (${twin.location_name.slice(0, 45)}): tidak dibuat titik baru - ${title}`);
+      continue;
+    }
     // geser sedikit bila bertabrakan dgn titik yang ada di koordinat itu
     const clash = db.prepare('SELECT id FROM reports WHERE ABS(lat - ?) < 0.02 AND ABS(lng - ?) < 0.02 LIMIT 1').get(entry.lat, entry.lng);
     const latFinal = clash ? entry.lat + (Math.random() * 0.02 - 0.01) : entry.lat;
@@ -674,6 +711,16 @@ async function runMonitor({ dry = false, log = console.log } = {}) {
     require('fs').mkdirSync(require('path').join(__dirname, '..', 'data'), { recursive: true });
     require('fs').writeFileSync(geoCacheFile, JSON.stringify(cache));
   } catch (_e) { /* cache best-effort */ }
+
+  // Bersihkan duplikat yang mungkin LAHIR di cycle ini (guard di atas harusnya
+  // sudah mencegah; ini jaring kedua supaya peta tidak pernah menumpuk titik).
+  if (!dry) {
+    const again = mergeMediaDuplicates(log);
+    if (again > 0) {
+      results.merged += again;
+      log(`  ~ duplikat baru dibersihkan: ${again} baris`);
+    }
+  }
 
   return results;
 }
@@ -791,4 +838,4 @@ function mergeMediaDuplicates(log) {
   return removed;
 }
 
-module.exports = { runMonitor, QUERIES, fetchOgImage, resolveGnewsUrl, matchScore, regionConflict, regionOverlap, locContains };
+module.exports = { runMonitor, QUERIES, fetchOgImage, resolveGnewsUrl, matchScore, regionConflict, regionOverlap, locContains, tokenOverlap, specificTokens, inSeedWindow, mergeMediaDuplicates, SEED_MIN_DATE, SEED_MAX_DATE };

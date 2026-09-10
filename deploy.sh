@@ -44,10 +44,20 @@ echo "==> [3/5] build frontend"
 (cd frontend && npm run build)
 
 # ---- 4. Migrasi skema + seed media (idempotent) ----
-echo "==> [4/5] migrasi skema DB + seed laporan media"
+echo "==> [4/5] migrasi skema DB + laporan media"
 (cd backend && node scripts/migrate-infra-types.js)
 (cd backend && node scripts/migrate-report-columns.js)
-(cd backend && node scripts/seed-media-reports.js)
+# SEED HANYA BILA DIMINTA (SEED_MEDIA=1) atau DB media masih kosong.
+# Sejak 10 Sep 2026 deploy TIDAK lagi menyemai otomatis: seed per-deploy
+# pernah membuat titik duplikat (#726-#735) karena entri seed yang URL-nya
+# sudah berganti dianggap titik baru.
+MEDIA_COUNT=$(cd backend && node -e "const D=require('better-sqlite3');const db=new D('reports.db',{readonly:true});console.log(db.prepare(\"SELECT COUNT(*) c FROM reports WHERE source_type='media'\").get().c)" 2>/dev/null || echo "0")
+if [ "${SEED_MEDIA:-0}" = "1" ] || [ "$MEDIA_COUNT" = "0" ]; then
+  echo "    seed media dijalankan (SEED_MEDIA=${SEED_MEDIA:-0}, media di DB=${MEDIA_COUNT})"
+  (cd backend && node scripts/seed-media-reports.js)
+else
+  echo "    seed media DILEWATI (${MEDIA_COUNT} titik media sudah ada; pakai SEED_MEDIA=1 bila memang mau menyemai)"
+fi
 
 # ---- 5. Restart backend ----
 echo "==> [5/5] restart backend"

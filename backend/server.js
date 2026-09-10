@@ -16,6 +16,12 @@ const captchaRouter = require('./routes/captcha.js');
 
 const app = express();
 
+// Percaya header proxy HANYA dari loopback (nginx di mesin yang sama).
+// Tanpa ini req.ip selalu 127.0.0.1 untuk semua pengunjung, sehingga
+// identitas anonim (vote/klaim "ip:<alamat>") menumpuk jadi satu dan
+// dedupe "satu warga satu dukungan" ikut rusak.
+app.set('trust proxy', 'loopback');
+
 // Logger hit (JSONL kecil per jam) - real-time, ringan, di /srv/tk-hits.
 const { hitLogger, start: startHitLogger } = require('./lib/hitLogger.js');
 app.use(hitLogger);

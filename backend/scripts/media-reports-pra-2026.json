@@ -1,0 +1,178 @@
+[
+  {
+    "location_name": "Jalan Nasional Lembah Anai, Bukittinggi–Padang (Sumatera Barat)",
+    "description": "Jalur Lembah Anai, tulang punggung konektivitas Sumatera Barat yang menghubungkan Bukittinggi–Padang, putus pasca bencana banjir dan tanah longsor November 2025. Kendaraan dialihkan melalui rute Padang–Sitinjau Lauik–Solok–Danau Singkarak–Padang Panjang; Kementerian PU membuka jalur secara fungsional terbatas sambil mengkaji solusi permanen.",
+    "source_name": "ANTARA News",
+    "source_url": "https://jambi.antaranews.com/berita/642019/kementerian-pu-buka-jalur-lembah-anai-secara-fungsional-pascabencana",
+    "source_date": "2025-12-02",
+    "severity": "berat",
+    "infra_type": "jalan",
+    "vital_status": [
+      "akses_ekonomi",
+      "akses_kesehatan"
+    ],
+    "geocode_query": "Lembah Anai, Tanah Datar, Sumatera Barat",
+    "fallback_lat": -0.39,
+    "fallback_lng": 100.39
+  },
+  {
+    "location_name": "Jembatan Cikolomeran penghubung Desa Hegarmanah–Bantarkalong, Warungkiara, Sukabumi (Jawa Barat)",
+    "description": "Jembatan Cikolomeran yang menghubungkan Desa Hegarmanah dan Bantarkalong, Kecamatan Warungkiara, ambruk saat banjir-longsor melanda sembilan kecamatan di Sukabumi pada 15-16 Desember 2025. Material longsor juga menutup akses jalan kabupaten, termasuk di sekitar Jembatan Cimandiri Leuwi Lalay, dan jalan desa di Kampung Bojonghaur ambles sehingga tidak dapat dilalui kendaraan.",
+    "source_name": "Kompas.com",
+    "source_url": "https://www.kompas.com/jawa-barat/read/2025/12/16/085000688/banjir-longsor-landa-9-kecamatan-di-sukabumi--akses-jalan-putus",
+    "source_date": "2025-12-16",
+    "severity": "ambruk",
+    "infra_type": "jembatan",
+    "vital_status": [
+      "akses_antar_kampung",
+      "akses_sekolah"
+    ],
+    "geocode_query": "Warungkiara, Sukabumi, Jawa Barat",
+    "fallback_lat": -7.1,
+    "fallback_lng": 106.74
+  },
+  {
+    "location_name": "Jaringan listrik Kampung Babakan Junti, Desa Warjabakti, Cimaung, Bandung (Jawa Barat)",
+    "description": "Hujan deras disertai angin kencang merobohkan beberapa tiang listrik di Kampung Babakan Junti, Desa Warjabakti, Kecamatan Cimaung, Kabupaten Bandung pada Rabu (10/12/2025) sekitar pukul 15.00 WIB. Aliran listrik di sejumlah lingkungan warga langsung padam, beberapa rumah mengalami kerusakan ringan akibat kabel yang tertarik, dan kabel yang menjuntai dinilai membahayakan keselamatan warga.",
+    "source_name": "JabarOnline",
+    "source_url": "https://sukabumi.jabaronline.com/post/angin-kencang-robohkan-tiang-listrik-di-babakan-junti-cimaung-warga-sempat-panik",
+    "source_date": "2025-12-10",
+    "severity": "sedang",
+    "infra_type": "jaringan_listrik",
+    "vital_status": [
+      "aset_utilitas"
+    ],
+    "geocode_query": "Cimaung, Bandung, Jawa Barat",
+    "fallback_lat": -7.09,
+    "fallback_lng": 107.57
+  },
+  {
+    "location_name": "Jalan Desa Danasari, Kecamatan Karangjambu, Purbalingga (Jawa Tengah)",
+    "description": "Tanah longsor memutus jalan desa yang menjadi satu-satunya akses warga di Desa Danasari, Karangjambu, Purbalingga, Minggu (21/12/2025) sore usai hujan lebat. Material longsor menutup jalan sepanjang 25 meter dengan tinggi 15 meter sehingga 12 kepala keluarga atau sekitar 40 warga terisolir tanpa akses alternatif. Longsor juga menimbun 1 hektare lahan pertanian dan memutus irigasi; Pemkab berencana membangun jembatan darurat.",
+    "source_name": "detikJateng",
+    "source_url": "https://www.detik.com/jateng/berita/d-8274175/longsor-putus-jalan-desa-di-karangjambu-purbalingga-12-kk-terisolir",
+    "source_date": "2025-12-23",
+    "severity": "berat",
+    "infra_type": "jalan",
+    "vital_status": [
+      "akses_antar_kampung",
+      "akses_ekonomi"
+    ],
+    "geocode_query": "Karangjambu, Purbalingga, Jawa Tengah",
+    "fallback_lat": -7.24,
+    "fallback_lng": 109.42
+  },
+  {
+    "location_name": "Sumber air Perumda Mual Nauli, Kota Pandan (Tapanuli Tengah, Sumatera Utara)",
+    "description": "Banjir bandang dan longsor 25 November 2025 merusak berat 25 sumber air milik Perumda Air Minum Mual Nauli yang tersebar di 10 kecamatan di Kabupaten Tapanuli Tengah, termasuk pipa transmisi yang putus, hilang hanyut, atau tertimbun longsor. Akibatnya sekitar 90 persen distribusi air bersih ke pelanggan mati total. Perumda mendistribusikan air melalui mobil tangki sambil memperbaiki jaringan dan sumber air secara bertahap.",
+    "source_name": "MedanBisnisDaily",
+    "source_url": "https://medanbisnisdaily.com/news/online/read/2025/12/09/195615/25_sumber_air_perumda_mual_nauli_tapteng_rusak_berat_diterjang_banjir_dan_longsor_90_distribusi_ke_pelanggan_mati_total/",
+    "source_date": "2025-12-09",
+    "severity": "berat",
+    "infra_type": "jaringan_air",
+    "vital_status": [
+      "aset_utilitas",
+      "akses_kesehatan"
+    ],
+    "geocode_query": "Pandan, Tapanuli Tengah, Sumatera Utara",
+    "fallback_lat": 1.69,
+    "fallback_lng": 98.82
+  },
+  {
+    "location_name": "Puskesmas Palabuhanratu, Kabupaten Sukabumi, Jawa Barat",
+    "description": "Banjir bandang Kamis 18 Desember 2025 membawa lumpur pekat masuk ke Puskesmas Palabuhanratu hingga rumah dinas dan ruang program TBC terendam, sehingga layanan kesehatan dihentikan sementara dan dialihkan; tumpukan sampah menyangkut di kolong jembatan rendah di dekat puskesmas diduga memicu luapan.",
+    "source_name": "Detik.com",
+    "source_url": "https://www.detik.com/jabar/berita/d-8265721/puskesmas-palabuhanratu-dikepung-banjir-lumpur-layanan-medis-lumpuh",
+    "source_date": "2025-12-18",
+    "severity": "sedang",
+    "infra_type": "rumah_sakit",
+    "vital_status": [
+      "akses_kesehatan"
+    ],
+    "geocode_query": "Puskesmas Palabuhanratu, Sukabumi, Jawa Barat",
+    "fallback_lat": -6.99,
+    "fallback_lng": 106.54,
+    "photo_url": "https://akcdn.detik.net.id/api/wm/2025/12/18/petugas-membersihkan-lumpur-di-puskesmas-palabuhanratu-sukabumi-1766033683168_169.jpeg?wid=54&w=1200&v=1&t=jpeg"
+  },
+  {
+    "location_name": "Jembatan bambu Kampung Parakan Salak, Desa Cikutamahi, Kecamatan Cariu, Kabupaten Bogor, Jawa Barat",
+    "description": "Jembatan bambu akses utama penghubung Desa Cikutamahi (Bogor) dan Desa Medalsari (Karawang) ambruk dan terseret aliran Sungai Ciomas setelah hujan deras pada Kamis 4 Desember 2025 sekitar pukul 14.00 WIB; akses warga, anak sekolah, dan kegiatan ekonomi dua desa terputus, warga harus memutar lewat Kampung Cikole 30-45 menit hingga satu jam.",
+    "source_name": "Kompas.com",
+    "source_url": "https://bandung.kompas.com/read/2025/12/04/221614178/jembatan-penghubung-bogor-karawang-putus-usai-hujan-deras-dan-angin-kencang",
+    "source_date": "2025-12-04",
+    "severity": "ambruk",
+    "infra_type": "jembatan",
+    "vital_status": [
+      "akses_antar_kampung",
+      "akses_ekonomi"
+    ],
+    "geocode_query": "Desa Cikutamahi, Cariu, Kabupaten Bogor, Jawa Barat",
+    "fallback_lat": -6.51,
+    "fallback_lng": 107.13,
+    "photo_url": "https://asset.kompas.com/crops/MvAV05QOhHjzRFAcFx5evhmx3K0=/0x0:0x0/1200x675/filters:watermark(data/photo/2026/01/30/697c815a5f0b9.png,0,-0,1)/data/photo/2025/12/04/69319ea61d88b.jpg"
+  },
+  {
+    "location_name": "SMAN 1 Batang Anai, Padang Pariaman, Sumatera Barat",
+    "description": "Banjir disertai lumpur pada 27 November 2025 merendam SMAN 1 Batang Anai hingga ketinggian 2 meter sehingga 15 dari 29 ruang kelas belum bisa digunakan dan kegiatan belajar mengajar lumpuh. Sekolah yang berada di tepi Sungai Batang Anai ini direncanakan direlokasi karena rawan banjir.",
+    "source_name": "ANTARA News",
+    "source_url": "https://www.antaranews.com/berita/5286982/mendikdasmen-tinjau-sman-1-batang-anai-pastikan-proses-pemulihan",
+    "source_date": "2025-12-04",
+    "severity": "berat",
+    "infra_type": "sekolah",
+    "vital_status": [
+      "akses_sekolah"
+    ],
+    "geocode_query": "SMAN 1 Batang Anai, Padang Pariaman, Sumatera Barat",
+    "fallback_lat": -0.63,
+    "fallback_lng": 100.38,
+    "photo_url": "https://img.antaranews.com/cache/1200x800/2025/12/04/IMG_20251204_163844.jpg"
+  },
+  {
+    "location_name": "Fasilitas kesehatan terdampak banjir (terparah Aceh Tamiang), Aceh",
+    "description": "Banjir bandang dan tanah longsor 25 November 2025 membuat 7 rumah sakit dan 136 puskesmas di Aceh tidak bisa beroperasi per 1 Desember 2025, tersebar di 10 kabupaten/kota. Kondisi terparah di Aceh Tamiang di mana seluruh 2 rumah sakit dan 15 puskesmas lumpuh total sejak banjir.",
+    "source_name": "Tempo.co",
+    "source_url": "https://www.tempo.co/politik/kemenkes-7-rumah-sakit-dan-136-puskesmas-di-aceh-tidak-beroperasi-akibat-banjir-2095010",
+    "source_date": "2025-12-02",
+    "severity": "berat",
+    "infra_type": "rumah_sakit",
+    "vital_status": [
+      "akses_kesehatan"
+    ],
+    "geocode_query": "Aceh Tamiang, Aceh",
+    "fallback_lat": 4.28,
+    "fallback_lng": 98.03,
+    "photo_url": "https://statik.tempo.co/data/2025/11/28/id_1444042/1444042_720.jpg"
+  },
+  {
+    "location_name": "Jaringan listrik UP3 Payakumbuh, Bukittinggi dan Solok, Sumatera Barat",
+    "description": "Bencana hidrometeorologi akhir November 2025 memutus jaringan listrik di 74 penyulang Sumbar sehingga 270.148 pelanggan dan 2.302 gardu terdampak dengan total beban padam 42 MW, serta merusak 74 tiang dan 283 peralatan gardu. Pemulihan bertahap sejak 27 November 2025 tuntas setelah seluruh 74 penyulang kembali beroperasi.",
+    "source_name": "ANTARA News",
+    "source_url": "https://www.antaranews.com/berita/5283029/sebanyak-74-penyulang-listrik-kembali-menyala-setelah-bencana-sumbar",
+    "source_date": "2025-12-02",
+    "severity": "berat",
+    "infra_type": "jaringan_listrik",
+    "vital_status": [
+      "aset_utilitas"
+    ],
+    "geocode_query": "Payakumbuh, Sumatera Barat",
+    "fallback_lat": -0.23,
+    "fallback_lng": 100.62,
+    "photo_url": "https://img.antaranews.com/cache/1200x800/2025/12/02/IMG_9360.jpg"
+  },
+  {
+    "location_name": "Jembatan di Distrik Senggi, Kabupaten Keerom, Papua",
+    "description": "Banjir yang menerjang Distrik Senggi, Keerom, Papua pada Rabu (17/12/2025) membawa gelondongan kayu dan memutus total jembatan penghubung warga sehingga masyarakat tidak bisa melintas; Polres Keerom menyatakan jembatan yang rusak segera diperbaiki.",
+    "source_name": "detikcom",
+    "source_url": "https://www.detik.com/sulsel/berita/d-8269591/viral-banjir-bawa-gelondongan-kayu-di-keerom-papua-bikin-jembatan-terputus",
+    "source_date": "2025-12-20",
+    "severity": "ambruk",
+    "infra_type": "jembatan",
+    "vital_status": [
+      "akses_antar_kampung"
+    ],
+    "geocode_query": "Distrik Senggi, Keerom, Papua",
+    "fallback_lat": -3.4435,
+    "fallback_lng": 140.7767,
+    "photo_url": "https://akcdn.detik.net.id/api/wm/2025/12/20/viral-gelondongan-kayu-terbawa-banjir-putus-jembatan-di-keerom-papua-1766224638369_169.jpeg?wid=54&w=1200&v=1&t=jpeg"
+  }
+]

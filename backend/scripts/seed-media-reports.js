@@ -16,6 +16,7 @@
 
 const path = require('path');
 const db = require('../db/db.js');
+const { inSeedWindow, locContains } = require('../services/newsMonitor.js');
 
 const ITEMS = require('./media-reports.json');
 
@@ -89,10 +90,35 @@ async function main() {
   let inserted = 0;
   let skipped = 0;
   let noGeo = 0;
+  let outside = 0;
+  // Titik media yang sudah ada (untuk deteksi objek yang sama). Dimuat sekali,
+  // lalu diperbarui setiap kali ada insert di run ini.
+  let mediaRows = db
+    .prepare("SELECT id, location_name, infra_type FROM reports WHERE source_type = 'media'")
+    .all();
+  const findSimilar = (item) =>
+    mediaRows.find((r) => r.infra_type === item.infra_type && locContains(r.location_name, item.location_name)) ||
+    mediaRows.find(
+      (r) => locContains(r.location_name, item.location_name) && locContains(item.location_name, r.location_name)
+    );
 
   for (const item of ITEMS) {
+    // Jendela produk: hanya Jan-Sep 2026 (10 Sep 2026).
+    if (!inSeedWindow(item.source_date)) {
+      outside += 1;
+      console.log(`- SKIP (di luar jendela Jan-Sep 2026: ${item.source_date}): ${item.location_name}`);
+      continue;
+    }
     if (EXISTS.get(item.source_url)) {
       console.log(`- SKIP (sudah ada): ${item.location_name}`);
+      skipped += 1;
+      continue;
+    }
+    // Objek yang SAMA walau URL berbeda (outlet lain) -> jangan bikin titik
+    // baru; inilah penyebab duplikat #726-#735 pada deploy 10 Sep 2026.
+    const twin = findSimilar(item);
+    if (twin) {
+      console.log(`- SKIP (sudah ada titik serupa #${twin.id}): ${item.location_name}`);
       skipped += 1;
       continue;
     }
@@ -148,6 +174,9 @@ async function main() {
       item.source_date,
       item.related_earthquake || null
     );
+    // Daftar titik di memori ikut diperbarui supaya entri berikutnya di run
+    // yang sama tidak membuat duplikat objek yang sama.
+    mediaRows.push({ id: null, location_name: item.location_name, infra_type: item.infra_type });
     inserted += 1;
     console.log(`+ INSERT: ${item.location_name} (${lat.toFixed(4)}, ${lng.toFixed(4)})`);
     await sleep(200);
@@ -155,7 +184,7 @@ async function main() {
 
   const total = db.prepare("SELECT COUNT(*) c FROM reports WHERE source_type = 'media'").get().c;
   console.log('\n=== Ringkasan ===');
-  console.log(`inserted: ${inserted} | skipped: ${skipped} | fallback-geocode: ${noGeo}`);
+  console.log(`inserted: ${inserted} | skipped: ${skipped} | di luar jendela: ${outside} | fallback-geocode: ${noGeo}`);
   console.log(`total laporan media di DB: ${total}`);
 }
 

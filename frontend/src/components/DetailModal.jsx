@@ -87,6 +87,91 @@ const LIKE_STARS = [
   [-70, -10, 40], [64, -48, 90], [-14, -58, 20], [10, -64, 210],
 ];
 
+// ---- Animasi di sekitar tombol (hanya saat CHECK, tidak saat uncheck) ----
+// Confetti dukungan warga: [dx, dy, rotasi, warna, delayMs]
+const CONFETTI = [
+  [-62, -30, -140, '#2563eb', 0], [58, -34, 120, '#f59e0b', 40],
+  [-44, -52, -80, '#16a34a', 80], [46, -54, 90, '#dc2626', 30],
+  [-72, 4, -200, '#7c3aed', 110], [70, 0, 190, '#0ea5e9', 60],
+  [-30, 26, -60, '#eab308', 150], [34, 30, 70, '#ec4899', 130],
+  [-16, -68, -30, '#22c55e', 90], [18, -70, 40, '#3b82f6', 170],
+  [-58, -12, -170, '#f97316', 200], [56, -14, 160, '#14b8a6', 190],
+  [-8, -46, 0, '#a855f7', 220], [10, -44, 20, '#ef4444', 240],
+];
+// Percikan bintang untuk "sudah diperbaiki": [dx, dy, delayMs]
+const FIX_SPARKS = [
+  [-60, -32, 0], [60, -28, 70], [-42, -50, 140], [44, -52, 40],
+  [-74, 2, 110], [72, 6, 170], [-24, -66, 200], [26, -64, 220],
+];
+// Kepulan "memudar" untuk "sudah tidak ada": [dx, dy, delayMs]
+const GONE_PUFFS = [
+  [-42, -34, 0], [40, -38, 90], [-22, -52, 180], [24, -56, 60],
+  [-58, -18, 140], [56, -22, 210], [0, -64, 250],
+];
+
+// Bit confetti/percikan yang dipasang di dalam tombol (absolute, non-klik).
+function BurstBits({ kind }) {
+  if (kind === 'dukung') {
+    return (
+      <>
+        {CONFETTI.map(([dx, dy, rot, clr, del], i) => (
+          <span
+            key={`c${i}`}
+            className="tk-confetti"
+            style={{
+              '--dx': `${dx}px`,
+              '--dy': `${dy}px`,
+              '--rot': `${rot}deg`,
+              '--clr': clr,
+              animationDelay: `${del}ms`,
+            }}
+          />
+        ))}
+        {LIKE_STARS.map(([dx, dy, del], i) => (
+          <span
+            key={`s${i}`}
+            className="tk-star"
+            style={{ '--dx': `${dx}px`, '--dy': `${dy}px`, animationDelay: `${del}ms` }}
+          >
+            ✦
+          </span>
+        ))}
+      </>
+    );
+  }
+  if (kind === 'diperbaiki') {
+    return (
+      <>
+        <span className="tk-ring" style={{ '--clr': '#f59e0b' }} />
+        {FIX_SPARKS.map(([dx, dy, del], i) => (
+          <span
+            key={`f${i}`}
+            className="tk-spark"
+            style={{ '--dx': `${dx}px`, '--dy': `${dy}px`, animationDelay: `${del}ms` }}
+          >
+            ★
+          </span>
+        ))}
+      </>
+    );
+  }
+  if (kind === 'hilang') {
+    return (
+      <>
+        <span className="tk-ring" style={{ '--clr': '#94a3b8' }} />
+        {GONE_PUFFS.map(([dx, dy, del], i) => (
+          <span
+            key={`g${i}`}
+            className="tk-puff"
+            style={{ '--dx': `${dx}px`, '--dy': `${dy}px`, animationDelay: `${del}ms` }}
+          />
+        ))}
+      </>
+    );
+  }
+  return null;
+}
+
 function StarIcon({ active = false, size = 22 }) {
   // Bintang = warga melaporkan titik SUDAH DIPERBAIKI.
   return (
@@ -322,9 +407,12 @@ export default function DetailModal({ report, onClose, otoritas = null, onReport
   const [voteState, setVoteState] = useState('idle'); // idle | busy | done
   const [voteError, setVoteError] = useState('');
   const [voteCount, setVoteCount] = useState(Number(report.vote_count) || 0);
-  // Animasi like: likeBurst naik tiap dukungan sukses (memicu pop + bintang);
   // hasVoted menandai user sudah mendukung (ikon biru; klik lagi = batalkan).
-  const [likeBurst, setLikeBurst] = useState(0);
+  // Animasi di sekitar tombol: HANYA saat check (menyalakan status).
+  // Saat uncheck tidak ada animasi (kind dikosongkan).
+  const [burst, setBurst] = useState({ kind: '', n: 0 });
+  const fireBurst = (kind) => setBurst((b) => ({ kind, n: b.n + 1 }));
+  const clearBurst = (kind) => setBurst((b) => (b.kind === kind ? { ...b, kind: '' } : b));
   const [hasVoted, setHasVoted] = useState(false);
   // Klaim status lapangan oleh warga (9 Sep 2026): bintang = "sudah
   // diperbaiki", simbol ∅ = "titik sudah tidak ada". Terpisah dari dukungan
@@ -483,7 +571,7 @@ export default function DetailModal({ report, onClose, otoritas = null, onReport
       setVoteCount(Number(updated.vote_count) || voteCount + 1);
       setVoteState('done');
       setHasVoted(true);
-      setLikeBurst((b) => b + 1); // pop jempol + ledakan bintang
+      fireBurst('dukung'); // pop jempol + confetti (hanya saat check)
     } catch (err) {
       // 409 (sudah didukung dari perangkat/IP yang sama) juga dianggap
       // selesai - tombol dikunci agar tidak berulang.
@@ -555,6 +643,11 @@ export default function DetailModal({ report, onClose, otoritas = null, onReport
       const body = await res.json();
       if (body.counts) setClaimCounts(body.counts);
       setMyClaims((m) => ({ ...m, [kind]: !on }));
+      if (on) {
+        clearBurst(kind); // uncheck: tanpa animasi
+      } else {
+        fireBurst(kind); // check: bintang untuk "diperbaiki", asap untuk "hilang"
+      }
       setClaimMsg(
         on
           ? 'Laporan status Anda dibatalkan.'
@@ -591,6 +684,7 @@ export default function DetailModal({ report, onClose, otoritas = null, onReport
       setVoteCount(Number(updated.vote_count) || Math.max(0, voteCount - 1));
       setVoteState('idle');
       setHasVoted(false);
+      clearBurst('dukung'); // uncheck = tanpa animasi
     } catch (err) {
       setVoteState('idle');
       setVoteError(err.message);
@@ -1093,22 +1187,35 @@ export default function DetailModal({ report, onClose, otoritas = null, onReport
                       })}
                   style={pillStyle(p.on, p.onColor, p.onBg, p.busy, otoritas ? false : p.blocked)}
                 >
-                  <p.Icon active={p.on} size={20} />
+                  <span
+                    key={`ic-${p.key}-${burst.kind === p.key ? burst.n : 0}`}
+                    className={
+                      burst.kind === p.key && p.key === 'hilang'
+                        ? 'tk-icon-gone'
+                        : burst.kind === p.key && p.key === 'diperbaiki'
+                          ? 'tk-icon-fix'
+                          : burst.kind === p.key && p.key === 'dukung'
+                            ? 'tk-like-pop tk-like-pop--active'
+                            : ''
+                    }
+                    style={{ display: 'inline-flex' }}
+                  >
+                    <p.Icon active={p.on} size={20} />
+                  </span>
                   <span style={{ fontSize: 13, fontWeight: 600, color: '#334155', whiteSpace: 'nowrap' }}>
                     {p.label}
                   </span>
                   <span style={chipStyle(p.on, p.onColor)}>{p.count} warga</span>
-                  {p.key === 'dukung' &&
-                    likeBurst > 0 &&
-                    LIKE_STARS.map(([dx, dy, del], i) => (
-                      <span
-                        key={i}
-                        className="tk-star"
-                        style={{ '--dx': `${dx}px`, '--dy': `${dy}px`, animationDelay: `${del}ms` }}
-                      >
-                        ✦
-                      </span>
-                    ))}
+                  {burst.kind === p.key && (
+                    <span
+                      key={`burst-${p.key}-${burst.n}`}
+                      className="tk-burst"
+                      data-testid={`burst-${p.key}`}
+                      aria-hidden="true"
+                    >
+                      <BurstBits kind={p.key} />
+                    </span>
+                  )}
                 </Tag>
               ));
             })()}
