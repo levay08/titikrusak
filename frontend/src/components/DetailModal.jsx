@@ -586,7 +586,9 @@ export default function DetailModal({ report, onClose, otoritas = null, onReport
     }
   };
 
-  // Ambil hitungan klaim + status klaim SAYA (untuk tombol checked/uncheck).
+  // Ambil angka klaim + status klaim SAYA + status dukungan SAYA (server
+  // menilai dari IP + sesi web, jadi tombol "Dukung laporan" langsung benar
+  // setelah halaman dimuat ulang - bukan hanya andai-ingatan peramban).
   useEffect(() => {
     let alive = true;
     (async () => {
@@ -599,6 +601,7 @@ export default function DetailModal({ report, onClose, otoritas = null, onReport
         if (Array.isArray(body.mine)) {
           setMyClaims({ diperbaiki: body.mine.includes('diperbaiki'), hilang: body.mine.includes('hilang') });
         }
+        if (typeof body.voted === 'boolean') setHasVoted(body.voted);
       } catch (_e) {
         /* diamkan - tombol tetap bisa dicoba */
       }
@@ -1083,53 +1086,26 @@ export default function DetailModal({ report, onClose, otoritas = null, onReport
           </div>
         )}
 
-        {/* ---- Dukungan warga + status lapangan menurut warga (rapi sejajar) ----
-            Tiga tombol dalam SATU baris dengan tinggi & jarak sama:
-            [👍 Dukungan warga] [★ Sudah diperbaiki] [⊘ Sudah tidak ada].
-            Otoritas tidak bisa menekan apa pun (hanya melihat hitungan). */}
+        {/* ---- Dukungan + status lapangan (satu baris rapi 3 tombol):
+            [👍 Dukung laporan] [★ Sudah diperbaiki] [⊘ Objek tidak ada].
+            Teks tombol pendek, angka dukungan di samping tombol, tanpa kata
+            "warga". Otoritas tidak bisa menekan apa pun (hanya melihat angka). */}
         <div style={{ marginTop: 14, borderTop: '1px solid #e2e8f0', paddingTop: 14 }}>
           <div style={{ fontSize: 13, fontWeight: 600, color: '#334155', marginBottom: 10 }}>
-            Dukungan & status lapangan menurut warga
+            Dukungan & status lapangan
           </div>
-          <div style={{ display: 'flex', alignItems: 'stretch', gap: 8, flexWrap: 'wrap' }}>
+          <div className="tk-support-row">
             {(() => {
-              const pillStyle = (on, onColor, onBg, busy, blocked) => ({
-                position: 'relative',
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 8,
-                flex: '1 1 190px',
-                minWidth: 190,
-                height: 42,
-                padding: '0 14px',
-                boxSizing: 'border-box',
-                borderRadius: 999,
-                border: `2px solid ${blocked ? '#e2e8f0' : on ? onColor : '#cbd5e1'}`,
-                background: blocked ? '#f8fafc' : on ? onBg : '#fff',
-                opacity: blocked ? 0.6 : 1,
-                cursor: otoritas ? 'default' : blocked ? 'not-allowed' : busy ? 'wait' : 'pointer',
-                boxShadow: '0 1px 3px rgba(0,0,0,.12)',
-              });
-              const chipStyle = (on, onColor) => ({
-                fontSize: 11.5,
-                fontWeight: 700,
-                color: on ? onColor : '#64748b',
-                background: on ? '#fff' : '#f1f5f9',
-                borderRadius: 999,
-                padding: '1px 8px',
-                whiteSpace: 'nowrap',
-              });
               const pills = [
                 {
                   key: 'dukung',
                   Icon: ThumbIcon,
-                  label: 'Dukungan warga',
+                  label: 'Dukung laporan',
                   count: voteCount,
                   on: hasVoted,
                   onColor: '#2563eb',
                   onBg: '#dbeafe',
-                  aria: hasVoted ? 'Batalkan dukungan laporan warga' : 'Dukung laporan warga (jempol)',
+                  aria: hasVoted ? 'Batalkan dukungan' : 'Dukung laporan',
                   title: hasVoted ? 'Batalkan dukungan' : 'Dukung laporan ini',
                   onClick: handleVoteClick,
                   busy: voteState === 'busy',
@@ -1145,89 +1121,88 @@ export default function DetailModal({ report, onClose, otoritas = null, onReport
                   aria: myClaims.diperbaiki
                     ? 'Batalkan laporan titik sudah diperbaiki'
                     : 'Laporkan titik sudah diperbaiki',
-                  title: 'Warga melaporkan titik sudah diperbaiki',
+                  title: 'Laporkan titik sudah diperbaiki',
                   onClick: () => toggleClaim('diperbaiki'),
                   busy: claimBusy === 'diperbaiki',
-                  // Saling mengunci dengan status "sudah tidak ada": titik tidak
-                  // mungkin sekaligus sudah diperbaiki DAN sudah tidak ada.
+                  // Saling mengunci dengan status "objek tidak ada": titik tidak
+                  // mungkin sekaligus sudah diperbaiki DAN objeknya tidak ada.
                   blocked: claimCounts.hilang > 0,
-                  blockedTitle: `Tidak bisa dipilih: ${claimCounts.hilang} warga sudah melaporkan titik sudah tidak ada.`,
+                  blockedTitle: 'Tidak bisa dipilih: titik sudah ditandai "objek tidak ada".',
                 },
                 {
                   key: 'hilang',
                   Icon: GoneIcon,
-                  label: 'Sudah tidak ada',
+                  label: 'Objek tidak ada',
                   count: claimCounts.hilang,
                   on: Boolean(myClaims.hilang),
                   onColor: '#475569',
                   onBg: '#f1f5f9',
                   aria: myClaims.hilang
-                    ? 'Batalkan laporan titik sudah tidak ada'
-                    : 'Laporkan titik sudah tidak ada',
-                  title: 'Warga melaporkan titik sudah tidak ada',
+                    ? 'Batalkan laporan objek sudah tidak ada'
+                    : 'Laporkan objek sudah tidak ada',
+                  title: 'Laporkan objek sudah tidak ada',
                   onClick: () => toggleClaim('hilang'),
                   busy: claimBusy === 'hilang',
                   blocked: claimCounts.diperbaiki > 0,
-                  blockedTitle: `Tidak bisa dipilih: ${claimCounts.diperbaiki} warga sudah melaporkan titik sudah diperbaiki.`,
+                  blockedTitle: 'Tidak bisa dipilih: titik sudah ditandai "sudah diperbaiki".',
                 },
               ];
               // Otoritas: tampil sebagai label statis (bukan tombol).
               const Tag = otoritas ? 'span' : 'button';
-              return pills.map((p) => (
-                <Tag
-                  key={p.key}
-                  {...(otoritas
-                    ? { title: p.title }
-                    : {
-                        type: 'button',
-                        'aria-label': p.aria,
-                        title: p.blocked ? p.blockedTitle : p.title,
-                        onClick: p.onClick,
-                        disabled: p.busy || p.blocked,
-                      })}
-                  style={pillStyle(p.on, p.onColor, p.onBg, p.busy, otoritas ? false : p.blocked)}
-                >
-                  <span
-                    key={`ic-${p.key}-${burst.kind === p.key ? burst.n : 0}`}
-                    className={
-                      burst.kind === p.key && p.key === 'hilang'
-                        ? 'tk-icon-gone'
-                        : burst.kind === p.key && p.key === 'diperbaiki'
-                          ? 'tk-icon-fix'
-                          : burst.kind === p.key && p.key === 'dukung'
-                            ? 'tk-like-pop tk-like-pop--active'
-                            : ''
-                    }
-                    style={{ display: 'inline-flex' }}
+              return pills.map((p) => {
+                const blocked = otoritas ? false : Boolean(p.blocked);
+                return (
+                  <Tag
+                    key={p.key}
+                    className={`tk-support-btn${p.on ? ' is-on' : ''}${blocked ? ' is-blocked' : ''}`}
+                    style={p.on ? { '--tk-on': p.onColor, '--tk-on-bg': p.onBg } : undefined}
+                    {...(otoritas
+                      ? { title: p.title }
+                      : {
+                          type: 'button',
+                          'aria-label': p.aria,
+                          title: p.blocked ? p.blockedTitle : p.title,
+                          onClick: p.onClick,
+                          disabled: p.busy || blocked,
+                        })}
                   >
-                    <p.Icon active={p.on} size={20} />
-                  </span>
-                  <span style={{ fontSize: 13, fontWeight: 600, color: '#334155', whiteSpace: 'nowrap' }}>
-                    {p.label}
-                  </span>
-                  <span style={chipStyle(p.on, p.onColor)}>{p.count} warga</span>
-                  {burst.kind === p.key && (
                     <span
-                      key={`burst-${p.key}-${burst.n}`}
-                      className="tk-burst"
-                      data-testid={`burst-${p.key}`}
-                      aria-hidden="true"
+                      key={`ic-${p.key}-${burst.kind === p.key ? burst.n : 0}`}
+                      className={
+                        burst.kind === p.key && p.key === 'hilang'
+                          ? 'tk-icon-gone'
+                          : burst.kind === p.key && p.key === 'diperbaiki'
+                            ? 'tk-icon-fix'
+                            : burst.kind === p.key && p.key === 'dukung'
+                              ? 'tk-like-pop tk-like-pop--active'
+                              : ''
+                      }
+                      style={{ display: 'inline-flex' }}
                     >
-                      <BurstBits kind={p.key} />
+                      <p.Icon active={p.on} size={19} />
                     </span>
-                  )}
-                </Tag>
-              ));
+                    <span className="tk-support-label">{p.label}</span>
+                    <span className="tk-support-count">{p.count}</span>
+                    {burst.kind === p.key && (
+                      <span
+                        key={`burst-${p.key}-${burst.n}`}
+                        className="tk-burst"
+                        data-testid={`burst-${p.key}`}
+                        aria-hidden="true"
+                      >
+                        <BurstBits kind={p.key} />
+                      </span>
+                    )}
+                  </Tag>
+                );
+              });
             })()}
           </div>
-          {!otoritas && (claimCounts.diperbaiki > 0 || claimCounts.hilang > 0) && (
+          {!otoritas && (
             <div style={{ fontSize: 11.5, color: '#64748b', marginTop: 8 }}>
-              Titik hanya bisa berstatus salah satu: sudah diperbaiki atau sudah tidak ada.
-            </div>
-          )}
-          {!otoritas && (hasVoted || myClaims.diperbaiki || myClaims.hilang) && (
-            <div style={{ fontSize: 11.5, color: '#64748b', marginTop: 4 }}>
-              Klik tombol yang menyala untuk membatalkan pilihan Anda.
+              {claimCounts.diperbaiki > 0 || claimCounts.hilang > 0
+                ? 'Pilih salah satu: sudah diperbaiki atau objek tidak ada. Klik tombol menyala untuk membatalkan.'
+                : 'Angka = jumlah dukungan. Satu IP atau satu sesi hanya bisa sekali.'}
             </div>
           )}
           {(voteState === 'busy' || voteState === 'done' || claimMsg) && (

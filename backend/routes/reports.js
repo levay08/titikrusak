@@ -481,58 +481,9 @@ router.patch('/:id/status', (req, res) => {
   res.json(parseVitalStatus(updated));
 });
 
-// POST /api/reports/:id/vote
-// Dukungan warga terhadap laporan (File 1 Bagian 6.3): menambah vote_count
-// dan mencatat baris di tabel votes. Dukungan hanya dapat diberikan oleh
-// warga terverifikasi e.id (voter_is_verified). voter_did diisi identitas
-// tampilan (nama/alias) sebagai pengganti sementara - pencocokan penuh
-// holder_did<->sesi menyusul di langkah berikutnya (sama seperti
-// reporter_display_name pada POST /api/reports).
-// Body: { voter_display_name?, voter_is_verified }
-router.post('/:id/vote', (req, res) => {
-  const id = Number(req.params.id);
-  if (!Number.isInteger(id) || id <= 0) {
-    return res.status(404).json({ error: 'Laporan tidak ditemukan' });
-  }
-  const existing = db.prepare('SELECT id FROM reports WHERE id = ?').get(id);
-  if (!existing) {
-    return res.status(404).json({ error: 'Laporan tidak ditemukan' });
-  }
-
-  const body = req.body || {};
-  if (body.voter_is_verified !== true) {
-    return res.status(403).json({
-      error: 'Dukungan hanya dapat diberikan oleh warga terverifikasi e.id',
-    });
-  }
-  const voterDisplayName =
-    body.voter_display_name !== undefined && body.voter_display_name !== null &&
-    String(body.voter_display_name).trim() !== ''
-      ? String(body.voter_display_name).trim()
-      : null;
-  const voterDid = voterDisplayName || 'anonim';
-
-  try {
-    const tx = db.transaction(() => {
-      db.prepare('INSERT INTO votes (report_id, voter_did) VALUES (?, ?)').run(id, voterDid);
-      db.prepare(
-        'UPDATE reports SET vote_count = vote_count + 1, updated_at = CURRENT_TIMESTAMP WHERE id = ?'
-      ).run(id);
-    });
-    tx();
-  } catch (err) {
-    // UNIQUE(report_id, voter_did): satu identitas hanya boleh mendukung
-    // sekali per laporan.
-    if (err && typeof err.code === 'string' && err.code.includes('SQLITE_CONSTRAINT')) {
-      return res.status(409).json({ error: 'Laporan ini sudah didukung oleh identitas yang sama' });
-    }
-    throw err;
-  }
-
-  const updated = db
-    .prepare(`SELECT ${PUBLIC_SELECT} FROM reports WHERE id = ?`)
-    .get(id);
-  res.status(201).json(parseVitalStatus(updated));
-});
+// POST /api/reports/:id/vote -> DIPINDAH ke routes/guards.js (logika identitas
+// IP + sesi web ada di lib/voteIdentity.js). Handler di sini DULU tidak pernah
+// terpakai (guards.js dipasang lebih dulu di server.js) dan memakai aturan
+// identitas lama, jadi dihapus supaya hanya ada SATU sumber logika dukungan.
 
 module.exports = router;

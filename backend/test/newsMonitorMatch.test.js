@@ -1,13 +1,35 @@
 // backend/test/newsMonitorMatch.test.js
-// Mengunci perbaikan 9 Sep 2026: artikel berita TIDAK boleh menempel ke titik
-// di kabupaten lain hanya karena sama-sama menyebut nama provinsi (mis.
-// "Aceh Utara" vs "Aceh Tengah"). Kasus uji = 16 baris [Update] nyasar yang
-// benar-benar ada di DB produksi + beberapa kasus sah yang harus tetap cocok.
+// Mengunci dua perbaikan "berita nyasar" pada pemantau media:
+//   1) 9 Sep 2026 - artikel tidak boleh menempel ke titik di kabupaten lain
+//      hanya karena sama-sama menyebut nama provinsi (Aceh Utara vs Aceh
+//      Tengah).
+//   2) 11 Sep 2026 - artikel hanya boleh menempel bila judulnya memuat NAMA
+//      TEMPAT yang khas milik titik itu; kemiripan kata umum ("akses",
+//      "jalan utama", "longsor", "dusun") TIDAK cukup. Kasus nyata: berita
+//      Wonogiri (Manyaran) & Nisel menempel ke titik #101 Landak karena kata
+//      "utama" dianggap bukti tempat.
+// Semua kasus uji = baris nyata di DB produksi. `locs` SELALU dihitung dengan
+// detectLocations() seperti pemanggilan asli di runMonitor (bukan null), agar
+// pengujian mengikuti jalur produksi.
 const { test } = require('node:test');
 const assert = require('node:assert');
-const { matchScore, regionConflict, regionOverlap, locContains } = require('../services/newsMonitor.js');
+const {
+  matchScore,
+  regionConflict,
+  regionOverlap,
+  locContains,
+  detectLocations,
+  rowTextOf,
+  parseMediaUpdates,
+  noteKey,
+} = require('../services/newsMonitor.js');
 
 const ROWS = {
+  101: {
+    infra_type: 'jalan', severity: 'ambruk', status: 'dilaporkan',
+    location_name: 'Jalan utama Kecamatan Karangan, Kabupaten Landak, Kalimantan Barat',
+    description: 'Banjir bandang menerjang Kecamatan Karangan, Landak sejak Jumat (9/1/2026) dan menggenangi ruas jalan utama penghubung Landak-Bengkayang menuju PLBN Jagoi Babang dengan arus deras; kendaraan roda dua maupun roda empat tidak dapat melintas sehingga warga menyeberangkan motor memakai rakit kayu.',
+  },
   47: {
     infra_type: 'sekolah', severity: 'berat', status: 'dilaporkan',
     location_name: 'SDN 12 Bintang, Kecamatan Bintang (Aceh Tengah, Aceh)',
@@ -65,8 +87,11 @@ const ROWS = {
   },
 };
 
-// 16 baris [Update] yang NYASAR di produksi (9 Sep 2026) - semuanya harus DITOLAK.
+const score = (id, title) => matchScore(ROWS[id], title, detectLocations(title));
+
+// Baris [Update] yang NYASAR di produksi - semuanya harus DITOLAK.
 const HARUS_TOLAK = [
+  // 9 Sep 2026 (16 baris): kabupaten lain di provinsi yang sama.
   [47, '365 Sekolah Rusak Karena Banjir Mulai Diperbaiki di Aceh Utara, Proses Belajar Direlokasi Sementara - Kompas.com'],
   [47, 'Sekolah Rusak Akibat Banjir, Puluhan Siswa di Aceh Barat Masih Belajar di Tenda Darurat - Kompas.tv'],
   [47, '5 Bulan Pascabanjir, Ratusan Sekolah di Aceh Utara Belum Diperbaiki - Kompas.com'],
@@ -83,20 +108,51 @@ const HARUS_TOLAK = [
   [614, 'Sehari Jembatan Putus, Warga 2 Desa di Pamekasan Kompak Bangun Jembatan Bambu - Kompas.com'],
   [41, 'Pengecekan berkala bangunan sekolah didorong pasca kejadian — Kompas.id'],
   [432, 'Ministry of Health and Youth Community Strengthen Health Facility Recovery in Sumatra'],
+  // 11 Sep 2026: satu-satunya kata yang sama adalah kata umum
+  // ("akses", "jalan", "utama", "longsor") - tempatnya beda provinsi.
+  [101, 'TALUD SEMPAT LONGSOR, AKSES JALAN UTAMA EMPAT DUSUN DI KECAMATAN MANYARAN KINI SUDAH DIPERBAIKI - Pemerintah Kabupaten Wonogiri'],
+  [101, 'Longsor Putus Akses Utama, Bupati Nisel Instruksikan Buka Jalan Darurat - Viral24.co.id'],
+  [101, 'Longsor Putus Akses Utama, Bupati Nisel Instruksikan Buka Jalan Darurat - viral24.co.id'],
+  [101, 'TALUD SEMPAT LONGSOR, AKSES JALAN UTAMA EMPAT DUSUN DI KECAMATAN MANYARAN KINI SUDAH DIPERBAIKI - wonogirikab.go.id'],
+  [101, 'Longsor Putus Akses Jalan Utama di Wonogiri, Empat Dusun Terisolasi - detikJateng'],
 ];
 
-test('SEMUA 16 update nyasar ditolak (tidak menempel ke titik kabupaten lain)', () => {
+test('SEMUA update nyasar ditolak (tidak menempel ke titik kabupaten lain)', () => {
   for (const [id, title] of HARUS_TOLAK) {
-    assert.equal(matchScore(ROWS[id], title, null), null, `#${id} seharusnya TIDAK cocok: ${title}`);
+    assert.equal(score(id, title), null, `#${id} seharusnya TIDAK cocok: ${title}`);
   }
+});
+
+test('#101 Landak: berita Wonogiri/Nisel ditolak walau deskripsi sudah tercemar catatan lama', () => {
+  const kotor = {
+    ...ROWS[101],
+    description: `${ROWS[101].description} [Update 2026-09-11: TALUD SEMPAT LONGSOR, AKSES JALAN UTAMA EMPAT DUSUN DI KECAMATAN MANYARAN KINI SUDAH DIPERBAIKI - Pemerintah Kabupaten Wonogiri] [Update 2026-09-11: Longsor Putus Akses Utama, Bupati Nisel Instruksikan Buka Jalan Darurat - Viral24.co.id]`,
+  };
+  const t = 'Longsor Putus Akses Utama, Bupati Nisel Instruksikan Buka Jalan Darurat - Viral24.co.id';
+  // Catatan lama di deskripsi TIDAK boleh ikut dihitung sebagai isi berita.
+  assert.equal(rowTextOf(kotor).includes('[Update'), false);
+  assert.equal(matchScore(kotor, t, detectLocations(t)), null);
+  // dan tempat yang memang sama tetap diterima (Landak disebut di judul).
+  assert.notEqual(matchScore(ROWS[101], 'Akses Jalan Landak-Bengkayang Putus Lagi Diterjang Banjir - Antara Kalbar', detectLocations('Akses Jalan Landak-Bengkayang Putus Lagi Diterjang Banjir - Antara Kalbar')), null);
 });
 
 test('update dari kabupaten/objek yang SAMA tetap diterima', () => {
   // #434 & #116: artikel menyebut kabupaten yang sama dengan titiknya.
-  assert.notEqual(matchScore(ROWS[434], 'Banjir Rusak Jalan Darurat, Aktivitas Belajar di Aceh Utara Terganggu - Minanews.net', null), null);
-  assert.notEqual(matchScore(ROWS[116], 'Tiga kampung di Aceh Tengah terisolasi karena jembatan darurat rusak — AcehSatu', null), null);
+  assert.notEqual(score(434, 'Banjir Rusak Jalan Darurat, Aktivitas Belajar di Aceh Utara Terganggu - Minanews.net'), null);
+  assert.notEqual(score(116, 'Tiga kampung di Aceh Tengah terisolasi karena jembatan darurat rusak — AcehSatu'), null);
   // #4: lanjutan berita objek yang sama (Pangandaran).
-  assert.notEqual(matchScore(ROWS[4], 'Jembatan di Pangandaran Ambruk Saat Diresmikan, Menteri PU: Harus Bangun Ulang - detikFinance', null), null);
+  assert.notEqual(score(4, 'Jembatan di Pangandaran Ambruk Saat Diresmikan, Menteri PU: Harus Bangun Ulang - detikFinance'), null);
+  // #101: berita lanjutan yang menyebut Landak/Karangan tetap masuk.
+  assert.notEqual(score(101, 'Jalan Penghubung Landak-Bengkayang Mulai Diperbaiki Pascabanjir - Antara News Kalbar'), null);
+  assert.notEqual(score(101, 'Banjir Rendam Kecamatan Karangan, Akses ke PLBN Jagoi Babang Terputus - Tribun Pontianak'), null);
+});
+
+test('data base lokasi: pola "di Kecamatan X" ikut dikenali (dulu terlewat)', () => {
+  const locs = detectLocations('Jalan Penghubung Landak-Bengkayang Mulai Diperbaiki di Kecamatan Karangan, Landak - Antara News Kalbar');
+  assert.ok(locs && locs.some((l) => l.name === 'Karangan'), 'nama kecamatan harus terdeteksi');
+  // judul HURUF BESAR semua tidak boleh menyuntikkan nama tempat palsu.
+  const caps = detectLocations('TALUD SEMPAT LONGSOR, AKSES JALAN UTAMA EMPAT DUSUN DI KECAMATAN MANYARAN KINI SUDAH DIPERBAIKI');
+  assert.ok(!caps || !caps.some((l) => /MANYARAN/i.test(l.name)), 'judul kapital tidak boleh jadi bukti tempat');
 });
 
 test('aturan wilayah: pasangan arah dibandingkan utuh, bukan kata per kata', () => {
@@ -111,9 +167,20 @@ test('aturan wilayah: pasangan arah dibandingkan utuh, bukan kata per kata', () 
   assert.equal(locContains('SDN 12 Bintang, Kecamatan Bintang (Aceh Tengah, Aceh)', 'Aceh Barat'), false);
   assert.equal(locContains('Jembatan Gemboyah, Aceh Tengah, Aceh', 'Aceh Tengah'), false); // dua-duanya kata generik
   assert.equal(regionOverlap('Jembatan Gemboyah, Aceh Tengah, Aceh', 'Aceh Tengah'), true);
-  assert.equal(locContains('Jembatan Gantung Pongpet, Desa Margacinta, Cijulang, Pangandaran (Jawa Barat)', 'Jembatan di Pangandaran Ambruk Saat Diresmikan'), true);
+  assert.equal(locContains('Jembatan Gantung Pongpet, Desa Margacinta, Cijulang, Pangandaran (Jawa Barat)', 'Pangandaran'), true);
   // Jakarta juga dibandingkan berpasangan (Timur vs Selatan = beda wilayah).
   assert.equal(regionConflict('Jalan Basuki Rahmat, Jatinegara, Jakarta Timur', 'Perbaikan Jalan Ambles di Lenteng Agung, Jakarta Selatan Rampung'), true);
   // Nama pulau/kabupaten ("Bangka") BUKAN kata umum - berita sekabupaten tetap sah.
-  assert.equal(locContains('Jembatan Desa Nibung, Kecamatan Koba (perbatasan Bangka Tengah-Bangka Selatan)', 'Catatan BPBD Bangka Tengah: 280 KK Terdampak Banjir, Kecamatan Lubuk Besar Terparah'), true);
+  assert.equal(locContains('Jembatan Desa Nibung, Kecamatan Koba (perbatasan Bangka Tengah-Bangka Selatan)', 'Bangka Tengah'), true);
+  // Kata umum BUKAN bukti tempat (inilah akar kasus #101).
+  assert.equal(locContains('Jalan utama Kecamatan Karangan, Kabupaten Landak, Kalimantan Barat', 'Akses Jalan Utama Empat Dusun di Kecamatan Manyaran'), false);
+});
+
+test('riwayat update: dibaca dari media_updates, bukan lagi dari deskripsi', () => {
+  const raw = JSON.stringify([{ at: '2026-09-11', title: 'Jalan Landak Diperbaiki', source: 'Antara Kalbar', url: 'https://x/1' }]);
+  assert.deepEqual(parseMediaUpdates(raw), [{ at: '2026-09-11', title: 'Jalan Landak Diperbaiki', source: 'Antara Kalbar', url: 'https://x/1' }]);
+  assert.deepEqual(parseMediaUpdates(null), []);
+  assert.deepEqual(parseMediaUpdates('bukan json'), []);
+  // kunci dedupe mengabaikan besar-kecil huruf & tanda baca.
+  assert.equal(noteKey('Longsor Putus Akses - Viral24.co.id'), noteKey('longsor putus akses — viral24.co.id'));
 });

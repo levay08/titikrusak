@@ -47,6 +47,13 @@ echo "==> [3/5] build frontend"
 echo "==> [4/5] migrasi skema DB + laporan media"
 (cd backend && node scripts/migrate-infra-types.js)
 (cd backend && node scripts/migrate-report-columns.js)
+# Identitas dukungan/klaim = IP + sesi web (11 Sep 2026): isi kolom baru,
+# buang duplikat, buat index unik, dan hitung ulang angka di kartu.
+(cd backend && node scripts/migrate-vote-identity.js)
+# Bersihkan riwayat update berita yang terlanjur menempel di deskripsi titik
+# (deskripsi harus tetap laporan aslinya) + buang catatan berita yang tidak
+# relevan. Idempotent: titik yang sudah bersih tidak disentuh.
+(cd backend && node scripts/repair-media-notes.js)
 # SEED HANYA BILA DIMINTA (SEED_MEDIA=1) atau DB media masih kosong.
 # Sejak 10 Sep 2026 deploy TIDAK lagi menyemai otomatis: seed per-deploy
 # pernah membuat titik duplikat (#726-#735) karena entri seed yang URL-nya

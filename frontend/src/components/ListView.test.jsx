@@ -392,7 +392,7 @@ describe('ListView: mode otoritas - pengelompokan prioritas (poin Alur Inti 7)',
   });
 });
 
-describe('ListView: fitur Dukungan warga - TANPA perlu verifikasi e.id', () => {
+describe('ListView: fitur dukungan (tombol "Dukung laporan") - TANPA perlu verifikasi e.id', () => {
   beforeEach(() => {
     localStorage.clear();
   });
@@ -411,7 +411,7 @@ describe('ListView: fitur Dukungan warga - TANPA perlu verifikasi e.id', () => {
     render(<ListView reports={[REPORT]} onResetFilters={vi.fn()} />);
 
     await user.click(screen.getByText('Jalan Berlubang Dalam'));
-    await user.click(screen.getByRole('button', { name: /dukung laporan warga/i }));
+    await user.click(screen.getByRole('button', { name: 'Dukung laporan' }));
 
     await waitFor(() =>
       expect(fetchMock).toHaveBeenCalledWith(
@@ -439,11 +439,11 @@ describe('ListView: fitur Dukungan warga - TANPA perlu verifikasi e.id', () => {
     render(<ListView reports={[REPORT]} onResetFilters={vi.fn()} />);
 
     await user.click(screen.getByText('Jalan Berlubang Dalam'));
-    const support = () => screen.getByRole('button', { name: /dukung laporan warga/i });
+    const support = () => screen.getByRole('button', { name: 'Dukung laporan' });
     await user.click(support());
     await screen.findByText(/Terima kasih! Dukungan Anda tercatat \(3\)\./i);
 
-    await user.click(screen.getByRole('button', { name: /batalkan dukungan laporan warga/i }));
+    await user.click(screen.getByRole('button', { name: 'Batalkan dukungan' }));
     await waitFor(() =>
       expect(fetchMock).toHaveBeenCalledWith(
         '/api/reports/11/vote',
@@ -452,16 +452,16 @@ describe('ListView: fitur Dukungan warga - TANPA perlu verifikasi e.id', () => {
     );
     // Jumlah turun (respons DELETE vote_count=2) & tombol kembali ke dukung.
     await waitFor(() =>
-      expect(screen.getByRole('button', { name: /dukung laporan warga/i })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Dukung laporan' })).toBeInTheDocument()
     );
-    expect(screen.getByText(/Dukungan warga/)).toBeInTheDocument();
+    expect(screen.getByText('Dukung laporan')).toBeInTheDocument();
   });
 
   it('dukungan duplikat (409) menampilkan pesan sudah mendukung', async () => {
     const fetchMock = vi.fn().mockResolvedValue({
       ok: false,
       status: 409,
-      json: async () => ({ error: 'Laporan ini sudah didukung oleh perangkat yang sama' }),
+      json: async () => ({ error: 'Laporan ini sudah didukung dari IP atau sesi ini' }),
     });
     vi.stubGlobal('fetch', fetchMock);
     const user = userEvent.setup();
@@ -469,7 +469,7 @@ describe('ListView: fitur Dukungan warga - TANPA perlu verifikasi e.id', () => {
     render(<ListView reports={[REPORT]} onResetFilters={vi.fn()} />);
 
     await user.click(screen.getByText('Jalan Berlubang Dalam'));
-    await user.click(screen.getByRole('button', { name: /dukung laporan warga/i }));
+    await user.click(screen.getByRole('button', { name: 'Dukung laporan' }));
 
     expect(await screen.findByText(/Laporan ini sudah Anda dukung\./i)).toBeInTheDocument();
   });

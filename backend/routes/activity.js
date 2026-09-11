@@ -10,6 +10,7 @@
 const express = require('express');
 const db = require('../db/db.js');
 const { countUnread, latestAt } = require('../services/notifUnread.js');
+const { parseMediaUpdates } = require('../services/newsMonitor.js');
 
 const router = express.Router();
 
@@ -72,22 +73,27 @@ function buildFeed(limit) {
 
     // 5) Kabar MEDIA: kejadian terakhir tiap titik seed - apa yang DITAMBAH,
     //    DIPERBARUI, atau DIBERITAKAN SUDAH DIPERBAIKI. Diturunkan dari kolom
-    //    yang ada (tidak perlu tabel log baru):
+    //    yang ada:
     //      - media_repair_at  -> kind 'perbaikan'
-    //      - updated != created -> kind 'update' (+ judul berita [Update] terakhir)
+    //      - updated != created -> kind 'update' (+ judul berita update terakhir)
     //      - sisanya          -> kind 'baru'
+    //    Riwayat update dibaca dari kolom media_updates (JSON, sejak 11 Sep
+    //    2026 - tidak lagi ditulis ke deskripsi). Baris lama yang belum
+    //    dimigrasi masih dibaca lewat pola [Update ...] sebagai cadangan.
     //    `is_new_seed` = titik tersentuh cycle monitor TERAKHIR (badge BARU).
     const mediaRows = db
       .prepare(
         `SELECT id AS report_id, location_name, severity, infra_type, status,
                 source_media_name, source_media_date, is_new_seed,
-                created_at, updated_at, media_repair_at, description
+                created_at, updated_at, media_repair_at, media_updates, description
          FROM reports WHERE source_type = 'media'`
       )
       .all();
-    // Catatan [Update] TERAKHIR di deskripsi (judul berita + sumbernya).
+    // Cadangan untuk baris lama: catatan [Update] TERAKHIR di deskripsi.
     const LAST_NOTE_RE = /\[Update (\d{4}-\d{2}-\d{2}): ([^\]]+)\](?![\s\S]*\[Update )/;
     const allMedia = mediaRows.map((r) => {
+      const ups = parseMediaUpdates(r.media_updates);
+      const last = ups.length ? ups[ups.length - 1] : null;
       const m = String(r.description || '').match(LAST_NOTE_RE);
       const updated = String(r.updated_at) !== String(r.created_at);
       // kind: perbaikan > update > baru (hanya bila tersentuh cycle terakhir)
@@ -115,7 +121,11 @@ function buildFeed(limit) {
         source_media_name: r.source_media_name,
         source_media_date: r.source_media_date,
         is_new_seed: r.is_new_seed,
-        note: m ? m[2].trim() : null,
+        note: last
+          ? `${last.title}${last.source ? ` - ${last.source}` : ''}`
+          : m
+            ? m[2].trim()
+            : null,
       };
     });
     // Semua kabar "diberitakan sudah diperbaiki" SELALU tampil (jangan

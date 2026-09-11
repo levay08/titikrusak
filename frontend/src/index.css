@@ -388,6 +388,79 @@ textarea:focus-visible {
   }
 }
 
+/* ---- Tombol dukungan & status lapangan (3 tombol, satu baris rapi) ----
+   Lebar sama (grid 3 kolom), angka dukungan di samping tombol, dan di layar
+   sempit tombol menumpuk penuh (tidak lagi 2+1 seperti flex-wrap dulu). */
+.tk-support-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+.tk-support-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 42px;
+  padding: 0 10px;
+  box-sizing: border-box;
+  border-radius: 999px;
+  border: 2px solid #cbd5e1;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  cursor: pointer;
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+.tk-support-btn:disabled {
+  cursor: not-allowed;
+}
+.tk-support-label {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #334155;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+.tk-support-count {
+  flex: 0 0 auto;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #64748b;
+  background: #f1f5f9;
+  border-radius: 999px;
+  padding: 1px 7px;
+  white-space: nowrap;
+}
+.tk-support-btn.is-on {
+  border-color: var(--tk-on);
+  background: var(--tk-on-bg);
+}
+.tk-support-btn.is-on .tk-support-label {
+  color: var(--tk-on);
+}
+.tk-support-btn.is-on .tk-support-count {
+  color: var(--tk-on);
+  background: #fff;
+}
+.tk-support-btn.is-blocked {
+  opacity: 0.6;
+  border-color: #e2e8f0;
+  background: #f8fafc;
+}
+@media (max-width: 560px) {
+  .tk-support-row {
+    grid-template-columns: 1fr;
+  }
+  .tk-support-btn {
+    justify-content: space-between;
+    padding: 0 14px;
+  }
+}
+
 /* Bar statistik tumbuh dari kiri saat modal statistik dibuka */
 .tk-grow-x {
   transform-origin: left center;

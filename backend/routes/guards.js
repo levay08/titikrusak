@@ -26,6 +26,15 @@
 const express = require('express');
 const { requireSession, verifyCaptcha } = require('../lib/security.js');
 const { guardPhotos } = require('../lib/uploadGuard.js');
+const {
+  voterIdentity,
+  hasVoted,
+  castVote,
+  removeVote,
+  myClaims,
+  claimStatus,
+  unclaimStatus,
+} = require('../lib/voteIdentity.js');
 
 const router = express.Router();
 
@@ -135,25 +144,18 @@ router.patch('/:id/status', requireSession('otoritas'), (req, res) => {
 });
 
 // ---- POST /:id/vote : dukung laporan - TANPA wajib e.id (4 Sep 2026).
-// Identitas voter: sesi e.id bila ada, selain itu IP pengunjung (anti
-// spam: 1 dukungan per perangkat/IP per laporan).
+// Identitas voter (11 Sep 2026): IP + SESI WEB - keduanya penentu. Satu IP
+// atau satu sesi hanya boleh 1 dukungan per laporan; angka vote_count =
+// jumlah baris vote yang sah (tidak pernah dihitung ganda). Logika tunggal
+// ada di lib/voteIdentity.js.
 router.post('/:id/vote', (req, res) => {
   const id = Number(req.params.id);
   if (!Number.isInteger(id) || id <= 0) return res.status(404).json({ error: 'Laporan tidak ditemukan' });
-  const existing = db.prepare('SELECT id, vote_count FROM reports WHERE id = ?').get(id);
+  const existing = db.prepare('SELECT id FROM reports WHERE id = ?').get(id);
   if (!existing) return res.status(404).json({ error: 'Laporan tidak ditemukan' });
 
-  const voterDid = (req.eidSession && req.eidSession.holder_did) || 'ip:' + (req.ip || 'anonim');
-  const dup = db
-    .prepare('SELECT id FROM votes WHERE report_id = ? AND voter_did = ?')
-    .get(id, voterDid);
-  if (dup) return res.status(409).json({ error: 'Anda sudah mendukung laporan ini' });
-
-  db.transaction(() => {
-    db.prepare('INSERT INTO votes (report_id, voter_did) VALUES (?, ?)').run(id, voterDid);
-    db.prepare('UPDATE reports SET vote_count = vote_count + 1, updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(id);
-  })();
-
+  const out = castVote(id, voterIdentity(req, res));
+  if (!out.ok) return res.status(out.code || 409).json({ error: out.error });
   res.status(201).json(getRow(id));
 });
 
@@ -164,51 +166,34 @@ router.delete('/:id/vote', (req, res) => {
   const existing = db.prepare('SELECT id FROM reports WHERE id = ?').get(id);
   if (!existing) return res.status(404).json({ error: 'Laporan tidak ditemukan' });
 
-  const voterDid = (req.eidSession && req.eidSession.holder_did) || 'ip:' + (req.ip || 'anonim');
-  const row = db
-    .prepare('SELECT id FROM votes WHERE report_id = ? AND voter_did = ?')
-    .get(id, voterDid);
-  if (!row) return res.status(404).json({ error: 'Dukungan tidak ditemukan' });
-
-  db.transaction(() => {
-    db.prepare('DELETE FROM votes WHERE id = ?').run(row.id);
-    db.prepare(
-      'UPDATE reports SET vote_count = MAX(0, vote_count - 1), updated_at = CURRENT_TIMESTAMP WHERE id = ?'
-    ).run(id);
-  })();
-
+  const out = removeVote(id, voterIdentity(req, res));
+  if (!out.ok) return res.status(out.code || 404).json({ error: out.error });
   res.json(getRow(id));
 });
 
-// ---- Klaim status lapangan oleh warga (9 Sep 2026) --------------------------
+// ---- Klaim status lapangan oleh pengunjung (9 Sep 2026) ---------------------
 // Dua klaim cepat di samping tombol dukungan:
-//   'diperbaiki' = warga melaporkan titik SUDAH DIPERBAIKI (simbol bintang)
-//   'hilang'     = warga melaporkan titik SUDAH TIDAK ADA (mis. sudah dibongkar)
-// Identitas seperti vote (sesi e.id bila ada, selain itu IP) - satu klaim per
-// identitas per jenis per laporan; klik ulang = batalkan (uncheck). Hitungan
-// disimpan di kolom TERPISAH dari vote_count sehingga update seed media tidak
-// pernah mereset/mengubahnya.
-const CLAIM_KINDS = ['diperbaiki', 'hilang'];
-const claimIdentity = (req) =>
-  (req.eidSession && req.eidSession.holder_did) || 'ip:' + (req.ip || 'anonim');
+//   'diperbaiki' = titik SUDAH DIPERBAIKI (simbol bintang)
+//   'hilang'     = objek SUDAH TIDAK ADA (mis. sudah dibongkar)
+// Identitas sama dengan dukungan (IP + SESI WEB, 11 Sep 2026): satu IP atau
+// satu sesi hanya boleh 1 klaim per jenis per laporan; klik ulang = batalkan
+// (uncheck). Hitungan disimpan di kolom TERPISAH dari vote_count sehingga
+// update seed media tidak pernah mereset/mengubahnya. Logika tunggal ada di
+// lib/voteIdentity.js.
+const claimCounts = require('../lib/voteIdentity.js').claimCounts;
 
-function claimCounts(id) {
-  const r = db.prepare('SELECT claim_fixed_count, claim_gone_count FROM reports WHERE id = ?').get(id) || {};
-  return { diperbaiki: r.claim_fixed_count || 0, hilang: r.claim_gone_count || 0 };
-}
-
-// GET /:id/claims -> { counts, mine } (mine = daftar jenis yang sudah diklaim
-// oleh perangkat/sesi ini, untuk tombol checked + opsi uncheck).
+// GET /:id/claims -> { counts, mine, voted } (mine = jenis yang sudah diklaim
+// IP/sesi ini untuk tombol menyala + opsi uncheck; voted = dukungan sudah
+// diberikan atau belum, supaya tombol "Dukung laporan" langsung benar setelah
+// halaman dimuat ulang).
 router.get('/:id/claims', (req, res) => {
   const id = Number(req.params.id);
   if (!Number.isInteger(id) || id <= 0) return res.status(404).json({ error: 'Laporan tidak ditemukan' });
   if (!db.prepare('SELECT id FROM reports WHERE id = ?').get(id)) {
     return res.status(404).json({ error: 'Laporan tidak ditemukan' });
   }
-  const mine = db
-    .prepare('SELECT kind FROM status_claims WHERE report_id = ? AND claimer_did = ?')
-    .all(id, claimIdentity(req));
-  res.json({ counts: claimCounts(id), mine: mine.map((m) => m.kind) });
+  const idn = voterIdentity(req, res);
+  res.json({ counts: claimCounts(id), mine: myClaims(id, idn), voted: hasVoted(id, idn) });
 });
 
 // POST /:id/claim { kind: 'diperbaiki' | 'hilang' }
@@ -219,34 +204,14 @@ router.post('/:id/claim', (req, res) => {
     return res.status(404).json({ error: 'Laporan tidak ditemukan' });
   }
   const kind = (req.body || {}).kind;
-  if (!CLAIM_KINDS.includes(kind)) {
-    return res.status(400).json({ error: `kind harus salah satu dari: ${CLAIM_KINDS.join(', ')}` });
+  const idn = voterIdentity(req, res);
+  const out = claimStatus(id, kind, idn);
+  if (!out.ok) {
+    return res
+      .status(out.code || 400)
+      .json({ error: out.error, conflict: out.conflict, counts: claimCounts(id) });
   }
-  const did = claimIdentity(req);
-  // Saling mengunci: titik TIDAK mungkin sekaligus "sudah diperbaiki" dan
-  // "sudah tidak ada". Bila status lawannya sudah punya nilai (ada warga yang
-  // melaporkannya), klaim ini ditolak - batalkan dulu klaim lawannya.
-  const other = kind === 'diperbaiki' ? 'hilang' : 'diperbaiki';
-  const otherCount = claimCounts(id)[other];
-  if (otherCount > 0) {
-    const label = other === 'diperbaiki' ? 'sudah diperbaiki' : 'sudah tidak ada';
-    return res.status(409).json({
-      error: `Titik ini sudah ditandai "${label}" oleh ${otherCount} warga. Batalkan dulu supaya bisa memilih status yang lain.`,
-      conflict: other,
-      counts: claimCounts(id),
-    });
-  }
-  const dup = db
-    .prepare('SELECT id FROM status_claims WHERE report_id = ? AND kind = ? AND claimer_did = ?')
-    .get(id, kind, did);
-  if (dup) return res.status(409).json({ error: 'Anda sudah melaporkan status ini untuk titik tersebut' });
-
-  const col = kind === 'diperbaiki' ? 'claim_fixed_count' : 'claim_gone_count';
-  db.transaction(() => {
-    db.prepare('INSERT INTO status_claims (report_id, kind, claimer_did) VALUES (?, ?, ?)').run(id, kind, did);
-    db.prepare(`UPDATE reports SET ${col} = ${col} + 1, updated_at = CURRENT_TIMESTAMP WHERE id = ?`).run(id);
-  })();
-  res.status(201).json({ counts: claimCounts(id), mine: [...new Set([kind])] });
+  res.status(201).json({ counts: claimCounts(id), mine: myClaims(id, idn) });
 });
 
 // DELETE /:id/claim?kind=... -> batalkan klaim (uncheck)
@@ -254,20 +219,10 @@ router.delete('/:id/claim', (req, res) => {
   const id = Number(req.params.id);
   if (!Number.isInteger(id) || id <= 0) return res.status(404).json({ error: 'Laporan tidak ditemukan' });
   const kind = (req.query || {}).kind;
-  if (!CLAIM_KINDS.includes(kind)) {
-    return res.status(400).json({ error: `kind harus salah satu dari: ${CLAIM_KINDS.join(', ')}` });
-  }
-  const did = claimIdentity(req);
-  const row = db
-    .prepare('SELECT id FROM status_claims WHERE report_id = ? AND kind = ? AND claimer_did = ?')
-    .get(id, kind, did);
-  if (!row) return res.status(404).json({ error: 'Klaim tidak ditemukan' });
-  const col = kind === 'diperbaiki' ? 'claim_fixed_count' : 'claim_gone_count';
-  db.transaction(() => {
-    db.prepare('DELETE FROM status_claims WHERE id = ?').run(row.id);
-    db.prepare(`UPDATE reports SET ${col} = MAX(0, ${col} - 1), updated_at = CURRENT_TIMESTAMP WHERE id = ?`).run(id);
-  })();
-  res.json({ counts: claimCounts(id), mine: [] });
+  const idn = voterIdentity(req, res);
+  const out = unclaimStatus(id, kind, idn);
+  if (!out.ok) return res.status(out.code || 400).json({ error: out.error });
+  res.json({ counts: claimCounts(id), mine: myClaims(id, idn) });
 });
 
 // ---- PATCH /:id : edit laporan milik sendiri (pelapor verified) ----

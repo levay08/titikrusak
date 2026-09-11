@@ -130,9 +130,9 @@ describe('AdminView: panel otoritas (organize + verifikasi + tracking status)', 
     expect(screen.getByRole('heading', { name: 'Jembatan Depok' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Tandai Terverifikasi \(Approve\)/ })).toBeInTheDocument();
 
-    // Otoritas TIDAK bisa mendukung laporan: jumlah dukungan warga tampil,
-    // tapi tombol "Dukung" tidak ada.
-    expect(screen.getByText(/Dukungan warga/)).toBeInTheDocument();
+    // Otoritas TIDAK bisa mendukung laporan: angka dukungan tampil,
+    // tapi tombol "Dukung laporan" tidak ada.
+    expect(screen.getByText('Dukungan & status lapangan')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Dukung laporan/ })).not.toBeInTheDocument();
   });
 });

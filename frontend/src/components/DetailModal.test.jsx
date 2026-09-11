@@ -161,15 +161,19 @@ describe('DetailModal: keterangan status "Selesai Diperbaiki" di samping status 
   });
 });
 
-describe('DetailModal: klaim status lapangan warga (bintang = sudah diperbaiki, ∅ = titik hilang)', () => {
-  // Stub fetch: GET /claims mengembalikan hitungan + klaim milik user;
-  // POST/DELETE /claim mengubah hitungan (seperti backend).
-  const mockClaims = ({ counts = { diperbaiki: 2, hilang: 1 }, mine = [] } = {}) => {
-    const state = { counts: { ...counts }, mine: [...mine] };
+describe('DetailModal: klaim status lapangan (bintang = sudah diperbaiki, ∅ = objek tidak ada)', () => {
+  // Stub fetch: GET /claims mengembalikan angka + status milik pengunjung ini
+  // (server menilai dari IP + sesi: `voted` dan `mine`);
+  // POST/DELETE /claim mengubah angka (seperti backend).
+  const mockClaims = ({ counts = { diperbaiki: 2, hilang: 1 }, mine = [], voted = false } = {}) => {
+    const state = { counts: { ...counts }, mine: [...mine], voted };
     const fn = vi.fn((url, init) => {
       const u = String(url);
       if (u.endsWith('/claims')) {
-        return Promise.resolve({ ok: true, json: async () => ({ counts: state.counts, mine: state.mine }) });
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({ counts: state.counts, mine: state.mine, voted: state.voted }),
+        });
       }
       if (u.includes('/claim')) {
         const kind =
@@ -178,6 +182,12 @@ describe('DetailModal: klaim status lapangan warga (bintang = sudah diperbaiki, 
         state.mine = off ? state.mine.filter((k) => k !== kind) : [...new Set([...state.mine, kind])];
         state.counts[kind] = Math.max(0, state.counts[kind] + (off ? -1 : 1));
         return Promise.resolve({ ok: true, json: async () => ({ counts: state.counts, mine: state.mine }) });
+      }
+      if (u.includes('/vote')) {
+        state.voted = !(init && init.method === 'DELETE');
+        const delta = state.voted ? 1 : -1;
+        state.vote_count = Math.max(0, (state.vote_count ?? 0) + delta);
+        return Promise.resolve({ ok: true, json: async () => ({ vote_count: state.vote_count }) });
       }
       return Promise.resolve({ ok: true, json: async () => ({}) });
     });
@@ -189,52 +199,70 @@ describe('DetailModal: klaim status lapangan warga (bintang = sudah diperbaiki, 
     vi.unstubAllGlobals();
   });
 
-  it('tombol berteks ("Sudah diperbaiki" / "Sudah tidak ada") + hitungan warga, tanpa paragraf keterangan', async () => {
+  it('tombol berteks ("Dukung laporan" / "Sudah diperbaiki" / "Objek tidak ada") + angka saja, tanpa kata warga', async () => {
     mockClaims({ counts: { diperbaiki: 2, hilang: 0 }, mine: ['diperbaiki'] });
     render(<DetailModal report={REPORT} onClose={vi.fn()} onReportUpdated={vi.fn()} />);
 
     // Sudah dilaporkan -> tombol jadi mode batalkan (teks tetap tampil).
     const star = await screen.findByRole('button', { name: 'Batalkan laporan titik sudah diperbaiki' });
     expect(within(star).getByText('Sudah diperbaiki')).toBeInTheDocument();
-    expect(within(star).getByText('2 warga')).toBeInTheDocument();
+    expect(within(star).getByText('2')).toBeInTheDocument();
 
-    const gone = screen.getByRole('button', { name: 'Laporkan titik sudah tidak ada' });
-    expect(within(gone).getByText('Sudah tidak ada')).toBeInTheDocument();
-    expect(within(gone).getByText('0 warga')).toBeInTheDocument();
+    const gone = screen.getByRole('button', { name: 'Laporkan objek sudah tidak ada' });
+    expect(within(gone).getByText('Objek tidak ada')).toBeInTheDocument();
+    expect(within(gone).getByText('0')).toBeInTheDocument();
+
+    // Tidak ada lagi kata "warga" di panel dukungan (angka saja).
+    expect(screen.queryByText(/\d+ warga/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/menurut warga/)).not.toBeInTheDocument();
 
     // Paragraf keterangan lama sudah dihapus.
     expect(screen.queryByText(/Satu warga satu laporan per jenis/)).not.toBeInTheDocument();
     expect(screen.queryByText(/tidak berubah oleh pembaruan dari media/)).not.toBeInTheDocument();
   });
 
-  it('saling mengunci: bila "Sudah diperbaiki" sudah bernilai, "Sudah tidak ada" tidak bisa diklik', async () => {
+  it('status "sudah didukung" datang dari SERVER (IP + sesi), bukan dari peramban', async () => {
+    mockClaims({ counts: { diperbaiki: 0, hilang: 0 }, mine: [], voted: false });
+    const { unmount } = render(
+      <DetailModal report={{ ...REPORT, vote_count: 4 }} onClose={vi.fn()} onReportUpdated={vi.fn()} />
+    );
+    // Belum mendukung -> tombol mode dukung.
+    const belum = await screen.findByRole('button', { name: 'Dukung laporan' });
+    expect(within(belum).getByText('4')).toBeInTheDocument();
+    unmount();
+
+    // Server bilang IP/sesi ini sudah mendukung -> tombol menyala (mode batal).
+    mockClaims({ counts: { diperbaiki: 0, hilang: 0 }, mine: [], voted: true });
+    render(<DetailModal report={{ ...REPORT, vote_count: 5 }} onClose={vi.fn()} onReportUpdated={vi.fn()} />);
+    const sudah = await screen.findByRole('button', { name: 'Batalkan dukungan' });
+    expect(within(sudah).getByText('5')).toBeInTheDocument();
+  });
+
+  it('saling mengunci: bila "Sudah diperbaiki" sudah bernilai, "Objek tidak ada" tidak bisa diklik', async () => {
     const fetchMock = mockClaims({ counts: { diperbaiki: 2, hilang: 0 }, mine: [] });
     const user = userEvent.setup();
     render(<DetailModal report={REPORT} onClose={vi.fn()} onReportUpdated={vi.fn()} />);
 
     const perbaikan = await screen.findByRole('button', { name: 'Laporkan titik sudah diperbaiki' });
-    const gone = screen.getByRole('button', { name: 'Laporkan titik sudah tidak ada' });
+    const gone = screen.getByRole('button', { name: 'Laporkan objek sudah tidak ada' });
 
     // Yang sudah bernilai tetap bisa dipakai; yang berlawanan dikunci.
     expect(perbaikan).not.toBeDisabled();
     expect(gone).toBeDisabled();
-    expect(gone).toHaveAttribute(
-      'title',
-      'Tidak bisa dipilih: 2 warga sudah melaporkan titik sudah diperbaiki.'
-    );
+    expect(gone).toHaveAttribute('title', 'Tidak bisa dipilih: titik sudah ditandai "sudah diperbaiki".');
 
     // Diklik pun tidak mengirim permintaan apa pun (tidak ada data silang).
     await user.click(gone);
     expect(
       fetchMock.mock.calls.some(([u, i]) => String(u).includes('/claim') && i && i.method === 'POST')
     ).toBe(false);
-    expect(screen.getByText(/Titik hanya bisa berstatus salah satu/)).toBeInTheDocument();
+    expect(screen.getByText(/Pilih salah satu: sudah diperbaiki atau objek tidak ada/)).toBeInTheDocument();
   });
 
   it('animasi hanya saat CHECK: bintang+kilau untuk "diperbaiki", asap untuk "tidak ada", confetti untuk dukungan', async () => {
     mockClaims({ counts: { diperbaiki: 0, hilang: 0 }, mine: [] });
     const user = userEvent.setup();
-    render(<DetailModal report={REPORT} onClose={vi.fn()} onReportUpdated={vi.fn()} />);
+    render(<DetailModal report={{ ...REPORT, vote_count: 0 }} onClose={vi.fn()} onReportUpdated={vi.fn()} />);
 
     // Belum ada animasi apa pun sebelum diklik.
     expect(screen.queryByTestId('burst-diperbaiki')).not.toBeInTheDocument();
@@ -251,14 +279,14 @@ describe('DetailModal: klaim status lapangan warga (bintang = sudah diperbaiki, 
     await user.click(screen.getByRole('button', { name: 'Batalkan laporan titik sudah diperbaiki' }));
     await waitFor(() => expect(screen.queryByTestId('burst-diperbaiki')).not.toBeInTheDocument());
 
-    // Check "Sudah tidak ada" -> partikel asap (tk-puff), bukan bintang.
-    await user.click(screen.getByRole('button', { name: 'Laporkan titik sudah tidak ada' }));
+    // Check "Objek tidak ada" -> partikel asap (tk-puff), bukan bintang.
+    await user.click(screen.getByRole('button', { name: 'Laporkan objek sudah tidak ada' }));
     const goneBurst = await screen.findByTestId('burst-hilang');
     expect(goneBurst.querySelectorAll('.tk-puff').length).toBeGreaterThan(0);
     expect(goneBurst.querySelectorAll('.tk-spark').length).toBe(0);
 
-    // Dukungan warga -> confetti + bintang jempol.
-    await user.click(screen.getByRole('button', { name: 'Dukung laporan warga (jempol)' }));
+    // Dukungan -> confetti + bintang jempol.
+    await user.click(screen.getByRole('button', { name: 'Dukung laporan' }));
     const voteBurst = await screen.findByTestId('burst-dukung');
     expect(voteBurst.querySelectorAll('.tk-confetti').length).toBeGreaterThan(0);
     expect(voteBurst.querySelectorAll('.tk-star').length).toBeGreaterThan(0);
@@ -269,21 +297,21 @@ describe('DetailModal: klaim status lapangan warga (bintang = sudah diperbaiki, 
     const user = userEvent.setup();
     render(<DetailModal report={REPORT} onClose={vi.fn()} onReportUpdated={vi.fn()} />);
 
-    const gone = await screen.findByRole('button', { name: 'Laporkan titik sudah tidak ada' });
+    const gone = await screen.findByRole('button', { name: 'Laporkan objek sudah tidak ada' });
     expect(gone).toBeDisabled();
 
     await user.click(screen.getByRole('button', { name: 'Batalkan laporan titik sudah diperbaiki' }));
     await waitFor(() =>
-      expect(screen.getByRole('button', { name: 'Laporkan titik sudah tidak ada' })).not.toBeDisabled()
+      expect(screen.getByRole('button', { name: 'Laporkan objek sudah tidak ada' })).not.toBeDisabled()
     );
-    // Sesudah bebas, status "sudah tidak ada" bisa dilaporkan.
-    await user.click(screen.getByRole('button', { name: 'Laporkan titik sudah tidak ada' }));
+    // Sesudah bebas, status "objek tidak ada" bisa dilaporkan.
+    await user.click(screen.getByRole('button', { name: 'Laporkan objek sudah tidak ada' }));
     await waitFor(() =>
-      expect(screen.getByRole('button', { name: 'Batalkan laporan titik sudah tidak ada' })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Batalkan laporan objek sudah tidak ada' })).toBeInTheDocument()
     );
   });
 
-  it('klik bintang -> POST klaim; klik lagi -> DELETE (uncheck), hitungan naik/turun', async () => {
+  it('klik bintang -> POST klaim; klik lagi -> DELETE (uncheck), angka naik/turun', async () => {
     const fetchMock = mockClaims({ counts: { diperbaiki: 0, hilang: 0 }, mine: [] });
     const user = userEvent.setup();
     render(<DetailModal report={REPORT} onClose={vi.fn()} onReportUpdated={vi.fn()} />);
@@ -296,7 +324,7 @@ describe('DetailModal: klaim status lapangan warga (bintang = sudah diperbaiki, 
     expect(JSON.parse(post[1].body)).toEqual({ kind: 'diperbaiki' });
     await waitFor(() =>
       expect(
-        within(screen.getByRole('button', { name: 'Batalkan laporan titik sudah diperbaiki' })).getByText('1 warga')
+        within(screen.getByRole('button', { name: 'Batalkan laporan titik sudah diperbaiki' })).getByText('1')
       ).toBeInTheDocument()
     );
 
@@ -307,12 +335,12 @@ describe('DetailModal: klaim status lapangan warga (bintang = sudah diperbaiki, 
     expect(del).toBeTruthy();
     await waitFor(() =>
       expect(
-        within(screen.getByRole('button', { name: 'Laporkan titik sudah diperbaiki' })).getByText('0 warga')
+        within(screen.getByRole('button', { name: 'Laporkan titik sudah diperbaiki' })).getByText('0')
       ).toBeInTheDocument()
     );
   });
 
-  it('sesi otoritas: melihat hitungan (teks, tanpa tombol klaim)', async () => {
+  it('sesi otoritas: melihat angka (teks, tanpa tombol klaim)', async () => {
     mockClaims({ counts: { diperbaiki: 3, hilang: 2 }, mine: [] });
     render(
       <DetailModal
@@ -324,34 +352,34 @@ describe('DetailModal: klaim status lapangan warga (bintang = sudah diperbaiki, 
     );
 
     // Otoritas: tiga kartu tampil sebagai label statis (bukan tombol),
-    // masing-masing dengan hitungannya sendiri.
-    expect(
-      await screen.findByText('Dukungan & status lapangan menurut warga')
-    ).toBeInTheDocument();
-    const pillPerbaikan = screen.getByTitle('Warga melaporkan titik sudah diperbaiki');
-    const pillHilang = screen.getByTitle('Warga melaporkan titik sudah tidak ada');
-    expect(within(pillPerbaikan).getByText('3 warga')).toBeInTheDocument();
-    expect(within(pillHilang).getByText('2 warga')).toBeInTheDocument();
-    expect(screen.getByText('Dukungan warga')).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /Laporkan titik/ })).not.toBeInTheDocument();
+    // masing-masing dengan angkanya sendiri.
+    expect(await screen.findByText('Dukungan & status lapangan')).toBeInTheDocument();
+    const pillPerbaikan = screen.getByTitle('Laporkan titik sudah diperbaiki');
+    const pillHilang = screen.getByTitle('Laporkan objek sudah tidak ada');
+    expect(within(pillPerbaikan).getByText('3')).toBeInTheDocument();
+    expect(within(pillHilang).getByText('2')).toBeInTheDocument();
+    expect(screen.getByText('Dukung laporan')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Laporkan/ })).not.toBeInTheDocument();
   });
 
-  it('tiga kartu dukungan/status SEJAJAR: satu baris & tinggi seragam', async () => {
+  it('tiga tombol dukungan/status SEJAJAR: satu baris grid, lebar & tinggi seragam', async () => {
     mockClaims({ counts: { diperbaiki: 1, hilang: 0 }, mine: [] });
     render(<DetailModal report={REPORT} onClose={vi.fn()} onReportUpdated={vi.fn()} />);
 
-    const dukung = await screen.findByRole('button', { name: 'Dukung laporan warga (jempol)' });
+    const dukung = await screen.findByRole('button', { name: 'Dukung laporan' });
     const perbaikan = screen.getByRole('button', { name: 'Laporkan titik sudah diperbaiki' });
-    const hilang = screen.getByRole('button', { name: 'Laporkan titik sudah tidak ada' });
+    const hilang = screen.getByRole('button', { name: 'Laporkan objek sudah tidak ada' });
 
-    // Sejajar: ketiganya anak dari baris yang sama (satu flex row).
+    // Sejajar: ketiganya anak dari baris yang sama (satu baris grid 3 kolom).
     expect(perbaikan.parentElement).toBe(dukung.parentElement);
     expect(hilang.parentElement).toBe(dukung.parentElement);
-    expect(dukung.parentElement.style.display).toBe('flex');
-    // Ukuran seragam: tinggi & border-radius identik.
-    const tinggi = new Set([dukung, perbaikan, hilang].map((el) => el.style.height));
-    const radius = new Set([dukung, perbaikan, hilang].map((el) => el.style.borderRadius));
-    expect(tinggi.size).toBe(1);
-    expect(radius.size).toBe(1);
+    expect(dukung.parentElement.className).toContain('tk-support-row');
+    // Lebar sama dibagi rata oleh grid (bukan flex-wrap yang bisa 2+1).
+    expect(dukung.parentElement.style.display).not.toBe('flex');
+    // Ukuran seragam: kelas tombol sama untuk ketiganya.
+    for (const el of [dukung, perbaikan, hilang]) {
+      expect(el.className).toContain('tk-support-btn');
+      expect(within(el).getByText(/^\d+$/)).toBeInTheDocument();
+    }
   });
 });
