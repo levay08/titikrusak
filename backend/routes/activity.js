@@ -96,7 +96,9 @@ function buildFeed(limit) {
       const last = ups.length ? ups[ups.length - 1] : null;
       const m = String(r.description || '').match(LAST_NOTE_RE);
       const updated = String(r.updated_at) !== String(r.created_at);
-      // kind: perbaikan > update > baru (hanya bila tersentuh cycle terakhir)
+      // kind: perbaikan > update (hanya bila ADA judul berita update terakhir -
+      // tanpa judul, "diperbarui" tidak bisa menjelaskan apa yang berubah)
+      // > baru (hanya bila tersentuh cycle terakhir)
       // > tercatat (titik lama yang belum pernah diperbarui - label netral,
       // jangan mengaku "baru").
       let kind = 'tercatat';
@@ -104,7 +106,7 @@ function buildFeed(limit) {
       if (r.media_repair_url || r.media_repair_at) {
         kind = 'perbaikan';
         at = r.media_repair_at || r.updated_at || r.created_at;
-      } else if (updated) {
+      } else if (updated && (last || m)) {
         kind = 'update';
         at = r.updated_at;
       } else if (Number(r.is_new_seed) === 1) {
