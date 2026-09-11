@@ -19,6 +19,7 @@
 // artikel gagal tidak menggagalkan sisanya; tidak pernah throw ke cron.
 
 const db = require('../db/db.js');
+const { refreshUpdateNotes } = require('./updateNotes.js');
 
 // ---- JENDELA SEED MEDIA (10 Sep 2026) ----
 // Aturan produk: titik rusak dari pemberitaan media hanya untuk rentang
@@ -821,6 +822,18 @@ async function runMonitor({ dry = false, log = console.log } = {}) {
     if (again > 0) {
       results.merged += again;
       log(`  ~ duplikat baru dibersihkan: ${again} baris`);
+    }
+  }
+
+  // CATATAN UPDATE titik (11 Sep 2026): setiap titik media punya kalimat jujur
+  // "sudah ada kabar perbaikan atau belum" (services/updateNotes.js). Titik
+  // yang baru dapat update kabar otomatis catatannya dikosongkan. Best-effort:
+  // kegagalan di sini tidak boleh menggagalkan cycle.
+  if (!dry) {
+    try {
+      refreshUpdateNotes({ log });
+    } catch (err) {
+      log(`  (catatan update gagal disegarkan: ${err.message})`);
     }
   }
 

@@ -199,6 +199,12 @@ ensureColumn('reports', 'unverifiable', 'INTEGER NOT NULL DEFAULT 0');
 ensureColumn('reports', 'unverifiable_reason', 'TEXT');
 ensureColumn('reports', 'media_repair_url', 'TEXT');
 ensureColumn('reports', 'media_repair_at', 'TEXT');
+// Catatan update titik + dasar kalimatnya (services/updateNotes.js):
+// menjawab "sudah ada kabar perbaikan atau belum" - wajib untuk titik akibat
+// bencana alam (banjir sudah surut, gempa bisa berbulan-bulan).
+ensureColumn('reports', 'update_note', 'TEXT');
+ensureColumn('reports', 'disaster_type', 'TEXT');
+ensureColumn('reports', 'disaster_at', 'TEXT');
 // Identitas dukungan/klaim: IP + sesi web.
 ensureColumn('votes', 'voter_ip', "TEXT NOT NULL DEFAULT ''");
 ensureColumn('votes', 'voter_session', 'TEXT');

@@ -161,6 +161,30 @@ describe('DetailModal: keterangan status "Selesai Diperbaiki" di samping status 
   });
 });
 
+describe('DetailModal: catatan update (belum ada kabar perbaikan)', () => {
+  it('menampilkan catatan update dari server apa adanya, tanpa paragraf tambahan', () => {
+    render(
+      <DetailModal
+        report={{
+          ...REPORT,
+          update_note: 'Banjir bandang Jan 2026 sudah surut. Belum ada kabar perbaikan titik ini.',
+        }}
+        onClose={vi.fn()}
+        onReportUpdated={vi.fn()}
+      />
+    );
+    expect(screen.getByText('Catatan update')).toBeInTheDocument();
+    expect(
+      screen.getByText('Banjir bandang Jan 2026 sudah surut. Belum ada kabar perbaikan titik ini.')
+    ).toBeInTheDocument();
+  });
+
+  it('tanpa update_note: tidak ada kotak catatan (titik sudah punya kabar)', () => {
+    render(<DetailModal report={REPORT} onClose={vi.fn()} onReportUpdated={vi.fn()} />);
+    expect(screen.queryByText('Catatan update')).not.toBeInTheDocument();
+  });
+});
+
 describe('DetailModal: klaim status lapangan (bintang = sudah diperbaiki, ∅ = objek tidak ada)', () => {
   // Stub fetch: GET /claims mengembalikan angka + status milik pengunjung ini
   // (server menilai dari IP + sesi: `voted` dan `mine`);
@@ -215,6 +239,9 @@ describe('DetailModal: klaim status lapangan (bintang = sudah diperbaiki, ∅ = 
     // Tidak ada lagi kata "warga" di panel dukungan (angka saja).
     expect(screen.queryByText(/\d+ warga/)).not.toBeInTheDocument();
     expect(screen.queryByText(/menurut warga/)).not.toBeInTheDocument();
+    // Keterangan panjang soal hitungan dukungan sudah dihapus.
+    expect(screen.queryByText(/Angka = jumlah dukungan/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Satu IP atau satu sesi/)).not.toBeInTheDocument();
 
     // Paragraf keterangan lama sudah dihapus.
     expect(screen.queryByText(/Satu warga satu laporan per jenis/)).not.toBeInTheDocument();

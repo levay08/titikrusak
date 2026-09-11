@@ -51,7 +51,9 @@ const PUBLIC_COLUMNS = [
   'source_media_date', 'related_earthquake', 'related_weather', 'vote_count',
   'enriched_osm',
  'unverifiable', 'unverifiable_reason', 'media_repair_url', 'media_repair_at',
- ];
+ // Catatan update (11 Sep 2026) - harus sinkron dengan reports.js.
+ 'update_note',
+];
  const PS = PUBLIC_COLUMNS.join(', ');
 
 const db = require('../db/db.js');

@@ -927,6 +927,31 @@ export default function DetailModal({ report, onClose, otoritas = null, onReport
           })()
         )}
 
+        {/* ---- Catatan update (11 Sep 2026): titik yang belum punya kabar
+            perbaikan sama sekali diberi kalimat jujur dari server
+            (services/updateNotes.js). Untuk titik akibat bencana alam ini
+            penting: banjir sudah surut dan perbaikan pascagempa bisa
+            berbulan-bulan, jadi "belum ada kabar" bukan berarti kondisinya
+            masih seperti saat diberitakan. ---- */}
+        {report.update_note && (
+          <div
+            style={{
+              background: '#fffbeb',
+              border: '1px solid #fde68a',
+              color: '#92400e',
+              borderRadius: 8,
+              padding: '10px 12px',
+              fontSize: 12.5,
+              lineHeight: 1.5,
+              marginBottom: 12,
+              textAlign: 'justify',
+            }}
+          >
+            <strong style={{ display: 'block', marginBottom: 3 }}>Catatan update</strong>
+            {report.update_note}
+          </div>
+        )}
+
         <div>
           {FIELD_ORDER.filter(([key]) => report[key] !== undefined).map(([key, label]) => (
             <div
@@ -1198,11 +1223,9 @@ export default function DetailModal({ report, onClose, otoritas = null, onReport
               });
             })()}
           </div>
-          {!otoritas && (
+          {!otoritas && (claimCounts.diperbaiki > 0 || claimCounts.hilang > 0) && (
             <div style={{ fontSize: 11.5, color: '#64748b', marginTop: 8 }}>
-              {claimCounts.diperbaiki > 0 || claimCounts.hilang > 0
-                ? 'Pilih salah satu: sudah diperbaiki atau objek tidak ada. Klik tombol menyala untuk membatalkan.'
-                : 'Angka = jumlah dukungan. Satu IP atau satu sesi hanya bisa sekali.'}
+              Pilih salah satu: sudah diperbaiki atau objek tidak ada. Klik tombol menyala untuk membatalkan.
             </div>
           )}
           {(voteState === 'busy' || voteState === 'done' || claimMsg) && (

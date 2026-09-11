@@ -54,6 +54,10 @@ echo "==> [4/5] migrasi skema DB + laporan media"
 # (deskripsi harus tetap laporan aslinya) + buang catatan berita yang tidak
 # relevan. Idempotent: titik yang sudah bersih tidak disentuh.
 (cd backend && node scripts/repair-media-notes.js)
+# Catatan update titik (11 Sep 2026): segarkan kalimat "sudah ada kabar
+# perbaikan atau belum" untuk semua titik media (bencana alam: banjir sudah
+# surut, perbaikan gempa bisa berbulan-bulan). Idempotent.
+(cd backend && node scripts/annotate-update-notes.js)
 # SEED HANYA BILA DIMINTA (SEED_MEDIA=1) atau DB media masih kosong.
 # Sejak 10 Sep 2026 deploy TIDAK lagi menyemai otomatis: seed per-deploy
 # pernah membuat titik duplikat (#726-#735) karena entri seed yang URL-nya

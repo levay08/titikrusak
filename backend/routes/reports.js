@@ -72,6 +72,9 @@ const PUBLIC_COLUMNS = [
   'unverifiable_reason',
   'media_repair_url',
   'media_repair_at',
+  // Catatan update (11 Sep 2026): kalimat jujur "sudah ada kabar perbaikan
+  // atau belum" - diisi services/updateNotes.js (monitor + deploy).
+  'update_note',
 ];
 
 const PUBLIC_SELECT = PUBLIC_COLUMNS.join(', ');
