@@ -274,6 +274,67 @@ describe('App: alur lapor kerusakan end-to-end', () => {
     expect(await screen.findByTestId('notif-badge')).toHaveTextContent('1');
   });
 
+  it('desktop: kabar media yang masuk setelah menu Notifikasi terakhir dibuka ditandai di barisnya', async () => {
+    localStorage.setItem('tk_notif_seen_at', '2026-09-10 12:00:00');
+    const mediaEvents = [
+      {
+        kind: 'update',
+        at: '2026-09-10 12:30:00',
+        report_id: 91,
+        location_name: 'Jalan Baru Masuk',
+        severity: 'berat',
+        infra_type: 'jalan',
+        status: 'dilaporkan',
+        source_media_name: 'Kompas.com',
+        is_new_seed: 0,
+        note: 'Kabar 12:30',
+      },
+      {
+        kind: 'tercatat',
+        at: '2026-09-10 09:00:00',
+        report_id: 92,
+        location_name: 'Jalan Sudah Dibaca',
+        severity: 'ringan',
+        infra_type: 'jalan',
+        status: 'dilaporkan',
+        source_media_name: 'ANTARA',
+        is_new_seed: 0,
+        note: 'Kabar 09:00',
+      },
+    ];
+    const fetchMock = vi.fn((url) => {
+      const u = String(url);
+      if (u.startsWith('/api/activity/unread')) {
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          json: async () => ({ total: 1, media: 1, activities: 0, comments: 0, latestAt: '2026-09-10 12:30:00' }),
+        });
+      }
+      if (u.startsWith('/api/activity')) {
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          json: async () => ({ activities: [], commentGroups: [], mediaEvents }),
+        });
+      }
+      return Promise.resolve({ ok: true, status: 200, json: async () => [] });
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    const user = userEvent.setup();
+    render(<App />);
+    await user.click(await screen.findByRole('button', { name: /notifikasi/i }));
+
+    // Baris yang lebih baru dari kunjungan terakhir ditandai; yang lebih tua tidak.
+    const baru = (await screen.findByText('Jalan Baru Masuk')).closest('[data-baru]');
+    const lama = screen.getByText('Jalan Sudah Dibaca').closest('[data-baru]');
+    expect(baru).toHaveAttribute('data-baru', '1');
+    expect(lama).toHaveAttribute('data-baru', '0');
+    // Penanda dimajukan ke waktu server supaya kunjungan berikutnya sudah bersih.
+    expect(localStorage.getItem('tk_notif_seen_at')).toBe('2026-09-10 12:30:00');
+  });
+
   it('desktop: menu "Login Otoritas" (gembok) membuka halaman Admin (gate)', async () => {
     const fetchMock = vi.fn(() =>
       Promise.resolve({ ok: true, status: 200, json: async () => [] })

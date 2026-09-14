@@ -360,11 +360,18 @@ export default function App() {
   // dibuka (dipakai badge per-tab), notifUnread = angka berjalan utk lonceng.
   const [notifUnread, setNotifUnread] = useState(NO_UNREAD);
   const [notifBaru, setNotifBaru] = useState(NO_UNREAD);
+  // Penanda "sudah dilihat" SEBELUM menu dibuka kali ini: dasar tanda BARU
+  // (foreground berwarna) pada baris notifikasi - baris yang waktunya lebih
+  // baru dari ini yang ditandai. Dibekukan saat menu dibuka supaya tanda tidak
+  // ikut padam begitu penanda dimajukan, dan tetap berlaku untuk yang masuk
+  // selagi menu terbuka.
+  const [notifSeenAt, setNotifSeenAt] = useState('');
   const notifOpenRef = useRef(notifOpen);
 
   // Buka menu Notifikasi = tandai sudah dilihat (badge lonceng padam), tetapi
   // angka per-tab tetap ditampilkan pada sesi modal itu.
   const openNotif = () => {
+    setNotifSeenAt(readSeen());
     setNotifBaru({
       total: notifUnread.total,
       media: notifUnread.media,
@@ -1768,6 +1775,7 @@ export default function App() {
               onClose={() => setNotifOpen(false)}
               reports={allReports}
               unread={notifBaru}
+              seenAt={notifSeenAt}
               onOpenReport={(r) => {
                 setNotifOpen(false);
                 if (r && r.location_name) setDetailReport(r);

@@ -19,6 +19,7 @@ import { ISLAND_REGIONS, OTHER_ISLAND, detectIsland, detectProvince } from '../l
 import useIsMobile from '../lib/useIsMobile.js';
 import WelcomeModal from './WelcomeModal.jsx';
 import useEscapeClose from '../lib/useEscapeClose.js';
+import { isNewerThan } from '../lib/notifUnread.js';
 
 // ---- Utilitas kecil ----
 
@@ -555,17 +556,26 @@ export function PantauModal({ reports = [], onClose }) {
 }
 
 // ---- Notifikasi (poin 9 + transparansi): TIGA tab (9 Sep 2026) ----
-//   1. "Kabar Media"       : titik dari seed media (monitor berita). Titik yang
-//                            masuk/diperbarui pada CYCLE TERAKHIR diberi tanda
-//                            BARU (is_new_seed) - tanda hilang sendiri saat
-//                            cycle berikutnya berjalan.
+//   1. "Kabar Media"       : titik dari seed media (monitor berita).
 //   2. "Aktivitas Laporan" : laporan MANUAL warga (dengan atau tanpa e.id) +
 //                            verifikasi/perubahan status oleh otoritas. Titik
 //                            hasil seed media TIDAK ikut di sini (dipisah
 //                            berdasarkan sumber laporan).
 //   3. "Komentar"          : ringkasan komentar per titik.
 // Semua baris bisa diklik untuk membuka detail laporan titik tersebut.
-export function NotifikasiModal({ onClose, reports = [], onOpenReport, unread = {} }) {
+//
+// TANDA BARU (14 Sep 2026): baris yang kejadiannya LEBIH BARU dari kunjungan
+// terakhir ke menu Notifikasi (prop seenAt = penanda tk_notif_seen_at sebelum
+// dimajukan) diberi FOREGROUND berwarna + label BARU, tanpa lencana berlatar.
+// Jadi angka badge di tab dan baris yang ditandai selalu sejalan: setiap baris
+// yang dihitung badge pasti ditandai. Kabar kind 'tercatat' (titik lama tanpa
+// perubahan) juga ikut ditandai bila waktunya lebih baru dari kunjungan
+// terakhir, walau badge sengaja tidak menghitungnya.
+// Titik yang tersentuh cycle monitor terakhir (is_new_seed) tetap ditandai
+// walau waktunya lebih tua dari kunjungan terakhir.
+const NEW_FG = '#b45309';
+
+export function NotifikasiModal({ onClose, reports = [], onOpenReport, unread = {}, seenAt = '' }) {
   const [activities, setActivities] = useState(null); // null = memuat
   const [loadError, setLoadError] = useState(false);
   const [tab, setTab] = useState('media'); // 'media' | 'laporan' | 'komentar'
@@ -702,6 +712,7 @@ export function NotifikasiModal({ onClose, reports = [], onOpenReport, unread = 
           error={loadError}
           reports={reports}
           onOpenReport={onOpenReport}
+          seenAt={seenAt}
         />
       )}
       <div style={{ display: tab === 'laporan' ? undefined : 'none' }}>
@@ -719,9 +730,11 @@ export function NotifikasiModal({ onClose, reports = [], onOpenReport, unread = 
           const meta = TYPE_META[a.type] || TYPE_META.report_created;
           const name = actorName(a);
           const severityColor = SEVERITY_COLORS[a.severity] || '#64748b';
+          const isNew = isNewerThan(a.at, seenAt);
           return (
             <div
               key={`${a.type}-${a.report_id}-${a.at}-${i}`}
+              data-baru={isNew ? '1' : '0'}
               style={{
                 display: 'flex',
                 gap: 10,
@@ -756,8 +769,8 @@ export function NotifikasiModal({ onClose, reports = [], onOpenReport, unread = 
                 <div
                   style={{
                     fontSize: 13,
-                    fontWeight: 600,
-                    color: '#334155',
+                    fontWeight: isNew ? 800 : 600,
+                    color: isNew ? NEW_FG : '#334155',
                     marginTop: 2,
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
@@ -774,6 +787,14 @@ export function NotifikasiModal({ onClose, reports = [], onOpenReport, unread = 
                   </div>
                 )}
                 <div style={{ display: 'flex', gap: 5, marginTop: 4, flexWrap: 'wrap' }}>
+                  {isNew && (
+                    <span
+                      data-testid="notif-baru"
+                      style={{ fontSize: 11, fontWeight: 800, color: NEW_FG }}
+                    >
+                      BARU
+                    </span>
+                  )}
                   {a.type === 'report_created' && (
                     <>
                       {/* Pemisah sumber: titik seed media punya tabnya sendiri;
@@ -846,6 +867,7 @@ export function NotifikasiModal({ onClose, reports = [], onOpenReport, unread = 
           error={loadError}
           reports={reports}
           onOpenReport={onOpenReport}
+          seenAt={seenAt}
         />
       )}
     </ModalShell>
@@ -854,17 +876,19 @@ export function NotifikasiModal({ onClose, reports = [], onOpenReport, unread = 
 
 // ---- Kabar MEDIA: feed kejadian dari seed berita - apa yang DITAMBAH
 // (kind 'baru'), DIPERBARUI ('update'), atau DIBERITAKAN SUDAH DIPERBAIKI
-// ('perbaikan'). Titik yang tersentuh cycle monitor terakhir diberi tanda
-// "BARU" (kolom is_new_seed; hilang saat cycle berikutnya jalan).
+// ('perbaikan'). Baris yang BARU (lebih baru dari kunjungan terakhir ke menu,
+// atau tersentuh cycle monitor terakhir) dibedakan lewat FOREGROUND berwarna,
+// bukan latar - jadi tidak ada lagi baris yang terlihat "baru" padahal sudah
+// pernah dibaca.
 // Klik baris -> buka detail laporan titik tersebut. ----
 const MEDIA_KIND = {
-  baru: { label: 'Titik baru dari berita', icon: '🗞', tint: '#fffbeb' },
+  baru: { label: 'Titik baru dari berita', icon: '🗞', tint: '#fff' },
   update: { label: 'Diperbarui dari berita', icon: '🔄', tint: '#fff' },
   perbaikan: { label: 'Diberitakan sudah diperbaiki', icon: '✓', tint: '#f0fdf4' },
   tercatat: { label: 'Tercatat dari berita', icon: '🗞', tint: '#fff' },
 };
 
-function MediaKabarNotif({ items = [], loading, error, reports = [], onOpenReport }) {
+function MediaKabarNotif({ items = [], loading, error, reports = [], onOpenReport, seenAt = '' }) {
   const resolve = (id, extra) =>
     (reports || []).find((r) => Number(r.id) === Number(id)) || { id: Number(id), ...extra };
   if (loading) return <p style={{ margin: 0, fontSize: 13, color: '#64748b' }}>Memuat kabar media…</p>;
@@ -876,17 +900,18 @@ function MediaKabarNotif({ items = [], loading, error, reports = [], onOpenRepor
     <div style={{ display: 'flex', flexDirection: 'column' }}>
       <div style={{ fontSize: 12, color: '#64748b', padding: '0 2px 6px', textAlign: 'justify' }}>
         Titik yang ditambahkan, diperbarui, atau diberitakan sudah diperbaiki
-        oleh pemantauan berita media. Tanda BARU = masuk pada pembaruan terakhir
-        dan akan hilang saat pembaruan berikutnya berjalan.
+        oleh pemantauan berita media. Judul berwarna = kabar baru sejak menu
+        Notifikasi terakhir dibuka.
       </div>
       {items.map((m) => {
         const sev = SEVERITY_COLORS[m.severity] || '#64748b';
-        const isNew = Number(m.is_new_seed) === 1;
+        const isNew = Number(m.is_new_seed) === 1 || isNewerThan(m.at, seenAt);
         const meta = MEDIA_KIND[m.kind] || MEDIA_KIND.baru;
         return (
           <button
             key={`seed-${m.report_id}`}
             type="button"
+            data-baru={isNew ? '1' : '0'}
             onClick={() =>
               onOpenReport &&
               onOpenReport(
@@ -933,8 +958,8 @@ function MediaKabarNotif({ items = [], loading, error, reports = [], onOpenRepor
                 style={{
                   display: 'block',
                   fontSize: 13,
-                  fontWeight: 600,
-                  color: '#1c1917',
+                  fontWeight: isNew ? 800 : 600,
+                  color: isNew ? NEW_FG : '#1c1917',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
                   whiteSpace: 'nowrap',
@@ -964,13 +989,11 @@ function MediaKabarNotif({ items = [], loading, error, reports = [], onOpenRepor
               <span style={{ display: 'flex', gap: 5, marginTop: 4, flexWrap: 'wrap' }}>
                 {isNew && (
                   <span
+                    data-testid="notif-baru"
                     style={{
-                      padding: '2px 8px',
-                      borderRadius: 999,
                       fontSize: 11,
                       fontWeight: 800,
-                      background: '#f59e0b',
-                      color: '#fff',
+                      color: NEW_FG,
                     }}
                   >
                     BARU
@@ -1013,7 +1036,7 @@ function MediaKabarNotif({ items = [], loading, error, reports = [], onOpenRepor
 // Satu titik ramai komentar cukup tampil sekali dengan jumlah komentar yang
 // bertambah; animasi sederhana menandakan ada komentar baru (dari siapa &
 // kapan) sejak muat terakhir. Klik baris = buka detail laporan itu.
-function DiscussionNotif({ groups, loading, error, reports = [], onOpenReport }) {
+function DiscussionNotif({ groups, loading, error, reports = [], onOpenReport, seenAt = '' }) {
   const [flash, setFlash] = useState(null); // report_id yg baru dapat komentar
   const seen = useRef(new Map()); // report_id -> last_id terakhir dilihat
 
@@ -1045,6 +1068,7 @@ function DiscussionNotif({ groups, loading, error, reports = [], onOpenReport })
     <div>
       {groups.map((g) => {
         const isFlash = flash === g.report_id;
+        const isNew = isNewerThan(g.last_at, seenAt);
         const infra = INFRA_LABELS[g.infra_type] || g.infra_type;
         const sev = SEVERITY_COLORS[g.severity] || '#64748b';
         const open = () => {
@@ -1057,6 +1081,7 @@ function DiscussionNotif({ groups, loading, error, reports = [], onOpenReport })
             key={g.report_id}
             role="button"
             tabIndex={0}
+            data-baru={isNew ? '1' : '0'}
             onClick={open}
             onKeyDown={(e) => e.key === 'Enter' && open()}
             style={{
@@ -1072,8 +1097,11 @@ function DiscussionNotif({ groups, loading, error, reports = [], onOpenReport })
             }}
           >
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 13.5, fontWeight: 700, color: '#1c1917' }}>{g.location_name}</div>
+              <div style={{ fontSize: 13.5, fontWeight: 700, color: isNew ? NEW_FG : '#1c1917' }}>{g.location_name}</div>
               <div style={{ display: 'flex', gap: 5, marginTop: 3, flexWrap: 'wrap' }}>
+                {isNew && (
+                  <span data-testid="notif-baru" style={{ fontSize: 10.5, fontWeight: 800, color: NEW_FG }}>BARU</span>
+                )}
                 <span style={{ padding: '1px 7px', borderRadius: 999, fontSize: 10.5, fontWeight: 600, background: '#f1f5f9', color: '#334155' }}>{infra}</span>
                 <span style={{ padding: '1px 7px', borderRadius: 999, fontSize: 10.5, fontWeight: 600, background: `${sev}1a`, color: sev }}>{SEVERITY_LABELS[g.severity] || g.severity}</span>
               </div>

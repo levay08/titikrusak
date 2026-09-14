@@ -8,6 +8,8 @@ import {
   NO_UNREAD,
   badgeText,
   fetchUnread,
+  isNewerThan,
+  normAt,
   readSeen,
   writeSeen,
 } from './notifUnread.js';
@@ -22,7 +24,7 @@ function storeAwal(isi = null) {
   };
 }
 
-describe('notifUnread: penanda sudah dilihat', () => {
+describe('notifUnread: penanda "sudah dilihat"', () => {
   it('belum pernah dibuka -> penanda kosong, badge tidak menyala', () => {
     const s = storeAwal();
     expect(readSeen(s)).toBe('');
@@ -59,6 +61,30 @@ describe('notifUnread: penanda sudah dilihat', () => {
     expect(badgeText(120)).toBe('9+');
     expect(badgeText(0)).toBe('');
     expect(badgeText(undefined)).toBe('');
+  });
+});
+
+describe('notifUnread: tanda baris BARU (foreground)', () => {
+  it('normAt: format DB dan ISO menghasilkan kunci UTC yang sama', () => {
+    expect(normAt('2026-09-10 13:12:10')).toBe('2026-09-10 13:12:10');
+    expect(normAt('2026-09-10T13:12:10.000Z')).toBe('2026-09-10 13:12:10');
+    expect(normAt('')).toBe('');
+    expect(normAt(null)).toBe('');
+    expect(normAt('bukan-tanggal')).toBe('');
+  });
+
+  it('isNewerThan: hanya kejadian setelah kunjungan terakhir yang baru', () => {
+    expect(isNewerThan('2026-09-10 13:00:00', '2026-09-10 12:00:00')).toBe(true);
+    expect(isNewerThan('2026-09-10 12:00:00', '2026-09-10 12:00:00')).toBe(false);
+    expect(isNewerThan('2026-09-10 11:00:00', '2026-09-10 12:00:00')).toBe(false);
+    // Campur format (ISO vs kolom DB) tetap benar.
+    expect(isNewerThan('2026-09-10T13:00:00.000Z', '2026-09-10 12:00:00')).toBe(true);
+    expect(isNewerThan('2026-09-10 13:00:00', '2026-09-10T12:00:00.000Z')).toBe(true);
+  });
+
+  it('penanda kosong (belum pernah buka menu) -> tidak ada yang ditandai baru', () => {
+    expect(isNewerThan('2026-09-10 13:00:00', '')).toBe(false);
+    expect(isNewerThan('', '2026-09-10 12:00:00')).toBe(false);
   });
 });
 

@@ -290,6 +290,43 @@ describe('NotifikasiModal: 3 tab (Kabar Media / Aktivitas Laporan / Komentar)', 
     expect(onOpenReport).toHaveBeenCalledWith(expect.objectContaining({ id: 40 }));
   });
 
+  it('tab Kabar Media: tanda BARU = foreground berwarna pada baris baru saja, tanpa lencana berlatar', async () => {
+    vi.stubGlobal('fetch', vi.fn(() => Promise.resolve({ ok: true, json: async () => ACTIVITY })));
+    // Kunjungan terakhir 5 Sep: #40 (01 Sep, is_new_seed 1) tetap BARU karena
+    // tersentuh cycle monitor terakhir; #12 (30 Agu) sudah lama; #13
+    // 'perbaikan' 8 Sep lebih baru dari kunjungan -> ikut ditandai walau
+    // is_new_seed 0.
+    render(<NotifikasiModal onClose={vi.fn()} seenAt="2026-09-05 00:00:00" />);
+
+    const barisBaru = (await screen.findByText('Jalan Trans Sulawesi Parimo')).closest('[data-baru]');
+    const barisLama = screen.getByText('Jembatan Saka Harang').closest('[data-baru]');
+    const barisPerbaikan = screen.getByText('SDN 12 Bintang').closest('[data-baru]');
+
+    expect(barisBaru).toHaveAttribute('data-baru', '1');
+    expect(barisLama).toHaveAttribute('data-baru', '0');
+    expect(barisPerbaikan).toHaveAttribute('data-baru', '1');
+
+    // Warna hanya pada foreground baris baru.
+    expect(screen.getByText('Jalan Trans Sulawesi Parimo')).toHaveStyle({ color: '#b45309' });
+    expect(screen.getByText('Jembatan Saka Harang')).toHaveStyle({ color: '#1c1917' });
+    // Label BARU ikut berwarna foreground, tanpa background.
+    const label = within(barisBaru).getByTestId('notif-baru');
+    expect(label).toHaveTextContent('BARU');
+    expect(label.style.background).toBe('');
+    expect(within(barisLama).queryByTestId('notif-baru')).not.toBeInTheDocument();
+  });
+
+  it('tab Kabar Media: sebelum pernah membuka menu -> tidak ada baris bertanda, walau ada is_new_seed', async () => {
+    vi.stubGlobal('fetch', vi.fn(() => Promise.resolve({ ok: true, json: async () => ACTIVITY })));
+    render(<NotifikasiModal onClose={vi.fn()} seenAt="" />);
+
+    // is_new_seed = 1 (cycle monitor terakhir) tetap ditandai.
+    expect((await screen.findByText('Jalan Trans Sulawesi Parimo')).closest('[data-baru]')).toHaveAttribute('data-baru', '1');
+    // Yang lain tidak, karena belum ada penanda kunjungan.
+    expect(screen.getByText('SDN 12 Bintang').closest('[data-baru]')).toHaveAttribute('data-baru', '0');
+    expect(screen.getByText('Jembatan Saka Harang').closest('[data-baru]')).toHaveAttribute('data-baru', '0');
+  });
+
   it('tab Aktivitas Laporan: laporan warga + verifikasi otoritas, TANPA titik seed media', async () => {
     vi.stubGlobal('fetch', vi.fn(() => Promise.resolve({ ok: true, json: async () => ACTIVITY })));
     const user = userEvent.setup();
@@ -306,6 +343,22 @@ describe('NotifikasiModal: 3 tab (Kabar Media / Aktivitas Laporan / Komentar)', 
     expect(screen.getAllByText('Jembatan Cibeureum').length).toBeGreaterThanOrEqual(1);
     // Titik hasil seed media tidak boleh ikut di tab ini.
     expect(screen.queryByText('Jalan Trans Sulawesi Parimo')).not.toBeInTheDocument();
+  });
+
+  it('tab Aktivitas Laporan: hanya aktivitas setelah kunjungan terakhir yang ditandai baru', async () => {
+    vi.stubGlobal('fetch', vi.fn(() => Promise.resolve({ ok: true, json: async () => ACTIVITY })));
+    const user = userEvent.setup();
+    // Aktivitas: laporan warga 01 Sep 10:00, verifikasi otoritas 01 Sep 11:00.
+    render(<NotifikasiModal onClose={vi.fn()} seenAt="2026-09-01 10:30:00" />);
+
+    await user.click(screen.getByRole('button', { name: 'Aktivitas Laporan' }));
+
+    const barisBaru = (await screen.findByText('Dinas PU')).closest('[data-baru]');
+    const barisLama = screen.getByText('Warga Garut').closest('[data-baru]');
+    expect(barisBaru).toHaveAttribute('data-baru', '1');
+    expect(barisLama).toHaveAttribute('data-baru', '0');
+    expect(within(barisBaru).getByTestId('notif-baru')).toHaveTextContent('BARU');
+    expect(within(barisLama).queryByTestId('notif-baru')).not.toBeInTheDocument();
   });
 
   it('tab Aktivitas Laporan KOSONG saat belum ada laporan manual warga / aktivitas otoritas', async () => {
@@ -331,6 +384,22 @@ describe('NotifikasiModal: 3 tab (Kabar Media / Aktivitas Laporan / Komentar)', 
     expect(screen.getByRole('button', { name: /Komentar \(1\)/ })).toBeInTheDocument();
     expect(screen.getAllByText('Jembatan Cibeureum').length).toBeGreaterThanOrEqual(1);
     expect(screen.queryByText(/diskusi/i)).not.toBeInTheDocument();
+  });
+
+  it('tab Komentar: titik dengan komentar setelah kunjungan terakhir ditandai baru', async () => {
+    vi.stubGlobal('fetch', vi.fn(() => Promise.resolve({ ok: true, json: async () => ACTIVITY })));
+    const user = userEvent.setup();
+    // Komentar terakhir 01 Sep 12:00 > kunjungan 01 Sep 11:00.
+    render(<NotifikasiModal onClose={vi.fn()} seenAt="2026-09-01 11:00:00" />);
+
+    await user.click(await screen.findByRole('button', { name: /Komentar/ }));
+
+    const baris = screen
+      .getAllByText('Jembatan Cibeureum')
+      .map((el) => el.closest('[data-baru]'))
+      .find((el) => el && el.getAttribute('role') === 'button');
+    expect(baris).toHaveAttribute('data-baru', '1');
+    expect(within(baris).getByTestId('notif-baru')).toHaveTextContent('BARU');
   });
 
   it('gagal memuat -> pesan error, tidak throw', async () => {
