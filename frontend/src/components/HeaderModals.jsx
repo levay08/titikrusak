@@ -566,14 +566,16 @@ export function PantauModal({ reports = [], onClose }) {
 //
 // TANDA BARU (14 Sep 2026): baris yang kejadiannya LEBIH BARU dari kunjungan
 // terakhir ke menu Notifikasi (prop seenAt = penanda tk_notif_seen_at sebelum
-// dimajukan) diberi FOREGROUND berwarna + label BARU, tanpa lencana berlatar.
+// dimajukan) ditandai LATAR KUNING pada barisnya + label BARU. Hanya baris baru
+// yang punya latar; baris lain memakai format seperti semula tanpa latar.
 // Jadi angka badge di tab dan baris yang ditandai selalu sejalan: setiap baris
 // yang dihitung badge pasti ditandai. Kabar kind 'tercatat' (titik lama tanpa
 // perubahan) juga ikut ditandai bila waktunya lebih baru dari kunjungan
 // terakhir, walau badge sengaja tidak menghitungnya.
 // Titik yang tersentuh cycle monitor terakhir (is_new_seed) tetap ditandai
 // walau waktunya lebih tua dari kunjungan terakhir.
-const NEW_FG = '#b45309';
+const NEW_BG = '#fef3c7'; // latar baris notifikasi baru
+const NEW_FG = '#b45309'; // warna teks label BARU pada baris baru
 
 export function NotifikasiModal({ onClose, reports = [], onOpenReport, unread = {}, seenAt = '' }) {
   const [activities, setActivities] = useState(null); // null = memuat
@@ -607,6 +609,8 @@ export function NotifikasiModal({ onClose, reports = [], onOpenReport, unread = 
     };
   }, []);
 
+  // Avatar berwarna seperti semula (latar + huruf); latar BARIS tetap hanya
+  // untuk baris baru (lihat NEW_BG).
   const TYPE_META = {
     report_created: { bg: '#fef9c3', fg: '#854d0e' },
     status_changed: { bg: '#eff6ff', fg: '#2563eb' },
@@ -739,10 +743,13 @@ export function NotifikasiModal({ onClose, reports = [], onOpenReport, unread = 
                 display: 'flex',
                 gap: 10,
                 padding: '10px 2px',
+                // Hanya baris baru yang berlatar; baris lain tanpa latar.
+                background: isNew ? NEW_BG : 'transparent',
                 borderBottom: '1px solid #f1f5f9',
               }}
             >
               <span
+                data-testid="notif-avatar"
                 style={{
                   width: 34,
                   height: 34,
@@ -770,7 +777,7 @@ export function NotifikasiModal({ onClose, reports = [], onOpenReport, unread = 
                   style={{
                     fontSize: 13,
                     fontWeight: isNew ? 800 : 600,
-                    color: isNew ? NEW_FG : '#334155',
+                    color: '#334155',
                     marginTop: 2,
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
@@ -801,6 +808,7 @@ export function NotifikasiModal({ onClose, reports = [], onOpenReport, unread = 
                           laporan manual ditandai e.id terverifikasi atau tidak. */}
                       {a.source_type !== 'media' && (
                         <span
+                          data-testid="notif-chip-sumber"
                           style={{
                             padding: '2px 8px',
                             borderRadius: 999,
@@ -814,6 +822,7 @@ export function NotifikasiModal({ onClose, reports = [], onOpenReport, unread = 
                         </span>
                       )}
                       <span
+                        data-testid="notif-chip-severity"
                         style={{
                           padding: '2px 8px',
                           borderRadius: 999,
@@ -826,6 +835,7 @@ export function NotifikasiModal({ onClose, reports = [], onOpenReport, unread = 
                         {SEVERITY_LABELS[a.severity] || a.severity}
                       </span>
                       <span
+                        data-testid="notif-chip-infra"
                         style={{
                           padding: '2px 8px',
                           borderRadius: 999,
@@ -841,6 +851,7 @@ export function NotifikasiModal({ onClose, reports = [], onOpenReport, unread = 
                   )}
                   {a.type === 'status_changed' && (
                     <span
+                      data-testid="notif-chip-status"
                       style={{
                         padding: '2px 8px',
                         borderRadius: 999,
@@ -877,15 +888,14 @@ export function NotifikasiModal({ onClose, reports = [], onOpenReport, unread = 
 // ---- Kabar MEDIA: feed kejadian dari seed berita - apa yang DITAMBAH
 // (kind 'baru'), DIPERBARUI ('update'), atau DIBERITAKAN SUDAH DIPERBAIKI
 // ('perbaikan'). Baris yang BARU (lebih baru dari kunjungan terakhir ke menu,
-// atau tersentuh cycle monitor terakhir) dibedakan lewat FOREGROUND berwarna,
-// bukan latar - jadi tidak ada lagi baris yang terlihat "baru" padahal sudah
-// pernah dibaca.
+// atau tersentuh cycle monitor terakhir) dibedakan lewat LATAR KUNING baris;
+// baris lain tanpa latar dan memakai format seperti semula.
 // Klik baris -> buka detail laporan titik tersebut. ----
 const MEDIA_KIND = {
-  baru: { label: 'Titik baru dari berita', icon: '🗞', tint: '#fff' },
-  update: { label: 'Diperbarui dari berita', icon: '🔄', tint: '#fff' },
-  perbaikan: { label: 'Diberitakan sudah diperbaiki', icon: '✓', tint: '#f0fdf4' },
-  tercatat: { label: 'Tercatat dari berita', icon: '🗞', tint: '#fff' },
+  baru: { label: 'Titik baru dari berita', icon: '🗞' },
+  update: { label: 'Diperbarui dari berita', icon: '🔄' },
+  perbaikan: { label: 'Diberitakan sudah diperbaiki', icon: '✓' },
+  tercatat: { label: 'Tercatat dari berita', icon: '🗞' },
 };
 
 function MediaKabarNotif({ items = [], loading, error, reports = [], onOpenReport, seenAt = '' }) {
@@ -900,8 +910,8 @@ function MediaKabarNotif({ items = [], loading, error, reports = [], onOpenRepor
     <div style={{ display: 'flex', flexDirection: 'column' }}>
       <div style={{ fontSize: 12, color: '#64748b', padding: '0 2px 6px', textAlign: 'justify' }}>
         Titik yang ditambahkan, diperbarui, atau diberitakan sudah diperbaiki
-        oleh pemantauan berita media. Judul berwarna = kabar baru sejak menu
-        Notifikasi terakhir dibuka.
+        oleh pemantauan berita media. Baris berlatar kuning (tanda BARU) = kabar
+        yang masuk sejak menu Notifikasi terakhir dibuka.
       </div>
       {items.map((m) => {
         const sev = SEVERITY_COLORS[m.severity] || '#64748b';
@@ -929,7 +939,8 @@ function MediaKabarNotif({ items = [], loading, error, reports = [], onOpenRepor
               alignItems: 'flex-start',
               textAlign: 'left',
               width: '100%',
-              background: meta.tint,
+              // Hanya baris baru yang berlatar; baris lain tanpa latar.
+              background: isNew ? NEW_BG : 'transparent',
               border: 'none',
               borderBottom: '1px solid #f1f5f9',
               padding: '10px 2px',
@@ -937,6 +948,7 @@ function MediaKabarNotif({ items = [], loading, error, reports = [], onOpenRepor
             }}
           >
             <span
+              data-testid="notif-ikon"
               style={{
                 width: 34,
                 height: 34,
@@ -959,7 +971,7 @@ function MediaKabarNotif({ items = [], loading, error, reports = [], onOpenRepor
                   display: 'block',
                   fontSize: 13,
                   fontWeight: isNew ? 800 : 600,
-                  color: isNew ? NEW_FG : '#1c1917',
+                  color: '#1c1917',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
                   whiteSpace: 'nowrap',
@@ -1000,6 +1012,7 @@ function MediaKabarNotif({ items = [], loading, error, reports = [], onOpenRepor
                   </span>
                 )}
                 <span
+                  data-testid="notif-chip-severity"
                   style={{
                     padding: '2px 8px',
                     borderRadius: 999,
@@ -1012,6 +1025,7 @@ function MediaKabarNotif({ items = [], loading, error, reports = [], onOpenRepor
                   {SEVERITY_LABELS[m.severity] || m.severity}
                 </span>
                 <span
+                  data-testid="notif-chip-infra"
                   style={{
                     padding: '2px 8px',
                     borderRadius: 999,
@@ -1091,19 +1105,21 @@ function DiscussionNotif({ groups, loading, error, reports = [], onOpenReport, s
               padding: '10px 2px',
               borderBottom: '1px solid #f1f5f9',
               cursor: onOpenReport ? 'pointer' : 'default',
-              background: isFlash ? '#fffbeb' : undefined,
+              // Latar kuning = notifikasi baru (kunjungan terakhir) atau kilatan
+              // sesaat saat komentar baru masuk selagi menu terbuka.
+              background: isFlash ? '#fffbeb' : isNew ? NEW_BG : undefined,
               borderRadius: 8,
               animation: isFlash ? 'tk-pop-row 1.6s ease' : undefined,
             }}
           >
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 13.5, fontWeight: 700, color: isNew ? NEW_FG : '#1c1917' }}>{g.location_name}</div>
+              <div style={{ fontSize: 13.5, fontWeight: 700, color: '#1c1917' }}>{g.location_name}</div>
               <div style={{ display: 'flex', gap: 5, marginTop: 3, flexWrap: 'wrap' }}>
                 {isNew && (
                   <span data-testid="notif-baru" style={{ fontSize: 10.5, fontWeight: 800, color: NEW_FG }}>BARU</span>
                 )}
-                <span style={{ padding: '1px 7px', borderRadius: 999, fontSize: 10.5, fontWeight: 600, background: '#f1f5f9', color: '#334155' }}>{infra}</span>
-                <span style={{ padding: '1px 7px', borderRadius: 999, fontSize: 10.5, fontWeight: 600, background: `${sev}1a`, color: sev }}>{SEVERITY_LABELS[g.severity] || g.severity}</span>
+                <span data-testid="notif-chip-infra" style={{ padding: '1px 7px', borderRadius: 999, fontSize: 10.5, fontWeight: 600, background: '#f1f5f9', color: '#334155' }}>{infra}</span>
+                <span data-testid="notif-chip-severity" style={{ padding: '1px 7px', borderRadius: 999, fontSize: 10.5, fontWeight: 600, background: `${sev}1a`, color: sev }}>{SEVERITY_LABELS[g.severity] || g.severity}</span>
               </div>
               <div style={{ fontSize: 11.5, color: '#64748b', marginTop: 4 }}>
                 Komentar terbaru dari <strong>{g.last_name}</strong> · {formatDateTime(g.last_at)}

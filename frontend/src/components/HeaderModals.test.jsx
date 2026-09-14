@@ -290,13 +290,12 @@ describe('NotifikasiModal: 3 tab (Kabar Media / Aktivitas Laporan / Komentar)', 
     expect(onOpenReport).toHaveBeenCalledWith(expect.objectContaining({ id: 40 }));
   });
 
-  it('tab Kabar Media: tanda BARU = foreground berwarna pada baris baru saja, tanpa lencana berlatar', async () => {
+  it('tab Kabar Media: baris baru berlatar kuning, baris lain tanpa latar', async () => {
     vi.stubGlobal('fetch', vi.fn(() => Promise.resolve({ ok: true, json: async () => ACTIVITY })));
-    // Kunjungan terakhir 5 Sep: #40 (01 Sep, is_new_seed 1) tetap BARU karena
-    // tersentuh cycle monitor terakhir; #12 (30 Agu) sudah lama; #13
-    // 'perbaikan' 8 Sep lebih baru dari kunjungan -> ikut ditandai walau
-    // is_new_seed 0.
-    render(<NotifikasiModal onClose={vi.fn()} seenAt="2026-09-05 00:00:00" />);
+    // Kunjungan terakhir 9 Sep: #40 (01 Sep, is_new_seed 1) tetap BARU karena
+    // tersentuh cycle monitor terakhir; #12 (30 Agu) dan #13 'perbaikan'
+    // (8 Sep) sudah dilihat -> tanpa latar.
+    render(<NotifikasiModal onClose={vi.fn()} seenAt="2026-09-09 00:00:00" />);
 
     const barisBaru = (await screen.findByText('Jalan Trans Sulawesi Parimo')).closest('[data-baru]');
     const barisLama = screen.getByText('Jembatan Saka Harang').closest('[data-baru]');
@@ -304,16 +303,35 @@ describe('NotifikasiModal: 3 tab (Kabar Media / Aktivitas Laporan / Komentar)', 
 
     expect(barisBaru).toHaveAttribute('data-baru', '1');
     expect(barisLama).toHaveAttribute('data-baru', '0');
-    expect(barisPerbaikan).toHaveAttribute('data-baru', '1');
+    expect(barisPerbaikan).toHaveAttribute('data-baru', '0');
 
-    // Warna hanya pada foreground baris baru.
-    expect(screen.getByText('Jalan Trans Sulawesi Parimo')).toHaveStyle({ color: '#b45309' });
-    expect(screen.getByText('Jembatan Saka Harang')).toHaveStyle({ color: '#1c1917' });
-    // Label BARU ikut berwarna foreground, tanpa background.
+    // Hanya baris baru yang punya LATAR; baris lain transparan.
+    expect(barisBaru).toHaveStyle({ background: '#fef3c7' });
+    expect(barisPerbaikan).toHaveStyle({ background: 'transparent' });
+    expect(barisLama).toHaveStyle({ background: 'transparent' });
+
+    // Label BARU hanya di baris baru.
     const label = within(barisBaru).getByTestId('notif-baru');
     expect(label).toHaveTextContent('BARU');
-    expect(label.style.background).toBe('');
     expect(within(barisLama).queryByTestId('notif-baru')).not.toBeInTheDocument();
+    expect(within(barisPerbaikan).queryByTestId('notif-baru')).not.toBeInTheDocument();
+
+    // Format lama tidak diubah: ikon + chip severity tetap berwarna.
+    expect(within(barisLama).getByTestId('notif-ikon')).toHaveStyle({ color: '#ef4444' });
+    expect(within(barisLama).getByTestId('notif-chip-severity')).toHaveStyle({ color: '#ef4444' });
+    expect(within(barisLama).getByTestId('notif-chip-infra')).toHaveStyle({ color: '#334155' });
+  });
+
+  it('tab Kabar Media: kabar lebih baru dari kunjungan terakhir ikut berlatar walau is_new_seed 0', async () => {
+    vi.stubGlobal('fetch', vi.fn(() => Promise.resolve({ ok: true, json: async () => ACTIVITY })));
+    // Kunjungan terakhir 5 Sep: 'perbaikan' #13 (8 Sep 14:03) lebih baru.
+    render(<NotifikasiModal onClose={vi.fn()} seenAt="2026-09-05 00:00:00" />);
+
+    const barisPerbaikan = (await screen.findByText('SDN 12 Bintang')).closest('[data-baru]');
+    expect(barisPerbaikan).toHaveAttribute('data-baru', '1');
+    expect(barisPerbaikan).toHaveStyle({ background: '#fef3c7' });
+    // #12 (30 Agu) tetap lama.
+    expect(screen.getByText('Jembatan Saka Harang').closest('[data-baru]')).toHaveAttribute('data-baru', '0');
   });
 
   it('tab Kabar Media: sebelum pernah membuka menu -> tidak ada baris bertanda, walau ada is_new_seed', async () => {
@@ -359,6 +377,17 @@ describe('NotifikasiModal: 3 tab (Kabar Media / Aktivitas Laporan / Komentar)', 
     expect(barisLama).toHaveAttribute('data-baru', '0');
     expect(within(barisBaru).getByTestId('notif-baru')).toHaveTextContent('BARU');
     expect(within(barisLama).queryByTestId('notif-baru')).not.toBeInTheDocument();
+
+    // Latar kuning hanya di baris baru; format lama (avatar + chip berwarna)
+    // tetap dipertahankan.
+    expect(barisBaru).toHaveStyle({ background: '#fef3c7' });
+    expect(barisLama).toHaveStyle({ background: 'transparent' });
+    expect(within(barisBaru).getByTestId('notif-avatar')).toHaveStyle({ color: '#2563eb' });
+    expect(within(barisLama).getByTestId('notif-avatar')).toHaveStyle({ color: '#854d0e' });
+    expect(within(barisLama).getByTestId('notif-chip-sumber')).toHaveStyle({ color: '#2563eb' });
+    expect(within(barisLama).getByTestId('notif-chip-severity')).toHaveStyle({ color: '#ef4444' });
+    expect(within(barisLama).getByTestId('notif-chip-infra')).toHaveStyle({ color: '#334155' });
+    expect(within(barisBaru).getByTestId('notif-chip-status')).toHaveStyle({ color: '#3b82f6' });
   });
 
   it('tab Aktivitas Laporan KOSONG saat belum ada laporan manual warga / aktivitas otoritas', async () => {
@@ -400,6 +429,36 @@ describe('NotifikasiModal: 3 tab (Kabar Media / Aktivitas Laporan / Komentar)', 
       .find((el) => el && el.getAttribute('role') === 'button');
     expect(baris).toHaveAttribute('data-baru', '1');
     expect(within(baris).getByTestId('notif-baru')).toHaveTextContent('BARU');
+    // Baris baru berlatar kuning; format chip lama tetap berwarna.
+    expect(baris).toHaveStyle({ background: '#fef3c7' });
+    expect(within(baris).getByTestId('notif-chip-severity')).toHaveStyle({ color: '#ef4444' });
+    expect(within(baris).getByTestId('notif-chip-infra')).toHaveStyle({ color: '#334155' });
+  });
+
+  it('menu Notifikasi: hanya baris baru yang punya latar, di ketiga tab', async () => {
+    vi.stubGlobal('fetch', vi.fn(() => Promise.resolve({ ok: true, json: async () => ACTIVITY })));
+    const user = userEvent.setup();
+    // Latar kuning (#fef3c7) hanya boleh ada pada baris data-baru="1".
+    const cekLatar = () => {
+      const barisBerlatar = Array.from(document.querySelectorAll('[data-baru="1"]'));
+      const berwarna = Array.from(document.querySelectorAll('[style*="rgb(254, 243, 199)"]'));
+      expect(berwarna.length).toBe(barisBerlatar.length);
+      for (const b of berwarna) {
+        expect(b.getAttribute('data-baru')).toBe('1');
+      }
+    };
+
+    render(<NotifikasiModal onClose={vi.fn()} seenAt="2026-09-05 00:00:00" />);
+    await screen.findByText('Jalan Trans Sulawesi Parimo');
+    cekLatar();
+
+    await user.click(screen.getByRole('button', { name: 'Aktivitas Laporan' }));
+    await screen.findByText('Warga Garut');
+    cekLatar();
+
+    await user.click(screen.getByRole('button', { name: /Komentar/ }));
+    await screen.findByText(/Komentar terbaru dari/);
+    cekLatar();
   });
 
   it('gagal memuat -> pesan error, tidak throw', async () => {
