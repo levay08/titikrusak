@@ -10,6 +10,7 @@
 const express = require('express');
 const db = require('../db/db.js');
 const { countUnread, latestAt } = require('../services/notifUnread.js');
+const { orderMediaEvents, orderCommentGroups } = require('../services/notifFeed.js');
 const { parseMediaUpdates } = require('../services/newsMonitor.js');
 
 const router = express.Router();
@@ -69,7 +70,9 @@ function buildFeed(limit) {
         g.count++;
       }
     }
-    const commentGroups = [...groupMap.values()].slice(0, 40);
+    // Ringkasan per titik diurutkan menurut komentar TERBARU tiap titik
+    // (bukan jumlah komentar) - notifikasi paling baru selalu di atas.
+    const commentGroups = orderCommentGroups([...groupMap.values()]);
 
     // 5) Kabar MEDIA: kejadian terakhir tiap titik seed - apa yang DITAMBAH,
     //    DIPERBARUI, atau DIBERITAKAN SUDAH DIPERBAIKI. Diturunkan dari kolom
@@ -85,7 +88,8 @@ function buildFeed(limit) {
       .prepare(
         `SELECT id AS report_id, location_name, severity, infra_type, status,
                 source_media_name, source_media_date, is_new_seed,
-                created_at, updated_at, media_repair_at, media_updates, description
+                created_at, updated_at, media_repair_at, media_repair_url,
+                media_updates, description
          FROM reports WHERE source_type = 'media'`
       )
       .all();
@@ -130,13 +134,10 @@ function buildFeed(limit) {
             : null,
       };
     });
-    // Semua kabar "diberitakan sudah diperbaiki" SELALU tampil (jangan
-    // terpotong batas 60 karena tanggalnya tua), sisanya urut terbaru.
-    const byAtDesc = (a, b) => String(b.at).localeCompare(String(a.at));
-    const mediaEvents = [
-      ...allMedia.filter((e) => e.kind === 'perbaikan').sort(byAtDesc),
-      ...allMedia.filter((e) => e.kind !== 'perbaikan').sort(byAtDesc).slice(0, 60),
-    ];
+    // URUTAN: waktu kejadian TERBARU di atas (menu ini daftar notifikasi,
+    // jadi kronologis - kabar 'perbaikan' ikut turun ke posisi waktunya).
+    // Kabar 'perbaikan' tetap selalu tampil walau tanggalnya tua.
+    const mediaEvents = orderMediaEvents(allMedia);
 
     // Tab "Aktivitas Laporan": HANYA laporan manual warga (source_type bukan
     // 'media') + perubahan status oleh otoritas e.id. Vote dukungan tidak

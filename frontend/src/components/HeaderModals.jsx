@@ -910,8 +910,9 @@ function MediaKabarNotif({ items = [], loading, error, reports = [], onOpenRepor
     <div style={{ display: 'flex', flexDirection: 'column' }}>
       <div style={{ fontSize: 12, color: '#64748b', padding: '0 2px 6px', textAlign: 'justify' }}>
         Titik yang ditambahkan, diperbarui, atau diberitakan sudah diperbaiki
-        oleh pemantauan berita media. Baris berlatar kuning (tanda BARU) = kabar
-        yang masuk sejak menu Notifikasi terakhir dibuka.
+        oleh pemantauan berita media. Urut dari kabar terbaru. Baris berlatar
+        kuning (tanda BARU) = kabar yang masuk sejak menu Notifikasi terakhir
+        dibuka.
       </div>
       {items.map((m) => {
         const sev = SEVERITY_COLORS[m.severity] || '#64748b';

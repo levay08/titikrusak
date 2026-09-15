@@ -322,6 +322,100 @@ describe('NotifikasiModal: 3 tab (Kabar Media / Aktivitas Laporan / Komentar)', 
     expect(within(barisLama).getByTestId('notif-chip-infra')).toHaveStyle({ color: '#334155' });
   });
 
+  it('tab Kabar Media: urut dari kabar TERBARU, kabar perbaikan tua tidak dipaksa di atas', async () => {
+    // Server mengirim urut kronologis terbaru dulu (services/notifFeed.js).
+    // Kabar 'perbaikan' tanggalnya paling tua -> wajib render paling BAWAH.
+    const TERURUT = {
+      activities: [],
+      commentGroups: [],
+      mediaEvents: [
+        {
+          kind: 'update',
+          at: '2026-09-15 04:25:15',
+          report_id: 450,
+          location_name: 'Sabo dam Jorong Duo Koto',
+          severity: 'berat',
+          infra_type: 'bendungan',
+          is_new_seed: 1,
+        },
+        {
+          kind: 'tercatat',
+          at: '2026-09-02 07:01:26',
+          report_id: 101,
+          location_name: 'Jalan utama Karangan',
+          severity: 'ringan',
+          infra_type: 'jalan',
+          is_new_seed: 0,
+        },
+        {
+          kind: 'perbaikan',
+          at: '2026-01-12T00:00:00.000Z',
+          report_id: 504,
+          location_name: 'Jembatan Desa Nibung',
+          severity: 'berat',
+          infra_type: 'jembatan',
+          is_new_seed: 0,
+        },
+      ],
+    };
+    vi.stubGlobal('fetch', vi.fn(() => Promise.resolve({ ok: true, json: async () => TERURUT })));
+    const { container } = render(<NotifikasiModal onClose={vi.fn()} seenAt="2026-09-10 00:00:00" />);
+
+    await screen.findByText('Sabo dam Jorong Duo Koto');
+    // Baris tab Kabar Media = <button> bertanda data-baru.
+    const baris = [...container.querySelectorAll('button[data-baru]')].map((b) => b.textContent);
+
+    expect(baris).toHaveLength(3);
+    expect(baris[0]).toContain('Sabo dam Jorong Duo Koto');
+    expect(baris[1]).toContain('Jalan utama Karangan');
+    expect(baris[2]).toContain('Jembatan Desa Nibung'); // perbaikan tua di bawah
+    // Baris teratas = notifikasi baru: berlatar kuning + label BARU + waktu kabar.
+    const atas = container.querySelectorAll('button[data-baru]')[0];
+    expect(atas).toHaveAttribute('data-baru', '1');
+    expect(atas).toHaveStyle({ background: '#fef3c7' });
+    expect(within(atas).getByTestId('notif-baru')).toHaveTextContent('BARU');
+    expect(baris[0]).toContain('15 Sep 2026');
+  });
+
+  it('tab Komentar: ringkasan terurut dari komentar terbaru, bukan dari jumlah komentar', async () => {
+    const KOMENTAR = {
+      activities: [],
+      mediaEvents: [],
+      commentGroups: [
+        {
+          report_id: 9,
+          location_name: 'Jembatan Rantau Limau',
+          infra_type: 'jembatan',
+          severity: 'ambruk',
+          count: 2,
+          last_name: 'Warga',
+          last_at: '2026-09-14 09:00:00',
+        },
+        {
+          report_id: 4,
+          location_name: 'Jalan Pusuk Sembalun',
+          infra_type: 'jalan',
+          severity: 'berat',
+          count: 12,
+          last_name: 'Warga',
+          last_at: '2026-09-01 09:00:00',
+        },
+      ],
+    };
+    vi.stubGlobal('fetch', vi.fn(() => Promise.resolve({ ok: true, json: async () => KOMENTAR })));
+    const user = userEvent.setup();
+    const { container } = render(<NotifikasiModal onClose={vi.fn()} seenAt="2026-09-10 00:00:00" />);
+
+    await screen.findByText('Belum ada kabar dari seed media.'); // tunggu data termuat
+    await user.click(screen.getByRole('button', { name: /^Komentar/ }));
+
+    const baris = [...container.querySelectorAll('div[role="button"][data-baru]')].map((b) => b.textContent);
+    expect(baris).toHaveLength(2);
+    expect(baris[0]).toContain('Jembatan Rantau Limau'); // 2 komentar tapi terbaru
+    expect(baris[0]).toContain('BARU');
+    expect(baris[1]).toContain('Jalan Pusuk Sembalun');
+  });
+
   it('tab Kabar Media: kabar lebih baru dari kunjungan terakhir ikut berlatar walau is_new_seed 0', async () => {
     vi.stubGlobal('fetch', vi.fn(() => Promise.resolve({ ok: true, json: async () => ACTIVITY })));
     // Kunjungan terakhir 5 Sep: 'perbaikan' #13 (8 Sep 14:03) lebih baru.
